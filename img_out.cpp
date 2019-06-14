@@ -35,7 +35,7 @@ void write_image( std::string fn, std::vector< std::vector<double> > data ){
     for(unsigned int jj=0; jj<data[ii].size(); jj++){
       //scale
       int u_scaled = static_cast<int>((data[ii][jj] - min)/(max - min)*255);
-      out << u_scaled << " ";
+      out << 255-u_scaled << " ";
     }
     out << std::endl;
   }  

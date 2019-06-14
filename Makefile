@@ -1,6 +1,6 @@
 BINARY=projection
 CXX=g++
-CXXFLAGS = -g3 -Wall
+CXXFLAGS = -O3 -Wall
 DEPS = img_out.hpp auxiliary.hpp
 
 LDFLAGS=

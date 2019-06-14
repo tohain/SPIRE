@@ -1,5 +1,7 @@
 #include "img_out.hpp"
 
+#include <sstream>
+#include <iomanip>
 #include <cmath>
 
 double dot_prod ( std::vector<double> v, std::vector<double> w ){
@@ -25,7 +27,7 @@ std::vector<double> dot_prod( Matrix m, std::vector<double> v ){
 
 
 
-std::vector<std::vector<double> > set_up_points( double slice_width, double slice_height, double L, double res, double theta, double phi ){
+void set_up_points( double slice_width, double slice_height, double L, double res, double theta, double phi,  std::vector<std::vector<double> > &points ){
   
   //vectors of slice
   std::vector<double> nx = {1, 0, 0};
@@ -46,16 +48,10 @@ std::vector<std::vector<double> > set_up_points( double slice_width, double slic
   nx = dot_prod( Rz, dot_prod( Rx, nx));
   ny = dot_prod( Rz, dot_prod( Rx, ny));
   nz = dot_prod( Rz, dot_prod( Rx, nz));  
-
-  std::cout << nx[0] << " " << nx[1] << " " << nx[2] << std::endl;
-  std::cout << ny[0] << " " << ny[1] << " " << ny[2] << std::endl;
-  std::cout << nz[0] << " " << nz[1] << " " << nz[2] << std::endl;  
   
   //get number of points
-  unsigned int n_points = int(L/res)+1;
+  unsigned int n_points = int(L/res);
   unsigned int n_points_z = int(slice_width/res);
-
-    std::vector<std::vector<double> > points ( n_points*n_points*n_points_z, std::vector<double> (3, 0) );
 
   for(unsigned int ii=0; ii<n_points; ii++){
     for(unsigned int jj=0; jj<n_points; jj++){
@@ -73,8 +69,6 @@ std::vector<std::vector<double> > set_up_points( double slice_width, double slic
       }
     }
   }
-
-  return points;
   
 }
 
@@ -86,9 +80,7 @@ double level_set_gyroid( double x, double y, double z, double a) {
 }
 
 
-std::vector<int> set_grid ( std::string type, double d, double a, std::vector<std::vector<double> > &points ){
-
-  std::vector<int> grid ( points.size(), 0 );
+void set_grid ( std::string type, double d, double a, std::vector<std::vector<double> > &points, std::vector<int> &grid ){
   
   for( unsigned int ii=0; ii<points.size(); ii++ ){
     
@@ -99,14 +91,10 @@ std::vector<int> set_grid ( std::string type, double d, double a, std::vector<st
 
   }
 
-  return grid;
-
 }
 
-std::vector< std::vector<double> > get_projection (unsigned int n_points, unsigned int n_points_z, std::vector<int> &grid ){
-
-  std::vector< std::vector<double> > projection (n_points, std::vector<double> (n_points, 0) );
-  
+void get_projection (unsigned int n_points, unsigned int n_points_z, std::vector<int> &grid, std::vector< std::vector<double> > &projection ){
+   
   for(unsigned int ii=0; ii<n_points; ii++){
     for(unsigned int jj=0; jj<n_points; jj++){
       for(unsigned int kk=0; kk<n_points_z; kk++){
@@ -121,42 +109,87 @@ std::vector< std::vector<double> > get_projection (unsigned int n_points, unsign
     }
   }
 
-  return projection;
 }
 
+template <class T>
+void set_to_zero( std::vector< std::vector<T> > &data ){
+  for(int i=0; i<data.size(); i++){
+    for(int j=0; j<data[i].size(); j++){
+      data[i][j]=0;
+    }
+  }
+}
+
+
+template <class T>
+void set_to_zero( std::vector<T> &data ){
+  for(int j=0; j<data.size(); j++){
+    data[j]=0;    
+  }
+}
 
 int main( int argc, char* argv[] ){
 
 
   //set up parameters
   double L = 10;
-  double res = .05;
+  double res = .02;
 
   //slice dimension
-  double slice_width = 3;
+  double slice_width = 1;
   double slice_height = 1;
+
+  //membrane thickness
+  double mem_width = 0.5;
+  //gyroid unit cell length
+  double a = 0.1;
   
   //slice orientation
-  double theta = 0;
-  double phi = 0;
+  double theta = 0.25*M_PI;
+  double phi = 0*M_PI;
 
 
   //get number of points
-  unsigned int n_points = int(L/res)+1;
+  unsigned int n_points = int(L/res);
   unsigned int n_points_z = int(slice_width/res);
+
+  //array holding coordinates of the points
+  std::vector<std::vector<double> > points ( n_points*n_points*n_points_z, std::vector<double> (3, 0) );
+
+  std::vector<int> grid ( points.size(), 0 );
+
+  //2d projection
+  std::vector< std::vector<double> > projection (n_points, std::vector<double> (n_points, 0) );
   
-  //get the points in the slice
-  std::vector<std::vector<double> > points = set_up_points( slice_width, slice_height, L, res, theta, phi );
+  int slices = 50;
+  double min=0,max=L;
 
-  //get grid
-  auto grid = set_grid( "test", 0.3, .1, points );
-
-
-  //get projection
-  auto projection = get_projection( n_points, n_points_z, grid );
+  double step = (max-min)/(double)slices;
   
-  //write image
-  write_image( "img.pgm", projection );
+  for(int ii=0; ii<slices; ii++){
+
+    std::cout << 100*ii/(float)slices << "\%\r" << std::flush;
+
+    slice_height = step*ii;
+    
+    //get the points in the slice    
+    set_up_points( slice_width, slice_height, L, res, theta, phi, points );
+
+    //reset grid
+    set_to_zero(grid);
+    //get grid
+    set_grid( "test", mem_width, a, points, grid );
+
+    //get projection
+    set_to_zero(projection);
+    get_projection( n_points, n_points_z, grid, projection );
+  
+    //write image
+    std::stringstream fn ("img_");
+    fn << "img_" << std::setfill('0') << std::setw(3) << ii << ".pgm";
+    write_image( fn.str(), projection );
+
+  }
   
   return EXIT_SUCCESS;
 }
