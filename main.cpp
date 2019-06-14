@@ -79,12 +79,24 @@ double level_set_gyroid( double x, double y, double z, double a) {
   return sin(s*x)*cos(s*y) + sin(s*y)*cos(s*z) + cos(s*x)*sin(s*z);
 }
 
+double level_set_diamond( double x, double y, double z, double a) {
+  double s = 1./(2*M_PI*a);
+  return cos(s*x)*cos(s*y)*cos(s*z) - sin(s*x)*sin(s*y)*sin(s*z);
+}
+
 
 void set_grid ( std::string type, double d, double a, std::vector<std::vector<double> > &points, std::vector<int> &grid ){
   
   for( unsigned int ii=0; ii<points.size(); ii++ ){
-    
-    double level = level_set_gyroid( points[ii][0], points[ii][1], points[ii][2], a );
+
+    double level = 0;
+    if( type == "gyroid" ){
+      level = level_set_gyroid( points[ii][0], points[ii][1], points[ii][2], a );
+    } else if( type == "diamond" ){
+      level = level_set_diamond( points[ii][0], points[ii][1], points[ii][2], a );
+    }
+
+
     if( level < d && level > -d ){
       grid[ii] = 1;
     }
@@ -113,8 +125,8 @@ void get_projection (unsigned int n_points, unsigned int n_points_z, std::vector
 
 template <class T>
 void set_to_zero( std::vector< std::vector<T> > &data ){
-  for(int i=0; i<data.size(); i++){
-    for(int j=0; j<data[i].size(); j++){
+  for(unsigned int i=0; i<data.size(); i++){
+    for(unsigned int j=0; j<data[i].size(); j++){
       data[i][j]=0;
     }
   }
@@ -123,7 +135,7 @@ void set_to_zero( std::vector< std::vector<T> > &data ){
 
 template <class T>
 void set_to_zero( std::vector<T> &data ){
-  for(int j=0; j<data.size(); j++){
+  for(unsigned int j=0; j<data.size(); j++){
     data[j]=0;    
   }
 }
@@ -178,7 +190,7 @@ int main( int argc, char* argv[] ){
     //reset grid
     set_to_zero(grid);
     //get grid
-    set_grid( "test", mem_width, a, points, grid );
+    set_grid( "diamond", mem_width, a, points, grid );
 
     //get projection
     set_to_zero(projection);
