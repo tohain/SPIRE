@@ -1,23 +1,18 @@
+#include "surface_projection.hpp"
+
+
+// eport as pgm image
 #include "img_out.hpp"
 
-#include <sstream>
-#include <iomanip>
-#include <cmath>
 
-double dot_prod ( std::vector<double> v, std::vector<double> w ){
+
+double surface_projection::dot_prod ( std::vector<double> v, std::vector<double> w ){
   return v[0]*w[0]+v[1]*w[1]+v[2]*w[2];
 }
 
 
-struct Matrix {
-  std::vector<double> v;
-  std::vector<double> w;
-  std::vector<double> z;  
-};
 
-
-
-std::vector<double> dot_prod( Matrix m, std::vector<double> v ){
+std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> v ){
   std::vector<double> r (3, 0);
   r[0] = dot_prod( m.v, v);
   r[1] = dot_prod( m.w, v);
@@ -26,8 +21,46 @@ std::vector<double> dot_prod( Matrix m, std::vector<double> v ){
 }
 
 
+surface_projection::surface_projection(){
 
-void set_up_points( double slice_width, double slice_height, double L, double res, double theta, double phi,  std::vector<std::vector<double> > &points ){
+  //initialize the arrays  
+  points.resize( n_points_x * n_points_y * n_points_z * 3, 0 );
+  memset( points.data(), 0, sizeof(double) * points.size() );
+
+  /// Array holding the color (electron density) of the voxels
+  grid.resize( n_points_x * n_points_y * n_points_z, 0 );
+  memset( grid.data(), 0, sizeof(int) * grid.size() );
+
+  /// The 2D projection
+  projection.resize( n_points_x * n_points_y, 0 );
+  memset( projection.data(), 0, sizeof(double) * projection.size());
+}
+
+surface_projection::~surface_projection(){
+
+}
+
+
+
+
+double surface_projection::level_set_gyroid( double x, double y, double z, double a) {
+  double s = 1./(2*M_PI*a);
+  return sin(s*x)*cos(s*y) + sin(s*y)*cos(s*z) + cos(s*x)*sin(s*z);
+}
+
+double surface_projection::level_set_diamond( double x, double y, double z, double a) {
+  double s = 1./(2*M_PI*a);
+  return cos(s*x)*cos(s*y)*cos(s*z) - sin(s*x)*sin(s*y)*sin(s*z);
+}
+
+double surface_projection::level_set_primitive( double x, double y, double z, double a) {
+  double s = 1./(2*M_PI*a);
+  return cos(s*x)+cos(s*y)+cos(s*z);
+}
+
+
+
+void surface_projection::set_up_points(){
   
   //vectors of slice
   std::vector<double> nx = {1, 0, 0};
@@ -49,23 +82,23 @@ void set_up_points( double slice_width, double slice_height, double L, double re
   ny = dot_prod( Rz, dot_prod( Rx, ny));
   nz = dot_prod( Rz, dot_prod( Rx, nz));  
   
-  //get number of points
-  unsigned int n_points = int(L/res);
-  unsigned int n_points_z = int(slice_width/res);
+  //a single loop would be nicer, but i find this less confusing  
+  for(unsigned int ii=0; ii<n_points_y; ii++){ //height, the row index (vertical)
+    for(unsigned int jj=0; jj<n_points_x; jj++){ //width, the column index! (horizontal)
+      for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
 
-  for(unsigned int ii=0; ii<n_points; ii++){
-    for(unsigned int jj=0; jj<n_points; jj++){
-      for(unsigned int kk=0; kk<n_points_z; kk++){
-        
-	int ind=ii*(n_points*n_points_z) + jj*n_points_z + kk;
-	
-	double x=((ii*res)-L/2.)*nx[0] + ((jj*res)-L/2.)*ny[0] + ((kk*res)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width;
-	double y=((ii*res)-L/2.)*nx[1] + ((jj*res)-L/2.)*ny[1] + ((kk*res)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width;
-	double z=((ii*res)-L/2.)*nx[2] + ((jj*res)-L/2.)*ny[2] + ((kk*res)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width;
-	  
-	points[ind][0]=x;
-	points[ind][1]=y;
-	points[ind][2]=z;
+	//the total index of that particle in the array
+	int ind=ii*(n_points_x*n_points_z) + jj*n_points_z + kk; 
+
+	//compute the position of this voxel
+	double x=((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width*nz[0];
+	double y=((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width*nz[1];
+	double z=((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width*nz[2];
+
+	//assign the position
+	points[3*ind]=x;
+	points[(3*ind)+1]=y;
+	points[(3*ind)+2]=z;
       }
     }
   }
@@ -73,48 +106,39 @@ void set_up_points( double slice_width, double slice_height, double L, double re
 }
 
 
-
-double level_set_gyroid( double x, double y, double z, double a) {
-  double s = 1./(2*M_PI*a);
-  return sin(s*x)*cos(s*y) + sin(s*y)*cos(s*z) + cos(s*x)*sin(s*z);
-}
-
-double level_set_diamond( double x, double y, double z, double a) {
-  double s = 1./(2*M_PI*a);
-  return cos(s*x)*cos(s*y)*cos(s*z) - sin(s*x)*sin(s*y)*sin(s*z);
-}
-
-
-void set_grid ( std::string type, double d, double a, std::vector<std::vector<double> > &points, std::vector<int> &grid ){
+void surface_projection::set_grid (std::string type, double d ){
   
-  for( unsigned int ii=0; ii<points.size(); ii++ ){
+  for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
     double level = 0;
     if( type == "gyroid" ){
-      level = level_set_gyroid( points[ii][0], points[ii][1], points[ii][2], a );
+      level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], a );
     } else if( type == "diamond" ){
-      level = level_set_diamond( points[ii][0], points[ii][1], points[ii][2], a );
+      level = level_set_diamond( points[ii], points[ii+1], points[ii+2], a );
+    } else if( type == "primitive" ){
+      level = level_set_primitive( points[ii], points[ii+1], points[ii+2], a );
     }
-
-
+    
     if( level < d && level > -d ){
-      grid[ii] = 1;
+      grid[int(ii/3)] = 1;
     }
 
   }
 
 }
 
-void get_projection (unsigned int n_points, unsigned int n_points_z, std::vector<int> &grid, std::vector< std::vector<double> > &projection ){
-   
-  for(unsigned int ii=0; ii<n_points; ii++){
-    for(unsigned int jj=0; jj<n_points; jj++){
+
+void surface_projection::project_grid (){
+
+
+  for(unsigned int ii=0; ii<n_points_y; ii++){ //y direcion=height (vertical)
+    for(unsigned int jj=0; jj<n_points_x; jj++){//x direction=width (horizontal)
       for(unsigned int kk=0; kk<n_points_z; kk++){
         
-	int ind=ii*(n_points*n_points_z) + jj*n_points_z + kk;
+	int ind = ii *( n_points_x * n_points_z ) + jj * n_points_z + kk;
 
 	if(grid[ind] == 1){
-	  projection[ii][jj] += 1;
+	  projection[(ii*n_points_x)+jj] += 1;
 	}
 	
       }
@@ -124,7 +148,7 @@ void get_projection (unsigned int n_points, unsigned int n_points_z, std::vector
 }
 
 template <class T>
-void set_to_zero( std::vector< std::vector<T> > &data ){
+void surface_projection::set_to_zero( std::vector< std::vector<T> > &data ){
   for(unsigned int i=0; i<data.size(); i++){
     for(unsigned int j=0; j<data[i].size(); j++){
       data[i][j]=0;
@@ -134,74 +158,69 @@ void set_to_zero( std::vector< std::vector<T> > &data ){
 
 
 template <class T>
-void set_to_zero( std::vector<T> &data ){
+void surface_projection::set_to_zero( std::vector<T> &data ){
   for(unsigned int j=0; j<data.size(); j++){
     data[j]=0;    
   }
 }
 
-int doit( int argc, char* argv[] ){
+void surface_projection::compute_projection( ){
 
 
-  //set up parameters
-  double L = 10;
-  double res = .02;
-
-  //slice dimension
-  double slice_width = 1;
-  double slice_height = 1;
-
-  //membrane thickness
-  double mem_width = 0.5;
-  //gyroid unit cell length
-  double a = 0.1;
-  
-  //slice orientation
-  double theta = 0.25*M_PI;
-  double phi = 0*M_PI;
-
-
-  //get number of points
-  unsigned int n_points = int(L/res);
-  unsigned int n_points_z = int(slice_width/res);
-
-  //array holding coordinates of the points
-  std::vector<std::vector<double> > points ( n_points*n_points*n_points_z, std::vector<double> (3, 0) );
-
-  std::vector<int> grid ( points.size(), 0 );
-
-  //2d projection
-  std::vector< std::vector<double> > projection (n_points, std::vector<double> (n_points, 0) );
-  
-  int slices = 50;
-  double min=0,max=L;
-
-  double step = (max-min)/(double)slices;
-  
-  for(int ii=0; ii<slices; ii++){
-
-    std::cout << 100*ii/(float)slices << "\%\r" << std::flush;
-
-    slice_height = step*ii;
-    
     //get the points in the slice    
-    set_up_points( slice_width, slice_height, L, res, theta, phi, points );
-
+    set_up_points();
+    
     //reset grid
-    set_to_zero(grid);
+    memset( grid.data(), 0, sizeof(int) * grid.size() );
+
     //get grid
-    set_grid( "diamond", mem_width, a, points, grid );
-
+    set_grid( "primitive", 0.2 );
+    
     //get projection
-    set_to_zero(projection);
-    get_projection( n_points, n_points_z, grid, projection );
-  
+    memset( projection.data(), 0, sizeof(double) * projection.size() );
+    project_grid();
+    
     //write image
-    std::stringstream fn ("img_");
-    fn << "img_" << std::setfill('0') << std::setw(3) << ii << ".pgm";
-    write_image( fn.str(), projection );
-
-  }
+    write_image( "img.pgm", projection, n_points_x, n_points_y );
   
-  return EXIT_SUCCESS;
 }
+
+
+unsigned char* surface_projection::get_image(){
+
+  //new image array
+  unsigned char* img = (unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
+  
+  //find max value
+  double max= *std::max_element( projection.begin(), projection.end() );
+  double min= *std::min_element( projection.begin(), projection.end() );
+
+  
+  //write image data
+  for(unsigned int ii=0; ii<projection.size(); ii++){
+      //scale
+      int u_scaled = static_cast<int>((projection[ii] - min)/(max - min)*255);
+      //write in array
+      img[ii] = u_scaled;
+  }  
+
+  return img;  
+}
+
+
+double* surface_projection::get_projection(){
+  return projection.data();
+}
+
+int surface_projection::get_width(){
+  return n_points_x;
+}
+
+int surface_projection::get_height(){
+  return n_points_y;
+}
+
+int surface_projection::get_depth(){
+  return n_points_z;
+}
+

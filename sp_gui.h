@@ -21,7 +21,6 @@
 #include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/frame.h>
-#include <wx/wx.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -35,16 +34,18 @@ class sp_gui : public wxFrame
 	protected:
 		wxStaticBitmap* m_bitmap1;
 		wxButton* button_compute;
+		wxButton* button_repaint;
 		wxButton* button_close;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void compute( wxCommandEvent& event ) = 0;
+		virtual void repaint( wxCommandEvent& event ) = 0;
 		virtual void close_app( wxCommandEvent& event ) = 0;
 
 
 	public:
 
-		sp_gui( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Surface Projection GUI"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		sp_gui( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Surface Projection GUI"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~sp_gui();
 

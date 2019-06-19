@@ -2,18 +2,11 @@
 
 
 
-void write_image( std::string fn, std::vector< std::vector<double> > data ){
+void write_image( std::string fn, std::vector<double> data, int width, int height ){
 
   //find max value
-  double max=std::numeric_limits<double>::min(),min=std::numeric_limits<double>::max();
-  for(unsigned int ii=0; ii<data.size(); ii++){
-    for(unsigned int jj=0; jj<data[ii].size(); jj++){
-      if( data[ii][jj] > max )
-	max = data[ii][jj];
-      if( data[ii][jj] < min )
-	min = data[ii][jj];
-    }
-  }
+  double max = *std::max_element( data.begin(), data.end() );
+  double min = *std::min_element( data.begin(), data.end() );
 
   //open filestream
   std::ofstream out ( fn );
@@ -22,22 +15,27 @@ void write_image( std::string fn, std::vector< std::vector<double> > data ){
   out << "P2";
 
   //width
-  out << " " << data[0].size();
+  out << " " << width;
 
   //height
-  out << " " << data.size();
+  out << " " << height;
 
   //max value
   out << " " << 255 << std::endl;
 
   //write image data
-  for(unsigned int ii=0; ii<data.size(); ii++){
-    for(unsigned int jj=0; jj<data[ii].size(); jj++){
+  for(unsigned int ii=0; ii<height; ii++){ //rows  = height (vertical)
+    for(unsigned int jj=0; jj<width; jj++){ //cols = width  (horizontal)
+
+      int ind = ii*width + jj;
+      
+      //std::cout << data.at(ind) << " ";
       //scale
-      int u_scaled = static_cast<int>((data[ii][jj] - min)/(max - min)*255);
+      int u_scaled = static_cast<int>((data[ind] - min)/(max - min)*255);
       out << 255-u_scaled << " ";
     }
     out << std::endl;
+    //std::cout << std::endl;
   }  
 
   out.close();
