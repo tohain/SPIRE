@@ -189,9 +189,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText6->Wrap( -1 );
 	hkl->Add( m_staticText6, 0, wxALL, 5 );
 
-	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 10, 1 );
-	h_ctl->Enable( false );
-
+	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 1 );
 	hkl->Add( h_ctl, 0, wxALL, 5 );
 
 
@@ -201,9 +199,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText7->Wrap( -1 );
 	hkl->Add( m_staticText7, 0, wxALL, 5 );
 
-	k_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 10, 0 );
-	k_ctl->Enable( false );
-
+	k_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 0 );
 	hkl->Add( k_ctl, 0, wxALL, 5 );
 
 
@@ -213,9 +209,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText81->Wrap( -1 );
 	hkl->Add( m_staticText81, 0, wxALL, 5 );
 
-	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 10, 0 );
-	l_ctl->Enable( false );
-
+	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 0 );
 	hkl->Add( l_ctl, 0, wxALL, 5 );
 
 

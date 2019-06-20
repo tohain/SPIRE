@@ -20,7 +20,8 @@ sp_gui( parent )
   type_ctl->SetSelection( 0 );
 
   update_parameters();
-
+  update_orientation_from_hkl();
+  
   compute_and_draw();
 }
 
@@ -86,17 +87,20 @@ void sp_gui_imp::phi_change( wxSpinDoubleEvent& event )
 
 void sp_gui_imp::h_change( wxSpinEvent& event )
 {
-// TODO: Implement h_change
+  update_orientation_from_hkl();
+  compute_and_draw();  
 }
 
 void sp_gui_imp::k_change( wxSpinEvent& event )
 {
-// TODO: Implement k_change
+  update_orientation_from_hkl();
+  compute_and_draw();  
 }
 
 void sp_gui_imp::l_change( wxSpinEvent& event )
 {
-// TODO: Implement l_change
+  update_orientation_from_hkl();
+  compute_and_draw();
 }
 
 void sp_gui_imp::slicewidth_change( wxSpinDoubleEvent& event )
@@ -142,7 +146,25 @@ void sp_gui_imp::button_quit( wxCommandEvent& event )
   Close( true );
 }
 
+void sp_gui_imp::update_orientation_from_hkl(){
+  //get indeces
+  int h = h_ctl->GetValue();
+  int k = k_ctl->GetValue();
+  int l = l_ctl->GetValue();  
 
+  //check for valid orientation
+  if( h > 0 || k > 0 || l > 0 ){
+    //convert indeces to angles
+    sp->set_orientation_from_hkl( h, k, l );
+
+    //update gui
+    theta_ctl->SetValue( sp->get_theta() );
+    phi_ctl->SetValue( sp->get_phi() );
+  } else {
+    wxMessageBox( wxT("Invalid orientation. At least one indeces must be > 0"), wxT("Error"), wxICON_INFORMATION);
+    h_ctl->SetValue(1);
+  }
+}
 
 void sp_gui_imp::compute_and_draw(){
 

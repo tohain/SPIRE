@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <cstring>
+#include <cstdio>
 
   /// Quick and dirty 3x3 Matrix object, consisting of 3 rows
 struct Matrix {
@@ -41,6 +42,13 @@ public:
   int get_width() const;
   int get_height() const;
   int get_depth() const;
+  int get_h() const;
+  int get_k() const;
+  int get_l() const;
+  double get_theta() const;
+  double get_phi() const;  
+
+  void set_orientation_from_hkl( int h, int k, int l );
   
   const std::vector<std::string> get_surface_choices();
   
@@ -60,6 +68,9 @@ public:
   void set_n_points_y( int val );
   void set_n_points_z( int val );
 
+  void set_h( int val );
+  void set_k( int val );
+  void set_l( int val );  
     
 private:
 
@@ -68,6 +79,12 @@ private:
 
   /// Quick and dirty 3x3 matric by vector multiplication
   std::vector<double> dot_prod( Matrix m, std::vector<double> v );
+
+  /// Creates and returns a rotation matrix around x axis
+  Matrix get_x_rot_m( double ang ) const;
+
+  /// Creates and returns a rotation matrix around z axis
+  Matrix get_z_rot_m( double ang ) const;   
   
   ///Nodal approximation of the level set function of a g surface
   double level_set_gyroid( double x, double y, double z, double a);
@@ -124,6 +141,10 @@ private:
   double theta;
   double phi;
 
+  int h;
+  int k;
+  int l;
+  
   //get number of points
   unsigned int n_points_x;
   unsigned int n_points_y;

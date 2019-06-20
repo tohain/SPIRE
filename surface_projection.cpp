@@ -34,6 +34,31 @@ std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> 
 }
 
 
+/**
+ * Returns a rotation matrix. The rotation is by ang against the
+ * clock around the x-Axis
+ */
+Matrix surface_projection::get_x_rot_m (double ang) const {
+  Matrix R;
+  R.v = { 1, 0,           0          };
+  R.w = { 0, cos(ang), -sin(ang) };
+  R.z = { 0, sin(ang),  cos(ang) };
+  return R;
+}
+
+/**
+ * Returns a rotation matrix. The rotation is by ang against the
+ * clock around the z-Axis
+ */
+Matrix surface_projection::get_z_rot_m (double ang) const {
+  Matrix R;
+  R.v = { cos(ang), -sin(ang), 0 };
+  R.w = { sin(ang),  cos(ang), 0 };
+  R.z = { 0,         0,        1 };  
+  return R;
+}
+
+ 
 
 double surface_projection::level_set_gyroid( double x, double y, double z, double a) {
   double s = (2*M_PI)/(a);
@@ -50,6 +75,42 @@ double surface_projection::level_set_primitive( double x, double y, double z, do
   return cos(s*x)+cos(s*y)+cos(s*z);
 }
 
+/**
+ * Computes the rotation angles needed to get the orientation given by
+ * the Miller indeces hkl. Only works if all indeces are positive!
+ */
+void surface_projection::set_orientation_from_hkl( int h, int k, int l ){
+
+  std::vector<double> n = {double(h), double(k), double(l)};
+
+  //make it unit length
+  double norm_scale = sqrt( n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
+  n[0]/=norm_scale;n[1]/=norm_scale;n[2]/=norm_scale;
+ 
+  //get angle for rotation in xy plane
+  double _phi;
+  if( n[1] == 0 ){
+    _phi = M_PI/2.;
+  } else {
+    _phi = atan2( n[0], n[1] ) ;
+  }
+
+  //rotate vector, so it will aligned with yz plane
+  Matrix Rz = get_z_rot_m( _phi );  
+  n = dot_prod( Rz, n );
+
+  //get angle to rotate around x axis to align vector with {0, 0, 1}  
+  double _theta;
+  if( n[2] == 0 ){
+    _theta = M_PI/2.;
+  } else {
+    _theta = atan2( n[1], n[2] );
+  }
+
+  //apply the angles
+  theta = _theta; phi = _phi;
+}
+
 
 
 void surface_projection::set_up_points(){
@@ -60,14 +121,9 @@ void surface_projection::set_up_points(){
   std::vector<double> nz = {0, 0, 1};  
 
   //rotation matrices
-  Matrix Rx, Rz;
-  Rx.v = { 1, 0,           0          };
-  Rx.w = { 0, cos(theta), -sin(theta) };
-  Rx.z = { 0, sin(theta),  cos(theta) };
-
-  Rz.v = { cos(phi), -sin(phi), 0 };
-  Rz.w = { sin(phi),  cos(phi), 0 };
-  Rz.z = { 0,         0,        1 };
+  //substract the angle from 2pi since we're rotating in mathematical
+  //negative orientation (with the clock
+  Matrix Rx = get_x_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
 
   //rotate
   nx = dot_prod( Rz, dot_prod( Rx, nx));
@@ -247,6 +303,25 @@ const std::vector<std::string> surface_projection::get_surface_choices(){
   return surface_choices;
 }
 
+int surface_projection::get_h() const{
+  return h;
+}
+
+int surface_projection::get_k() const{
+  return k;
+}
+
+int surface_projection::get_l() const{
+  return l;
+}
+
+double surface_projection::get_theta() const{
+  return theta;
+}
+
+double surface_projection::get_phi() const{
+  return phi;
+}
 
 /*************************
  * Setters
@@ -340,4 +415,26 @@ void surface_projection::set_n_points_z( int val ){
 
   //recompute the resolution
   dz = slice_width / n_points_z;  
+}
+
+
+void surface_projection::set_h( int val ){
+  if( val < 0 )
+    h = 0;
+  else
+    h = val;  
+}
+
+void surface_projection::set_k( int val ){
+  if( val < 0 )
+    k = 0;
+  else
+    k = val;  
+}
+
+void surface_projection::set_l( int val ){
+  if( val < 0 )
+    l = 0;
+  else
+    l = val;  
 }

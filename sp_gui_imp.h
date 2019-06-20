@@ -49,6 +49,9 @@ private:
 
   /// Redraws the currently loaded image after resizeing the window
   void redraw();
+
+  /// Updates the orientation from miller indeces
+  void update_orientation_from_hkl();
   
   void compute_and_draw();
 
