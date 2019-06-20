@@ -323,6 +323,18 @@ double surface_projection::get_phi() const{
   return phi;
 }
 
+double surface_projection::get_dx() const{
+  return dx;
+}
+
+double surface_projection::get_dy() const{
+  return dy;
+}
+
+double surface_projection::get_dz() const{
+  return dz;
+}
+
 /*************************
  * Setters
  *************************/

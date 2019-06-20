@@ -46,7 +46,10 @@ public:
   int get_k() const;
   int get_l() const;
   double get_theta() const;
-  double get_phi() const;  
+  double get_phi() const;
+  double get_dx() const;
+  double get_dy() const;
+  double get_dz() const;  
 
   void set_orientation_from_hkl( int h, int k, int l );
   
@@ -67,7 +70,7 @@ public:
   void set_n_points_x( int val );
   void set_n_points_y( int val );
   void set_n_points_z( int val );
-
+  
   void set_h( int val );
   void set_k( int val );
   void set_l( int val );  

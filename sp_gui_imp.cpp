@@ -4,6 +4,7 @@ sp_gui_imp::sp_gui_imp( wxWindow* parent )
 :
 sp_gui( parent )
 {
+
   //initialize surface_projection object
   sp = new surface_projection();
   
@@ -19,6 +20,8 @@ sp_gui( parent )
   }
   type_ctl->SetSelection( 0 );
 
+ 
+  //set up the first image
   update_parameters();
   update_orientation_from_hkl();
   
@@ -53,6 +56,10 @@ void sp_gui_imp::update_parameters(){
   sp->set_n_points_y( n_points_xy_ctl->GetValue() );
   sp->set_n_points_z( n_points_z_ctl->GetValue() );
   
+  //update gui
+  dx_ctl->SetValue( sp->get_dx() );
+  dy_ctl->SetValue( sp->get_dy() );
+  dz_ctl->SetValue( sp->get_dz() );  
 }
 
 void sp_gui_imp::ntucs_change( wxSpinEvent& event )
