@@ -29,13 +29,11 @@ void write_image( std::string fn, std::vector<double> data, int width, int heigh
 
       int ind = ii*width + jj;
       
-      //std::cout << data.at(ind) << " ";
       //scale
       int u_scaled = static_cast<int>((data[ind] - min)/(max - min)*255);
       out << 255-u_scaled << " ";
     }
     out << std::endl;
-    //std::cout << std::endl;
   }  
 
   out.close();

@@ -16,6 +16,8 @@ struct Matrix {
 };
 
 
+///enum to label surfaces
+
 class surface_projection {
 public:
 
@@ -23,16 +25,42 @@ public:
   surface_projection();
   ~surface_projection();
 
+  /// Updates the projection with new coordinates
+  void update_geometry();
+  /// Updates container capacities
+  void update_containers();
+
+  /// Computes the projection
   void compute_projection();
 
-  double* get_projection();
+  std::vector<double> get_projection() const;
 
   unsigned char* get_image();
 
-  int get_width();
-  int get_height();
-  int get_depth();
+  //setters and getters
+  int get_width() const;
+  int get_height() const;
+  int get_depth() const;
   
+  const std::vector<std::string> get_surface_choices();
+  
+  void set_theta( double ang );
+  void set_phi( double ang );  
+
+  void set_type( std::string val );
+
+  void set_ntucs( int val );
+  void set_slice_width( double val );
+  void set_slice_height( double val );
+
+  void set_mem_width( double val );
+  void set_a( double val );
+
+  void set_n_points_x( int val );
+  void set_n_points_y( int val );
+  void set_n_points_z( int val );
+
+    
 private:
 
   /// Dot product of two vectors
@@ -49,13 +77,6 @@ private:
 
   ///Nodal approximation of the level set function of a p surface
   double level_set_primitive( double x, double y, double z, double a);  
-
-  /// Quick and dirty auxiliary function 
-  template <class T>
-  void set_to_zero( std::vector< std::vector<T> > &data );
-
-  template <class T>
-  void set_to_zero( std::vector<T> &data );
   
   /// Initializes the voxels in the slice
   void set_up_points();
@@ -63,7 +84,7 @@ private:
 
   
   /// Evaluates all voxels with the chosen level sets. Sets colors of voxel
-  void set_grid (std::string type, double d);
+  void set_grid();
 
 
   
@@ -76,34 +97,50 @@ private:
   // parameter
   //////////////////////////////////
 
-    //set up parameters
-  double L = 10;
-  double dx = .02;
-  double dy = .02;
-  double dz = .02;  
+  /*
+   * box parameters
+   */
+
+  //how many unitcells in the box?
+  int ntucs;
+
+  /// Edge length of cubic "sim"box.
+  double L;
+  
+  double dx;
+  double dy;
+  double dz;  
 
   //slice dimension
-  double slice_width = 1;
-  double slice_height = -1;
+  double slice_width;
+  double slice_height;
 
   //membrane thickness
-  double mem_width = 0.5;
+  double mem_width;
   //gyroid unit cell length
-  double a = 0.1;
+  double a;
   
   //slice orientation
-  double theta = 0*M_PI;
-  double phi = 0.06*M_PI;
+  double theta;
+  double phi;
 
   //get number of points
-  unsigned int n_points_x = int(L/dx);
-  unsigned int n_points_y = int(L/dy);
-  unsigned int n_points_z = int(slice_width/dz);
+  unsigned int n_points_x;
+  unsigned int n_points_y;
+  unsigned int n_points_z;
+
+  //type of surfcae to project
+  std::string type = "";
 
 
-  ////////////////
-  // data
-  ///////////////////
+  /// Available surfaces
+  const std::vector<std::string> surface_choices = {"Gyroid",
+						    "Diamond",
+						    "Primitive"};
+  
+  /******************************************************************
+   * data, do not access manually unless you know what you're doing
+   ******************************************************************/
 
   /// Array holding coordinates of the voxels
   std::vector<double> points;
