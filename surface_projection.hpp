@@ -34,6 +34,11 @@ public:
   /// Computes the projection
   void compute_projection();
 
+  /// Computes the periodicity length of the given orientation (should
+  /// only use, if orientation given by hkl?)
+  void update_periodicity_length();
+  
+
   std::vector<double> get_projection() const;
 
   unsigned char* get_image(bool invert = false);
@@ -50,7 +55,9 @@ public:
   double get_dx() const;
   double get_dy() const;
   double get_dz() const;  
+  double get_periodicity_length() const;
 
+  
   void set_orientation_from_hkl( int h, int k, int l );
   
   const std::vector<std::string> get_surface_choices();
@@ -74,7 +81,8 @@ public:
   void set_h( int val );
   void set_k( int val );
   void set_l( int val );  
-    
+
+  
 private:
 
   /// Dot product of two vectors
@@ -83,6 +91,13 @@ private:
   /// Quick and dirty 3x3 matric by vector multiplication
   std::vector<double> dot_prod( Matrix m, std::vector<double> v );
 
+  /// Quick and dirty modulo between two doubles
+  inline double mod( double lhs, double rhs );
+  
+  /// Returns the normal vector of unit length for the given
+  /// orientation
+  std::vector<double> get_normal();
+  
   /// Creates and returns a rotation matrix around x axis
   Matrix get_x_rot_m( double ang ) const;
 
@@ -133,6 +148,8 @@ private:
 
   //slice dimension
   double slice_width;
+  /// Slice position in range [0, 1]. In relation to the periodicty,
+  /// so we'll always move in one unit cell in the given orientation
   double slice_height;
 
   //membrane thickness
@@ -144,9 +161,12 @@ private:
   double theta;
   double phi;
 
+  //miller indeces
   int h;
   int k;
   int l;
+
+  double periodicity_length;
   
   //get number of points
   unsigned int n_points_x;

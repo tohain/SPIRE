@@ -11,7 +11,8 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.2), slice_hei
   update_geometry();
   //resize containers
   update_containers();
-
+  //periodicity
+  update_periodicity_length();
 }
 
 surface_projection::~surface_projection(){
@@ -139,9 +140,9 @@ void surface_projection::set_up_points(){
 	int ind=ii*(n_points_x*n_points_z) + jj*n_points_z + kk; 
 
 	//compute the position of this voxel
-	double x=((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width*nz[0];
-	double y=((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width*nz[1];
-	double z=((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width*nz[2];
+	double x=((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0] - 0.5*slice_width*nz[0];
+	double y=((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1] - 0.5*slice_width*nz[1];
+	double z=((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2] - 0.5*slice_width*nz[2];
 
 	
 	//assign the position
@@ -255,6 +256,126 @@ void surface_projection::compute_projection( ){
 }
 
 
+/** 
+ * Computes the normal vector of the given orientation. In principle
+ * this is equivalent to computing hkl, except we're not making even
+ * numbers
+ */
+std::vector<double> surface_projection::get_normal() {
+
+  std::vector<double> n = {0, 0, 1};  
+
+  //rotation matrices
+  //substract the angle from 2pi since we're rotating in mathematical
+  //negative orientation (with the clock
+  Matrix Rx = get_x_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
+
+  //rotate
+  n = dot_prod( Rz, dot_prod( Rx, n));  
+
+  double scale = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
+  n[0]/=scale;n[1]/=scale;n[2]/=scale;
+  
+  return n;
+}
+
+/**
+ * Returns the modulo of two floating point numbers. That's nmerically
+ * not a nice thing, since we have to take rounding errors into
+ * account.
+ */
+inline double surface_projection::mod( double lhs, double rhs ){
+  
+  double tolerance = 1e-5;
+  
+  double divisor = lhs / rhs;
+
+  //let's check if we're very close to the next integer
+  double divisor_round  = round(divisor);
+
+  //if we are, then let's round to that so we're exact again
+  int divisor_int;
+  if( std::fabs(divisor_round - divisor) < tolerance ){    
+    divisor_int = int(divisor_round);
+  } else {
+    divisor_int = int(divisor);
+  }
+  
+  double ret = lhs - (divisor_int * rhs);
+  return ret;
+}
+
+/**
+ * Computes the periodicity length. That means, how far the plane must
+ * be moved perpendicular to its normal vector so it will reach
+ * another chrystallographic equivalent position. This is implemented
+ * by looking for a scaling factor for the normal vector so it will
+ * point to a point periodically equivalent to the origin (where we
+ * started)
+ */
+void surface_projection::update_periodicity_length(){
+
+  //get the normal of the current orientation
+  std::vector<double> n = get_normal();
+
+  // the step size is chosen, so that one step will take at least one
+  // direction from one periodic box to the next. Everything in
+  // between can't be periodic anyways
+  double step_size;
+  if( n[0] > 0 ){
+    step_size = a / n[0];
+  } else if (n[1] > 0){
+    step_size = a / n[1];
+  } else {
+    step_size = a / n[2];
+  }
+
+  //stop after some steps
+  long long max_steps = 100;
+
+  //count how many steps we need
+  long long step_count = 1;
+
+  double tolerance = 1e-5;
+  bool more_steps = true;
+
+  //increase steps, scale normal vector and see if we are at a
+  //periodic origin again
+  while( step_count < max_steps && more_steps){
+
+    double xx = step_count * step_size * n[0];
+    double yy = step_count * step_size * n[1];
+    double zz = step_count * step_size * n[2];
+
+    double ddxx = mod(xx, a);
+    double ddyy = mod(yy, a);
+    double ddzz = mod(zz, a);
+    
+    if( std::fabs( ddxx ) < tolerance &&
+	std::fabs( ddyy ) < tolerance &&
+	std::fabs( ddzz ) < tolerance  ){
+      more_steps = false;
+      break;
+    }
+
+    //not there yet, keep on goind
+    step_count++;
+  }
+
+  if( step_count == max_steps-1 ){
+    //no succes
+    periodicity_length = -1;
+    std::cerr << "No periodicty found!" << std::endl;
+  } else {
+    //success
+    periodicity_length =step_count * step_size;
+    std::cout << "periodicity=" << periodicity_length << std::endl;
+  }
+
+}
+
+
+
 unsigned char* surface_projection::get_image(bool invert){
 
   //new image array
@@ -336,6 +457,10 @@ double surface_projection::get_dy() const{
 
 double surface_projection::get_dz() const{
   return dz;
+}
+
+double surface_projection::get_periodicity_length() const{
+  return periodicity_length;
 }
 
 /*************************

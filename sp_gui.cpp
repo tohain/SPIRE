@@ -159,7 +159,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	angles->Add( m_staticText4, 0, wxALL, 5 );
 
 	theta_ctl = new wxSpinCtrlDouble( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 100, 0, 0.01 );
-	theta_ctl->SetDigits( 3 );
+	theta_ctl->SetDigits( 7 );
 	angles->Add( theta_ctl, 0, wxALL, 5 );
 
 
@@ -170,7 +170,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	angles->Add( m_staticText5, 0, wxALL, 5 );
 
 	phi_ctl = new wxSpinCtrlDouble( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 100, 0, 0.01 );
-	phi_ctl->SetDigits( 3 );
+	phi_ctl->SetDigits( 7 );
 	angles->Add( phi_ctl, 0, wxALL, 5 );
 
 

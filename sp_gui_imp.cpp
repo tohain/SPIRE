@@ -132,14 +132,13 @@ void sp_gui_imp::button_render( wxCommandEvent& event )
 
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
-
   std::string fn (m_filePicker2->GetPath().c_str());
   if( fn == "" ){
     wxMessageBox( wxT("Please select a valid filename"),
 		  wxT("Nothing to see here"),
 		  wxICON_INFORMATION);
   } else {
-    write_image( fn, sp->get_projection(), sp->get_width(), sp->get_height() );
+    write_image( fn, sp->get_projection(), sp->get_width(), sp->get_height(), invert_ctl->GetValue() );
   }
 }
 
@@ -186,6 +185,10 @@ void sp_gui_imp::compute_and_draw(){
   update_parameters();
   //update geometry and initialize points
   sp->update_geometry();
+
+  //update periodiciy
+  sp->update_periodicity_length();
+  
   sp->update_containers();
 
   //compute the projection
