@@ -2,7 +2,7 @@
 
 
 
-void write_image( std::string fn, std::vector<double> data, int width, int height ){
+void write_image( std::string fn, std::vector<double> data, int width, int height, bool invert ){
 
   //find max value
   double max = *std::max_element( data.begin(), data.end() );
@@ -31,7 +31,11 @@ void write_image( std::string fn, std::vector<double> data, int width, int heigh
       
       //scale
       int u_scaled = static_cast<int>((data[ind] - min)/(max - min)*255);
-      out << 255-u_scaled << " ";
+      //invert if wanted
+      if( invert )
+	u_scaled = 255 - u_scaled;
+
+      out << u_scaled << " ";
     }
     out << std::endl;
   }  

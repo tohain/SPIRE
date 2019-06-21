@@ -36,7 +36,7 @@ public:
 
   std::vector<double> get_projection() const;
 
-  unsigned char* get_image();
+  unsigned char* get_image(bool invert = false);
 
   //setters and getters
   int get_width() const;

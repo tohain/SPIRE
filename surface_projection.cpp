@@ -255,7 +255,7 @@ void surface_projection::compute_projection( ){
 }
 
 
-unsigned char* surface_projection::get_image(){
+unsigned char* surface_projection::get_image(bool invert){
 
   //new image array
   unsigned char* img = (unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
@@ -269,6 +269,9 @@ unsigned char* surface_projection::get_image(){
   for(unsigned int ii=0; ii<projection.size(); ii++){
       //scale
       int u_scaled = static_cast<int>((projection[ii] - min)/(max - min)*255);
+      //invert
+      if(invert)
+	u_scaled = 255 - u_scaled;
       //write in array
       img[ii] = u_scaled;
   }  

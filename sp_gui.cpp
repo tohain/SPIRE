@@ -361,6 +361,58 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	bSizer10->Fit( resolution );
 	bSizer17->Add( resolution, 0, wxEXPAND | wxALL, 5 );
 
+	options = new wxPanel( m_scrolledWindow1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer291;
+	bSizer291 = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer311;
+	bSizer311 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText211 = new wxStaticText( options, wxID_ANY, wxT("Options"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText211->Wrap( -1 );
+	bSizer311->Add( m_staticText211, 0, wxALL, 5 );
+
+	m_staticline51 = new wxStaticLine( options, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer311->Add( m_staticline51, 1, wxEXPAND | wxALL, 5 );
+
+
+	bSizer291->Add( bSizer311, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer321;
+	bSizer321 = new wxBoxSizer( wxHORIZONTAL );
+
+
+	bSizer321->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	invert_ctl = new wxCheckBox( options, wxID_ANY, wxT("Invert Colors"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer321->Add( invert_ctl, 0, wxALL, 5 );
+
+
+	bSizer321->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_staticText23 = new wxStaticText( options, wxID_ANY, wxT("Auto update upto"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText23->Wrap( -1 );
+	bSizer321->Add( m_staticText23, 0, wxALL, 5 );
+
+	max_prev_points_ctl = new wxSpinCtrl( options, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 999, 100 );
+	bSizer321->Add( max_prev_points_ctl, 0, wxALL, 5 );
+
+	m_staticText24 = new wxStaticText( options, wxID_ANY, wxT("Points"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText24->Wrap( -1 );
+	bSizer321->Add( m_staticText24, 0, wxALL, 5 );
+
+
+	bSizer321->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	bSizer291->Add( bSizer321, 0, wxEXPAND, 5 );
+
+
+	options->SetSizer( bSizer291 );
+	options->Layout();
+	bSizer291->Fit( options );
+	bSizer17->Add( options, 1, wxEXPAND | wxALL, 5 );
+
 
 	bSizer17->Add( 0, 0, 1, wxEXPAND, 5 );
 
@@ -390,22 +442,10 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	wxBoxSizer* bSizer38;
 	bSizer38 = new wxBoxSizer( wxVERTICAL );
 
-	wxBoxSizer* bSizer39;
-	bSizer39 = new wxBoxSizer( wxHORIZONTAL );
-
-	b_repaint = new wxButton( control, wxID_ANY, wxT("Redraw"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer39->Add( b_repaint, 1, wxALL|wxEXPAND, 5 );
-
-	b_preview = new wxButton( control, wxID_ANY, wxT("Preview"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer39->Add( b_preview, 1, wxALL|wxEXPAND, 5 );
-
-
-	bSizer38->Add( bSizer39, 1, wxEXPAND, 5 );
-
 	wxBoxSizer* bSizer40;
 	bSizer40 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_filePicker2 = new wxFilePickerCtrl( control, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
+	m_filePicker2 = new wxFilePickerCtrl( control, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_SAVE|wxFLP_USE_TEXTCTRL );
 	bSizer40->Add( m_filePicker2, 1, wxALL|wxEXPAND, 5 );
 
 	b_render = new wxButton( control, wxID_ANY, wxT("Render"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -466,8 +506,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	l_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::l_change ), NULL, this );
 	slicewidth_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::slicewidth_change ), NULL, this );
 	sliceheight_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::sliceheight_change ), NULL, this );
-	b_repaint->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_redraw ), NULL, this );
-	b_preview->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_preview ), NULL, this );
+	invert_ctl->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	b_render->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
@@ -487,8 +526,7 @@ sp_gui::~sp_gui()
 	l_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::l_change ), NULL, this );
 	slicewidth_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::slicewidth_change ), NULL, this );
 	sliceheight_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::sliceheight_change ), NULL, this );
-	b_repaint->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_redraw ), NULL, this );
-	b_preview->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_preview ), NULL, this );
+	invert_ctl->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	b_render->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );

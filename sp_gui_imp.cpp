@@ -64,70 +64,65 @@ void sp_gui_imp::update_parameters(){
 
 void sp_gui_imp::ntucs_change( wxSpinEvent& event )
 {
-  compute_and_draw();
+  draw_preview();
 }
 
 void sp_gui_imp::a_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();  
 }
 
 void sp_gui_imp::surface_change( wxCommandEvent& event )
 {
-  compute_and_draw();  
+  draw_preview();  
 }
 
 void sp_gui_imp::d_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();  
 }
 
 void sp_gui_imp::theta_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();  
 }
 
 void sp_gui_imp::phi_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();  
 }
 
 void sp_gui_imp::h_change( wxSpinEvent& event )
 {
+  draw_preview();  
   update_orientation_from_hkl();
-  compute_and_draw();  
 }
 
 void sp_gui_imp::k_change( wxSpinEvent& event )
 {
   update_orientation_from_hkl();
-  compute_and_draw();  
+  draw_preview();    
 }
 
 void sp_gui_imp::l_change( wxSpinEvent& event )
 {
   update_orientation_from_hkl();
-  compute_and_draw();
+  draw_preview();    
 }
 
 void sp_gui_imp::slicewidth_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();  
 }
 
 void sp_gui_imp::sliceheight_change( wxSpinDoubleEvent& event )
 {
-  compute_and_draw();
+  draw_preview();    
 }
 
-void sp_gui_imp::button_redraw( wxCommandEvent& event )
+void sp_gui_imp::invert_change( wxCommandEvent& event )
 {
-  redraw();
-}
-
-void sp_gui_imp::button_preview( wxCommandEvent& event )
-{
-  wxMessageBox( wxT("Not yet implemented."), wxT("Nothing to see here"), wxICON_INFORMATION);
+  draw_preview();    
 }
 
 void sp_gui_imp::button_render( wxCommandEvent& event )
@@ -173,6 +168,18 @@ void sp_gui_imp::update_orientation_from_hkl(){
   }
 }
 
+
+/**
+ * Does the same as \ref compute_and_draw(), but checks first, if a
+ * live preview is still wanted or the number of points are too high
+ */
+void sp_gui_imp::draw_preview(){
+  if (max_prev_points_ctl->GetValue() > n_points_xy_ctl->GetValue() ){
+    compute_and_draw();
+  }
+}
+
+
 void sp_gui_imp::compute_and_draw(){
 
     //update parameters
@@ -183,7 +190,7 @@ void sp_gui_imp::compute_and_draw(){
 
   //compute the projection
   sp->compute_projection();
-  unsigned char *proj = sp->get_image();
+  unsigned char *proj = sp->get_image( invert_ctl->GetValue() );
   
   int w = sp->get_width();
   int h = sp->get_height();
@@ -193,9 +200,11 @@ void sp_gui_imp::compute_and_draw(){
   for(int ii=0; ii<w; ii++){
     for(int jj=0; jj<h; jj++){    
       int ind = ii*w + jj;      
+            
       rgb_img[3*ind]=proj[ind];
       rgb_img[3*ind+1]=proj[ind];
-      rgb_img[3*ind+2]=proj[ind];      
+      rgb_img[3*ind+2]=proj[ind];
+      
     }
   }
 

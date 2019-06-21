@@ -24,9 +24,10 @@
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/panel.h>
+#include <wx/checkbox.h>
 #include <wx/scrolwin.h>
-#include <wx/button.h>
 #include <wx/filepicker.h>
+#include <wx/button.h>
 #include <wx/gauge.h>
 #include <wx/frame.h>
 
@@ -83,11 +84,16 @@ class sp_gui : public wxFrame
 		wxSpinCtrlDouble* dy_ctl;
 		wxStaticText* m_staticText13;
 		wxSpinCtrlDouble* dz_ctl;
+		wxPanel* options;
+		wxStaticText* m_staticText211;
+		wxStaticLine* m_staticline51;
+		wxCheckBox* invert_ctl;
+		wxStaticText* m_staticText23;
+		wxSpinCtrl* max_prev_points_ctl;
+		wxStaticText* m_staticText24;
 		wxPanel* control;
 		wxStaticText* m_staticText21;
 		wxStaticLine* m_staticline5;
-		wxButton* b_repaint;
-		wxButton* b_preview;
 		wxFilePickerCtrl* m_filePicker2;
 		wxButton* b_render;
 		wxButton* b_save;
@@ -106,8 +112,7 @@ class sp_gui : public wxFrame
 		virtual void l_change( wxSpinEvent& event ) = 0;
 		virtual void slicewidth_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void sliceheight_change( wxSpinDoubleEvent& event ) = 0;
-		virtual void button_redraw( wxCommandEvent& event ) = 0;
-		virtual void button_preview( wxCommandEvent& event ) = 0;
+		virtual void invert_change( wxCommandEvent& event ) = 0;
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
 		virtual void button_quit( wxCommandEvent& event ) = 0;

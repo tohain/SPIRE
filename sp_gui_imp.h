@@ -32,8 +32,7 @@ class sp_gui_imp : public sp_gui
 		void l_change( wxSpinEvent& event );
 		void slicewidth_change( wxSpinDoubleEvent& event );
 		void sliceheight_change( wxSpinDoubleEvent& event );
-		void button_redraw( wxCommandEvent& event );
-		void button_preview( wxCommandEvent& event );
+                void invert_change( wxCommandEvent& event );
 		void button_render( wxCommandEvent& event );
 		void button_save( wxCommandEvent& event );  
 		void button_quit( wxCommandEvent& event );
@@ -46,14 +45,19 @@ private:
   
   /// transfers all parameters from the gui into the sp obejct
   void update_parameters();
-
+  
   /// Redraws the currently loaded image after resizeing the window
   void redraw();
 
   /// Updates the orientation from miller indeces
-  void update_orientation_from_hkl();
+  void update_orientation_from_hkl();  
   
+  /// Computes the projection, scales it to the wxStaticBitmap size
+  /// and draws it on screen
   void compute_and_draw();
+
+  /// Draw a preview if resolution is low enough
+  void draw_preview();
 
   //the bitmap to show
   wxBitmap *preview;
