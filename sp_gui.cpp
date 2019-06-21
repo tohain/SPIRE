@@ -189,7 +189,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText6->Wrap( -1 );
 	hkl->Add( m_staticText6, 0, wxALL, 5 );
 
-	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 1 );
+	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 1 ); // changed to allow negative h-index
 	hkl->Add( h_ctl, 0, wxALL, 5 );
 
 
@@ -199,7 +199,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText7->Wrap( -1 );
 	hkl->Add( m_staticText7, 0, wxALL, 5 );
 
-	k_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 0 );
+	k_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 ); // changed to allow negative k-index
 	hkl->Add( k_ctl, 0, wxALL, 5 );
 
 
@@ -209,7 +209,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText81->Wrap( -1 );
 	hkl->Add( m_staticText81, 0, wxALL, 5 );
 
-	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 999, 0 );
+	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 ); // changed to allow negative l-index
 	hkl->Add( l_ctl, 0, wxALL, 5 );
 
 

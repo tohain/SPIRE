@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6.4)
 project (surface_projection)
-
+set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
 #Collects the names of all the source files in the specified directory
 #and stores the list in the <variable> provided
