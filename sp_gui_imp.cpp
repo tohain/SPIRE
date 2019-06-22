@@ -25,6 +25,10 @@ sp_gui( parent )
 
   //do the first image
   compute_and_draw();
+
+  //add handlers to save image in differen formats
+  img->AddHandler( new wxPNGHandler );
+  img->AddHandler( new wxTIFFHandler );  
 }
 
 
@@ -394,12 +398,26 @@ void sp_gui_imp::button_render( wxCommandEvent& event )
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
   std::string fn (m_filePicker2->GetPath().c_str());
+  
   if( fn == "" ){
     wxMessageBox( wxT("Please select a valid filename"),
 		  wxT("Nothing to see here"),
 		  wxICON_INFORMATION);
   } else {
-    write_image( fn, sp->get_projection(), sp->get_width(), sp->get_height(), invert_ctl->GetValue() );
+
+    //chck for image type to be saved to
+    std::string extension = fn.substr( fn.size() - 4, 4 );
+    if( extension[0] == '.' ){
+      extension = extension.substr(1, 3 );
+    }
+
+    if( extension == "png" || extension == "tiff" ){
+      img->SaveFile( fn );
+    } else {
+      wxMessageBox( wxT("Image type not supported"),
+		    wxT("Error"),
+		    wxICON_ERROR);
+    }
   }
 }
 
