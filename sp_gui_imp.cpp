@@ -415,8 +415,8 @@ void sp_gui_imp::update_orientation_from_hkl(){
   int l = l_ctl->GetValue();  
 
   //check for valid orientation
-  if( h > 0 || k > 0 || l > 0 ){
-    //set indeces
+  if( h != 0 || k != 0 || l != 0 ){
+    //set parameters
     sp->set_h( h ); sp->set_k( k ); sp->set_l( l );
 
     //convert indeces to angles

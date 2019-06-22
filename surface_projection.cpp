@@ -98,23 +98,41 @@ void surface_projection::set_orientation_from_hkl(){
  
   //get angle for rotation in xy plane
   double _phi;
-  if( n[1] == 0 ){
-    _phi = M_PI/2.;
+  if( k == 0 ){
+    if( h < 0)
+        _phi = 3*M_PI/2.;
+    else
+        _phi = M_PI/2.;
   } else {
-    _phi = atan2( n[0], n[1] ) ;
+    if( h > 0){
+        if (k > 0)
+            _phi = atan2( n[0], n[1] ) ;
+        else 
+            _phi = 2*M_PI - atan2( n[0], -n[1] ) ;
+    } else{
+        if (k > 0)
+            _phi = M_PI - atan2( -n[0], n[1] ) ;
+        else 
+            _phi = M_PI + atan2( -n[0], -n[1] ) ;
+    }
   }
 
+
   //rotate vector, so it will aligned with yz plane
-  Matrix Rz = get_z_rot_m( _phi );  
-  n = dot_prod( Rz, n );
+  double n_xy = sqrt(n[0]*n[0]+n[1]*n[1]);
+   
 
   //get angle to rotate around x axis to align vector with {0, 0, 1}  
   double _theta;
-  if( n[2] == 0 ){
+  if( l == 0 ){
     _theta = M_PI/2.;
   } else {
-    _theta = atan2( n[1], n[2] );
+      if(l > 0)
+        _theta = atan2( n_xy, n[2] );
+      else
+        _theta = M_PI - atan2( n_xy, -n[2] );
   }
+
 
   //apply the angles
   theta = _theta; phi = _phi;
@@ -295,7 +313,7 @@ std::vector<double> surface_projection::get_normal() {
   //rotate
   n = dot_prod( Rz, dot_prod( Rx, n));  
 
-  double scale = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
+  double scale = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] ); //necessary?
   n[0]/=scale;n[1]/=scale;n[2]/=scale;
   
   return n;
@@ -349,7 +367,9 @@ void surface_projection::update_periodicity_length(){
   } else {
     step_size = a / n[2];
   }
-  
+
+  if (step_size < 0) step_size  = -step_size ;
+
   //stop after some steps
   long long max_steps = 100;
 

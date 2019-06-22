@@ -221,7 +221,6 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 1 );
 	hkl->Add( h_ctl, 0, wxALL, 5 );
 
-
 	hkl->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	m_staticText7 = new wxStaticText( orientation, wxID_ANY, wxT("k"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -237,6 +236,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText81 = new wxStaticText( orientation, wxID_ANY, wxT("l"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText81->Wrap( -1 );
 	hkl->Add( m_staticText81, 0, wxALL, 5 );
+
 
 	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 );
 	hkl->Add( l_ctl, 0, wxALL, 5 );
