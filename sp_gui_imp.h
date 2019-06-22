@@ -25,13 +25,17 @@ class sp_gui_imp : public sp_gui
                 void a_change( wxSpinDoubleEvent& event );
 		void surface_change( wxCommandEvent& event );
 		void d_change( wxSpinDoubleEvent& event );
+                void selection_angles( wxCommandEvent& event );
 		void theta_change( wxSpinDoubleEvent& event );
 		void phi_change( wxSpinDoubleEvent& event );
+                void selection_miller( wxCommandEvent& event );
 		void h_change( wxSpinEvent& event );
 		void k_change( wxSpinEvent& event );
 		void l_change( wxSpinEvent& event );
 		void slicewidth_change( wxSpinDoubleEvent& event );
 		void sliceheight_change( wxSpinDoubleEvent& event );
+                void n_points_xy_change( wxSpinEvent& event );
+                void n_points_z_change( wxSpinEvent& event );
                 void invert_change( wxCommandEvent& event );
 		void button_render( wxCommandEvent& event );
 		void button_save( wxCommandEvent& event );  
@@ -44,7 +48,13 @@ class sp_gui_imp : public sp_gui
 private:
   
   /// transfers all parameters from the gui into the sp obejct
-  void update_parameters();
+  void write_parameters();
+
+  /// Tansfers all parameters from the sp class to gui
+  void read_parameters();
+
+  /// Sets ranges of controls affected by periodicity
+  void update_controls_periodicity();
   
   /// Redraws the currently loaded image after resizeing the window
   void redraw();

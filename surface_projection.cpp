@@ -5,13 +5,21 @@
 #include "img_out.hpp"
 
 /// Standard constructor initialize with the standard values and derive some more quantities
-surface_projection::surface_projection() : ntucs(1), slice_width(0.2), slice_height(0.5), mem_width(0.2), a(1), theta(0), phi(0), n_points_x(50), n_points_y(50), n_points_z(50), type("Primitive") {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1) {
 
   //update geometry
+  //sets dx,dy,dz, L
   update_geometry();
+
   //resize containers
   update_containers();
+
+  //update orientation from hkl
+  //sets theta,phi
+  set_orientation_from_hkl();
+  
   //periodicity
+  //sets periodicty length
   update_periodicity_length();
 }
 
@@ -80,7 +88,7 @@ double surface_projection::level_set_primitive( double x, double y, double z, do
  * Computes the rotation angles needed to get the orientation given by
  * the Miller indeces hkl. Only works if all indeces are positive!
  */
-void surface_projection::set_orientation_from_hkl( int h, int k, int l ){
+void surface_projection::set_orientation_from_hkl(){
 
   std::vector<double> n = {double(h), double(k), double(l)};
 
@@ -139,10 +147,25 @@ void surface_projection::set_up_points(){
 	//the total index of that particle in the array
 	int ind=ii*(n_points_x*n_points_z) + jj*n_points_z + kk; 
 
-	//compute the position of this voxel
-	double x=((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0] - 0.5*slice_width*nz[0];
-	double y=((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1] - 0.5*slice_width*nz[1];
-	double z=((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2] - 0.5*slice_width*nz[2];
+	//now compute the absolute position of all voxels
+	double x,y,z;
+
+	//check if we are periodic. If so, slice_height will be handeled differently
+
+
+	if( periodicity_length == -1 ){
+	  //aperiodic. slice_height is an absolute length
+	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width*nz[0];
+	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width*nz[1];
+	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width*nz[2];
+
+
+	} else {
+	  //periodic. slice_height is the fraction of the periodicity length
+	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0] - 0.5*periodicity_length*slice_width*nz[0];
+	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1] - 0.5*periodicity_length*slice_width*nz[1];
+	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2] - 0.5*periodicity_length*slice_width*nz[2];
+	}
 
 	
 	//assign the position
@@ -161,11 +184,11 @@ void surface_projection::set_grid (){
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
     double level = 0;
-    if( type == "Gyroid" ){
+    if( type == 0 ){ //gyroid
       level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], a );
-    } else if( type == "Diamond" ){
+    } else if( type == 1 ){ //diamon
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], a );
-    } else if( type == "Primitive" ){
+    } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], a );
     }
     
@@ -220,7 +243,6 @@ void surface_projection::update_containers(){
  * depending on the unit cell size and number of unit cells.
  */
 void surface_projection::update_geometry(){
-
   //update box
   L = ntucs * a;
 
@@ -285,9 +307,7 @@ std::vector<double> surface_projection::get_normal() {
  * account.
  */
 inline double surface_projection::mod( double lhs, double rhs ){
-  
-  double tolerance = 1e-5;
-  
+    
   double divisor = lhs / rhs;
 
   //let's check if we're very close to the next integer
@@ -322,21 +342,21 @@ void surface_projection::update_periodicity_length(){
   // direction from one periodic box to the next. Everything in
   // between can't be periodic anyways
   double step_size;
-  if( n[0] > 0 ){
+  if( std::fabs( n[0] ) > tolerance ){
     step_size = a / n[0];
-  } else if (n[1] > 0){
+  } else if ( std::fabs( n[1] ) > tolerance ){
     step_size = a / n[1];
   } else {
     step_size = a / n[2];
   }
-
+  
   //stop after some steps
   long long max_steps = 100;
 
   //count how many steps we need
   long long step_count = 1;
 
-  double tolerance = 1e-5;
+
   bool more_steps = true;
 
   //increase steps, scale normal vector and see if we are at a
@@ -362,14 +382,13 @@ void surface_projection::update_periodicity_length(){
     step_count++;
   }
 
-  if( step_count == max_steps-1 ){
+  
+  if( step_count == max_steps ){
     //no succes
     periodicity_length = -1;
-    std::cerr << "No periodicty found!" << std::endl;
   } else {
     //success
     periodicity_length =step_count * step_size;
-    std::cout << "periodicity=" << periodicity_length << std::endl;
   }
 
 }
@@ -439,6 +458,30 @@ int surface_projection::get_l() const{
   return l;
 }
 
+int surface_projection::get_ntucs() const{
+  return ntucs;
+}
+
+int surface_projection::get_type() const {
+  return type;
+}
+
+double surface_projection::get_a() const{
+  return a;
+}
+
+double surface_projection::get_mem_width() const {
+  return mem_width;
+}
+
+double surface_projection::get_slice_width() const {
+  return slice_width;
+}
+
+double surface_projection::get_slice_height() const {
+  return slice_height;
+}
+
 double surface_projection::get_theta() const{
   return theta;
 }
@@ -486,7 +529,7 @@ void surface_projection::set_phi( double ang ){
     phi = ang;
 }
 
-void surface_projection::set_type(std::string val ){
+void surface_projection::set_type(int val ){
   type = val;
 }
 
@@ -577,4 +620,8 @@ void surface_projection::set_l( int val ){
     l = 0;
   else
     l = val;  
+}
+
+void surface_projection::set_periodicity_length( double val ){
+  periodicity_length = val;
 }

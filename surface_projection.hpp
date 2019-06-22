@@ -50,22 +50,29 @@ public:
   int get_h() const;
   int get_k() const;
   int get_l() const;
+  int get_ntucs() const;
+  int get_type() const;
+  
+  double get_a() const;
+  double get_mem_width() const;
+  double get_slice_width() const;
+  double get_slice_height() const;
   double get_theta() const;
   double get_phi() const;
   double get_dx() const;
   double get_dy() const;
   double get_dz() const;  
-  double get_periodicity_length() const;
+  double get_periodicity_length() const;  
 
   
-  void set_orientation_from_hkl( int h, int k, int l );
+  void set_orientation_from_hkl();
   
   const std::vector<std::string> get_surface_choices();
   
   void set_theta( double ang );
   void set_phi( double ang );  
 
-  void set_type( std::string val );
+  void set_type( int val );
 
   void set_ntucs( int val );
   void set_slice_width( double val );
@@ -82,9 +89,13 @@ public:
   void set_k( int val );
   void set_l( int val );  
 
+  void set_periodicity_length( double val );
   
 private:
 
+  //numerical tolerance
+  double tolerance = 1e-5;
+  
   /// Dot product of two vectors
   double dot_prod ( std::vector<double> v, std::vector<double> w );
 
@@ -166,6 +177,8 @@ private:
   int k;
   int l;
 
+  /// The length of the unitbox in the current orientation. -1 if there
+  ///is none, or it is too large to handle
   double periodicity_length;
   
   //get number of points
@@ -173,8 +186,8 @@ private:
   unsigned int n_points_y;
   unsigned int n_points_z;
 
-  //type of surfcae to project
-  std::string type = "";
+  /// Type of surface to project
+  int type;
 
 
   /// Available surfaces

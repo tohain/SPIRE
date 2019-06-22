@@ -24,6 +24,7 @@
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/panel.h>
+#include <wx/radiobut.h>
 #include <wx/checkbox.h>
 #include <wx/scrolwin.h>
 #include <wx/filepicker.h>
@@ -57,16 +58,19 @@ class sp_gui : public wxFrame
 		wxPanel* orientation;
 		wxStaticText* m_staticText16;
 		wxStaticLine* m_staticline3;
+		wxRadioButton* ortype_ang_ctl;
 		wxStaticText* m_staticText4;
 		wxSpinCtrlDouble* theta_ctl;
 		wxStaticText* m_staticText5;
 		wxSpinCtrlDouble* phi_ctl;
+		wxRadioButton* otype_miller_ctl;
 		wxStaticText* m_staticText6;
 		wxSpinCtrl* h_ctl;
 		wxStaticText* m_staticText7;
 		wxSpinCtrl* k_ctl;
 		wxStaticText* m_staticText81;
 		wxSpinCtrl* l_ctl;
+		wxStaticLine* m_staticline6;
 		wxStaticText* m_staticText18;
 		wxSpinCtrlDouble* slicewidth_ctl;
 		wxStaticText* m_staticText19;
@@ -105,13 +109,17 @@ class sp_gui : public wxFrame
 		virtual void a_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void surface_change( wxCommandEvent& event ) = 0;
 		virtual void d_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void selection_angles( wxCommandEvent& event ) = 0;
 		virtual void theta_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void phi_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void selection_miller( wxCommandEvent& event ) = 0;
 		virtual void h_change( wxSpinEvent& event ) = 0;
 		virtual void k_change( wxSpinEvent& event ) = 0;
 		virtual void l_change( wxSpinEvent& event ) = 0;
 		virtual void slicewidth_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void sliceheight_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void n_points_xy_change( wxSpinEvent& event ) = 0;
+		virtual void n_points_z_change( wxSpinEvent& event ) = 0;
 		virtual void invert_change( wxCommandEvent& event ) = 0;
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
