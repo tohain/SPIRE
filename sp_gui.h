@@ -30,6 +30,7 @@
 #include <wx/filepicker.h>
 #include <wx/button.h>
 #include <wx/gauge.h>
+#include <wx/textctrl.h>
 #include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -103,24 +104,40 @@ class sp_gui : public wxFrame
 		wxButton* b_save;
 		wxGauge* m_gauge1;
 		wxButton* b_quit;
+		wxTextCtrl* text_help;
 
 		// Virtual event handlers, overide them in your derived class
+		virtual void focus_ntucs_ctl( wxFocusEvent& event ) = 0;
 		virtual void ntucs_change( wxSpinEvent& event ) = 0;
+		virtual void focus_a_ctl( wxFocusEvent& event ) = 0;
 		virtual void a_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void surface_change( wxCommandEvent& event ) = 0;
+		virtual void focus_type_ctl( wxFocusEvent& event ) = 0;
+		virtual void focus_d_ctl( wxFocusEvent& event ) = 0;
 		virtual void d_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void selection_angles( wxCommandEvent& event ) = 0;
+		virtual void focus_theta_ctl( wxFocusEvent& event ) = 0;
 		virtual void theta_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void focus_phi_ctl( wxFocusEvent& event ) = 0;
 		virtual void phi_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void selection_miller( wxCommandEvent& event ) = 0;
+		virtual void focus_h_ctl( wxFocusEvent& event ) = 0;
 		virtual void h_change( wxSpinEvent& event ) = 0;
+		virtual void focus_k_ctl( wxFocusEvent& event ) = 0;
 		virtual void k_change( wxSpinEvent& event ) = 0;
+		virtual void focus_l_ctl( wxFocusEvent& event ) = 0;
 		virtual void l_change( wxSpinEvent& event ) = 0;
+		virtual void focus_slicewidth_ctl( wxFocusEvent& event ) = 0;
 		virtual void slicewidth_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void focus_sliceposition_ctl( wxFocusEvent& event ) = 0;
 		virtual void sliceheight_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void focus_nrpointsxy_ctl( wxFocusEvent& event ) = 0;
 		virtual void n_points_xy_change( wxSpinEvent& event ) = 0;
+		virtual void focus_npointsz_ctl( wxFocusEvent& event ) = 0;
 		virtual void n_points_z_change( wxSpinEvent& event ) = 0;
 		virtual void invert_change( wxCommandEvent& event ) = 0;
+		virtual void focus_invert_ctl( wxFocusEvent& event ) = 0;
+		virtual void focus_updateprev_ctl( wxFocusEvent& event ) = 0;
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
 		virtual void button_quit( wxCommandEvent& event ) = 0;

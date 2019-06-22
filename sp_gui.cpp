@@ -19,12 +19,12 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	wxGridSizer* img_preview;
 	img_preview = new wxGridSizer( 1, 1, 0, 0 );
 
-	img_preview->SetMinSize( wxSize( 100,100 ) );
+	img_preview->SetMinSize( wxSize( 300,300 ) );
 	m_bitmap1 = new wxStaticBitmap( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	img_preview->Add( m_bitmap1, 0, wxALL|wxEXPAND, 5 );
 
 
-	root->Add( img_preview, 1, wxEXPAND, 1 );
+	root->Add( img_preview, 2, wxEXPAND, 1 );
 
 	wxBoxSizer* controls;
 	controls = new wxBoxSizer( wxVERTICAL );
@@ -218,8 +218,9 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText6->Wrap( -1 );
 	hkl->Add( m_staticText6, 0, wxALL, 5 );
 
-	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 1 );
+	h_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 );
 	hkl->Add( h_ctl, 0, wxALL, 5 );
+
 
 	hkl->Add( 0, 0, 1, wxEXPAND, 5 );
 
@@ -236,7 +237,6 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText81 = new wxStaticText( orientation, wxID_ANY, wxT("l"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText81->Wrap( -1 );
 	hkl->Add( m_staticText81, 0, wxALL, 5 );
-
 
 	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 );
 	hkl->Add( l_ctl, 0, wxALL, 5 );
@@ -524,7 +524,18 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	controls->Add( control, 0, wxEXPAND | wxALL, 5 );
 
 
-	root->Add( controls, 1, wxEXPAND, 5 );
+	root->Add( controls, 2, wxEXPAND, 5 );
+
+	wxGridSizer* gSizer2;
+	gSizer2 = new wxGridSizer( 1, 1, 0, 0 );
+
+	text_help = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_BESTWRAP|wxTE_MULTILINE|wxTE_NO_VSCROLL|wxTE_WORDWRAP );
+	text_help->Enable( false );
+
+	gSizer2->Add( text_help, 0, wxALL|wxEXPAND, 5 );
+
+
+	root->Add( gSizer2, 1, wxEXPAND, 5 );
 
 
 	this->SetSizer( root );
@@ -533,22 +544,37 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	this->Centre( wxBOTH );
 
 	// Connect Events
+	ntucs_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_ntucs_ctl ), NULL, this );
 	ntucs_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::ntucs_change ), NULL, this );
+	a_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_a_ctl ), NULL, this );
 	a_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
+	type_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	d_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_d_ctl ), NULL, this );
 	d_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::d_change ), NULL, this );
 	ortype_ang_ctl->Connect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
+	theta_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );
+	phi_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_phi_ctl ), NULL, this );
 	phi_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::phi_change ), NULL, this );
 	otype_miller_ctl->Connect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_miller ), NULL, this );
+	h_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_h_ctl ), NULL, this );
 	h_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::h_change ), NULL, this );
+	k_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_k_ctl ), NULL, this );
 	k_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::k_change ), NULL, this );
+	l_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_l_ctl ), NULL, this );
 	l_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::l_change ), NULL, this );
+	slicewidth_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_slicewidth_ctl ), NULL, this );
 	slicewidth_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::slicewidth_change ), NULL, this );
+	sliceheight_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_sliceposition_ctl ), NULL, this );
 	sliceheight_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::sliceheight_change ), NULL, this );
+	n_points_xy_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_nrpointsxy_ctl ), NULL, this );
 	n_points_xy_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::n_points_xy_change ), NULL, this );
+	n_points_z_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_npointsz_ctl ), NULL, this );
 	n_points_z_ctl->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::n_points_z_change ), NULL, this );
 	invert_ctl->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
+	invert_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
+	max_prev_points_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
 	b_render->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
@@ -557,22 +583,37 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 sp_gui::~sp_gui()
 {
 	// Disconnect Events
+	ntucs_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_ntucs_ctl ), NULL, this );
 	ntucs_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::ntucs_change ), NULL, this );
+	a_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_a_ctl ), NULL, this );
 	a_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
+	type_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	d_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_d_ctl ), NULL, this );
 	d_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::d_change ), NULL, this );
 	ortype_ang_ctl->Disconnect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
+	theta_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );
+	phi_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_phi_ctl ), NULL, this );
 	phi_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::phi_change ), NULL, this );
 	otype_miller_ctl->Disconnect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_miller ), NULL, this );
+	h_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_h_ctl ), NULL, this );
 	h_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::h_change ), NULL, this );
+	k_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_k_ctl ), NULL, this );
 	k_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::k_change ), NULL, this );
+	l_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_l_ctl ), NULL, this );
 	l_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::l_change ), NULL, this );
+	slicewidth_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_slicewidth_ctl ), NULL, this );
 	slicewidth_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::slicewidth_change ), NULL, this );
+	sliceheight_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_sliceposition_ctl ), NULL, this );
 	sliceheight_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::sliceheight_change ), NULL, this );
+	n_points_xy_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_nrpointsxy_ctl ), NULL, this );
 	n_points_xy_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::n_points_xy_change ), NULL, this );
+	n_points_z_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_npointsz_ctl ), NULL, this );
 	n_points_z_ctl->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( sp_gui::n_points_z_change ), NULL, this );
 	invert_ctl->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
+	invert_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
+	max_prev_points_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
 	b_render->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );

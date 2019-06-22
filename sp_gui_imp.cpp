@@ -28,7 +28,9 @@ sp_gui( parent )
 
   //add handlers to save image in differen formats
   img->AddHandler( new wxPNGHandler );
-  img->AddHandler( new wxTIFFHandler );  
+  img->AddHandler( new wxTIFFHandler );
+
+  help = new tooltips();
 }
 
 
@@ -127,6 +129,94 @@ void sp_gui_imp::update_controls_periodicity(){
     sliceheight_ctl->SetRange(0, 1);
   }
   
+}
+
+
+
+
+
+void sp_gui_imp::focus_ntucs_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->ntucs_tooltip;
+}
+
+
+void sp_gui_imp::focus_a_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->a_tooltip;
+}
+
+void sp_gui_imp::focus_theta_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->theta_tooltip;  
+}
+
+void sp_gui_imp::focus_phi_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->phi_tooltip;  
+}
+
+void sp_gui_imp::focus_h_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->hkl_tooltip;  
+}
+
+void sp_gui_imp::focus_k_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->hkl_tooltip;  
+}
+
+void sp_gui_imp::focus_l_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->hkl_tooltip;  
+}
+
+void sp_gui_imp::focus_slicewidth_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  if(sp->get_periodicity_length() == -1 ){
+    *text_help << help->slicewidth_tooltip;
+  } else {
+    *text_help << help->slicewidth_p_tooltip;
+  }
+}
+
+void sp_gui_imp::focus_sliceposition_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  if(sp->get_periodicity_length() == -1 ){
+    *text_help << help->sliceheight_tooltip;
+  } else {
+    *text_help << help->sliceheight_p_tooltip;
+  }
+}
+
+void sp_gui_imp::focus_nrpointsxy_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->nr_points_xy_tooltip;  
+}
+
+void sp_gui_imp::focus_npointsz_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->nr_points_z_tooltip;  
+}
+
+void sp_gui_imp::focus_invert_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->invert_tooltip;  
+}
+
+void sp_gui_imp::focus_updateprev_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->update_prev_tooltip;  
+}
+
+void sp_gui_imp::focus_type_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->type_tooltip;  
+}
+
+void sp_gui_imp::focus_d_ctl( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->memwidth_tooltip;  
 }
 
 
