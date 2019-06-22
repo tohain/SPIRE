@@ -237,7 +237,7 @@ void sp_gui_imp::selection_miller(  wxCommandEvent& event ){
 
 void sp_gui_imp::h_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() ){
+  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
     
     //update parameter
     sp->set_h( h_ctl->GetValue() );
@@ -264,7 +264,7 @@ void sp_gui_imp::h_change( wxSpinEvent& event )
 
 void sp_gui_imp::k_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() ){
+  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
     
     //update parameter
     sp->set_k( k_ctl->GetValue() );
@@ -291,7 +291,7 @@ void sp_gui_imp::k_change( wxSpinEvent& event )
 
 void sp_gui_imp::l_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() ){
+  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
     
     //update parameter
     sp->set_l( l_ctl->GetValue() );
@@ -422,6 +422,10 @@ void sp_gui_imp::update_orientation_from_hkl(){
     //convert indeces to angles
     sp->set_orientation_from_hkl();
 
+    //periodicity
+    sp->update_periodicity_length();
+    update_controls_periodicity();
+    
     //update gui
     theta_ctl->SetValue( sp->get_theta() );
     phi_ctl->SetValue( sp->get_phi() );
@@ -444,16 +448,6 @@ void sp_gui_imp::draw_preview(){
 
 
 void sp_gui_imp::compute_and_draw(){
-
-  //update parameters
-  //  write_parameters();
-  //update geometry and initialize points
-  //  sp->update_geometry();
-
-  //update periodiciy
-  //  sp->update_periodicity_length();
-  
-  //  sp->update_containers();
 
   //compute the projection
   sp->compute_projection();

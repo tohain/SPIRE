@@ -91,7 +91,7 @@ public:
 
   void set_periodicity_length( double val );
   
-private:
+  //private:
 
   //numerical tolerance
   double tolerance = 1e-5;

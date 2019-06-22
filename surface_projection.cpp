@@ -622,23 +622,14 @@ void surface_projection::set_n_points_z( int val ){
 
 
 void surface_projection::set_h( int val ){
-  if( val < 0 )
-    h = 0;
-  else
     h = val;  
 }
 
 void surface_projection::set_k( int val ){
-  if( val < 0 )
-    k = 0;
-  else
     k = val;  
 }
 
 void surface_projection::set_l( int val ){
-  if( val < 0 )
-    l = 0;
-  else
     l = val;  
 }
 
