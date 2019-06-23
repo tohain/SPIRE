@@ -25,12 +25,12 @@
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
+#include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/scrolwin.h>
 #include <wx/filepicker.h>
 #include <wx/button.h>
 #include <wx/gauge.h>
-#include <wx/textctrl.h>
 #include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -71,6 +71,9 @@ class sp_gui : public wxFrame
 		wxSpinCtrl* k_ctl;
 		wxStaticText* m_staticText81;
 		wxSpinCtrl* l_ctl;
+		wxStaticText* m_staticText241;
+		wxStaticLine* m_staticline61;
+		wxTextCtrl* text_periodicitylength;
 		wxStaticLine* m_staticline6;
 		wxStaticText* m_staticText18;
 		wxSpinCtrlDouble* slicewidth_ctl;

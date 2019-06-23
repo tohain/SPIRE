@@ -118,15 +118,18 @@ void sp_gui_imp::update_controls_periodicity(){
   if( sp->get_periodicity_length() == -1 ){
     //aperiodic. No limits :)
     slicewidth_ctl->SetRange(-9999, 9999);
+    sliceheight_ctl->SetRange(-9999, 9999);
+    
+    //write to indicator
+    text_periodicitylength->SetValue("Not periodic");
   } else {
     //periodic. fractional
     slicewidth_ctl->SetRange(0, 1);
-  }
-
-  if( sp->get_periodicity_length() == -1 ){
-    sliceheight_ctl->SetRange(-9999, 9999);
-  } else {
     sliceheight_ctl->SetRange(0, 1);
+
+    //write to indicator
+    text_periodicitylength->SetValue("");    
+    *text_periodicitylength << sp->get_periodicity_length();
   }
   
 }

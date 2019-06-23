@@ -247,6 +247,30 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	bSizer6->Add( hkl, 0, wxEXPAND, 5 );
 
+	wxBoxSizer* bSizer3311;
+	bSizer3311 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText241 = new wxStaticText( orientation, wxID_ANY, wxT("Periodicity Length"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText241->Wrap( -1 );
+	bSizer3311->Add( m_staticText241, 0, wxALL, 5 );
+
+	m_staticline61 = new wxStaticLine( orientation, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer3311->Add( m_staticline61, 1, wxEXPAND | wxALL, 5 );
+
+
+	bSizer6->Add( bSizer3311, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer361;
+	bSizer361 = new wxBoxSizer( wxHORIZONTAL );
+
+	text_periodicitylength = new wxTextCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTER );
+	text_periodicitylength->Enable( false );
+
+	bSizer361->Add( text_periodicitylength, 1, wxALL|wxEXPAND, 5 );
+
+
+	bSizer6->Add( bSizer361, 0, wxEXPAND, 5 );
+
 	wxBoxSizer* bSizer331;
 	bSizer331 = new wxBoxSizer( wxHORIZONTAL );
 
