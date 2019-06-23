@@ -5,36 +5,50 @@
 #include "img_out.hpp"
 
 /// Standard constructor initialize with the standard values and derive some more quantities
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1) {
-
-  //update geometry
-  //sets dx,dy,dz, L
-  update_geometry();
-
-  //resize containers
-  update_containers();
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1), periodicity_length(-1) {
 
   //update orientation from hkl
   //sets theta,phi
   set_orientation_from_hkl();
   
+  //update geometry
+  //sets dx,dy,dz, L
+  update_geometry();
+
   //periodicity
   //sets periodicty length
   update_periodicity_length();
+
+  //update geometry again in case we are periodic
+  update_geometry();
+  
+  //resize containers
+  update_containers();
+  
 }
 
 surface_projection::~surface_projection(){
-
+  //TODO free all the memory, but the program will stop anyways when
+  //this class is destructed, so not too much of an issue (hopefully)
 }
 
-
-double surface_projection::dot_prod ( std::vector<double> v, std::vector<double> w ){
+/**
+ * Quick and dirty dot product
+ *
+ * \param[in] v First vector
+ * \param[in] Second vector
+ */
+double surface_projection::dot_prod ( std::vector<double> v, std::vector<double> w ){  
+  assert( v.size() == 3 && w.size() == 3 );
   return v[0]*w[0]+v[1]*w[1]+v[2]*w[2];
 }
 
 
-
+/**
+ * Quick and dirty matrix-vector multiplication
+ */
 std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> v ){
+  assert( v.size() == 3);
   std::vector<double> r (3, 0);
   r[0] = dot_prod( m.v, v);
   r[1] = dot_prod( m.w, v);
@@ -46,6 +60,8 @@ std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> 
 /**
  * Returns a rotation matrix. The rotation is by ang against the
  * clock around the x-Axis
+ *
+ * \param[in] ang The angle to rotate by
  */
 Matrix surface_projection::get_x_rot_m (double ang) const {
   Matrix R;
@@ -58,6 +74,8 @@ Matrix surface_projection::get_x_rot_m (double ang) const {
 /**
  * Returns a rotation matrix. The rotation is by ang against the
  * clock around the z-Axis
+ *
+ * \param[in] ang The angle to rotate by
  */
 Matrix surface_projection::get_z_rot_m (double ang) const {
   Matrix R;
@@ -139,7 +157,11 @@ void surface_projection::set_orientation_from_hkl(){
 }
 
 
-
+/**
+ * This methods computes the position of all voxels in the slice. It
+ * does not update the containers so make sure they are of the correct
+ * size. Use \ref update_containers() before if in doubt.
+ */
 void surface_projection::set_up_points(){
   
   //vectors of slice
@@ -169,22 +191,36 @@ void surface_projection::set_up_points(){
 	double x,y,z;
 
 	//check if we are periodic. If so, slice_height will be handeled differently
-
-
 	if( periodicity_length == -1 ){
+	  
 	  //aperiodic. slice_height is an absolute length
-	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width*nz[0];
-	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width*nz[1];
-	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width*nz[2];
+	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0]
+	    + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0]
+	    - 0.5*slice_width*nz[0];
 
+	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1]
+	    + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1]
+	    - 0.5*slice_width*nz[1];
+
+	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2]
+	    + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2]
+	    - 0.5*slice_width*nz[2];
 
 	} else {
+	  
 	  //periodic. slice_height is the fraction of the periodicity length
-	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0] - 0.5*periodicity_length*slice_width*nz[0];
-	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1] - 0.5*periodicity_length*slice_width*nz[1];
-	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2] - 0.5*periodicity_length*slice_width*nz[2];
-	}
+	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0]
+	    + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0]
+	    - 0.5*periodicity_length*slice_width*nz[0];
 
+	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1]
+	    + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1]
+	    - 0.5*periodicity_length*slice_width*nz[1];
+
+	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2]
+	    + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2]
+	    - 0.5*periodicity_length*slice_width*nz[2];
+	}
 	
 	//assign the position
 	points[3*ind]=x;
@@ -196,7 +232,10 @@ void surface_projection::set_up_points(){
   
 }
 
-
+/**
+ * Evalutes the voxels in the level set. Sets the "colors" of the
+ * voxels to 1 if thei are within the membrane
+ */
 void surface_projection::set_grid (){
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
@@ -218,9 +257,11 @@ void surface_projection::set_grid (){
 
 }
 
-
+/**
+ * Projects the slice to a 2D array. Just sums up all points for a
+ * given (x,y) in z direction
+ */
 void surface_projection::project_grid (){
-
 
   for(unsigned int ii=0; ii<n_points_y; ii++){ //y direcion=height (vertical)
     for(unsigned int jj=0; jj<n_points_x; jj++){//x direction=width (horizontal)
@@ -235,7 +276,6 @@ void surface_projection::project_grid (){
       }
     }
   }
-
 }
 
 /**
@@ -261,13 +301,26 @@ void surface_projection::update_containers(){
  * depending on the unit cell size and number of unit cells.
  */
 void surface_projection::update_geometry(){
-  //update box
-  L = ntucs * a;
-
+  
+  //check if we're periodic. If so use the periodicity length as unit
+  //cell size
+  if( periodicity_length == -1 ){
+    //aperiodic. Just use the unit cell size in {100},{010},{001}
+    //length
+    
+    //update box
+    L = ntucs * a;
+   
+  } else {
+    //periodic. Juse the periodicity length as the unit cell size
+    L = ntucs * periodicity_length;    
+  }
+  
   //update points number
   dx = L / n_points_x;
   dy = L / n_points_y;
-  dz = slice_width / n_points_z;  
+  dz = slice_width / n_points_z;
+    
 }
 
 
@@ -398,7 +451,7 @@ void surface_projection::update_periodicity_length(){
       break;
     }
 
-    //not there yet, keep on goind
+    //not there yet, keep on going
     step_count++;
   }
 
@@ -424,7 +477,6 @@ unsigned char* surface_projection::get_image(bool invert){
   double max= *std::max_element( projection.begin(), projection.end() );
   double min= *std::min_element( projection.begin(), projection.end() );
 
-  
   //write image data
   for(unsigned int ii=0; ii<projection.size(); ii++){
       //scale

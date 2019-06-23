@@ -141,6 +141,7 @@ class sp_gui : public wxFrame
 		virtual void invert_change( wxCommandEvent& event ) = 0;
 		virtual void focus_invert_ctl( wxFocusEvent& event ) = 0;
 		virtual void focus_updateprev_ctl( wxFocusEvent& event ) = 0;
+		virtual void focus_filename_ctl( wxFocusEvent& event ) = 0;
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
 		virtual void button_quit( wxCommandEvent& event ) = 0;
@@ -148,7 +149,7 @@ class sp_gui : public wxFrame
 
 	public:
 
-		sp_gui( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Surface Projection GUI"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1094,569 ), long style = wxDEFAULT_FRAME_STYLE|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
+		sp_gui( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Surface Projection GUI"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1281,624 ), long style = wxDEFAULT_FRAME_STYLE|wxRESIZE_BORDER|wxTAB_TRAVERSAL );
 
 		~sp_gui();
 
