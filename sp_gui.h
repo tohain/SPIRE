@@ -141,7 +141,7 @@ class sp_gui : public wxFrame
 		virtual void invert_change( wxCommandEvent& event ) = 0;
 		virtual void focus_invert_ctl( wxFocusEvent& event ) = 0;
 		virtual void focus_updateprev_ctl( wxFocusEvent& event ) = 0;
-		virtual void focus_filename_ctl( wxFocusEvent& event ) = 0;
+        virtual void focus_filename_ctl( wxFocusEvent& event ) = 0;
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
 		virtual void button_quit( wxCommandEvent& event ) = 0;

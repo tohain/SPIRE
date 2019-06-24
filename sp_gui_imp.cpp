@@ -149,9 +149,10 @@ void sp_gui_imp::focus_ntucs_ctl( wxFocusEvent& event ){
 }
 
 void sp_gui_imp::focus_filename_ctl( wxFocusEvent& event ){
-  text_help->SetValue("");
-  *text_help << help->filename_tooltip;
+ text_help->SetValue("");
+ *text_help << help->filename_tooltip;
 }
+
 
 void sp_gui_imp::focus_a_ctl( wxFocusEvent& event ){
   text_help->SetValue("");

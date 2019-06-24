@@ -2,6 +2,7 @@
 #ifndef SP_PROJ_I
 #define SP_PROJ_I
 
+
 #include <cassert>
 #include <sstream>
 #include <iomanip>
@@ -184,7 +185,8 @@ private:
 
   /// Edge length of the slice
   double L;
-
+  double L_2; // L_2 = L/2
+  
   /// Distance between to points in x direction and voxel size in x direction
   double dx;
   /// Distance between to points in y direction and voxel size in y direction  
@@ -218,6 +220,8 @@ private:
   double mem_width;
   /// Unit cell size of the surface in {100},{010},{001} direciton
   double a;
+  //gyroid period
+  double inv_a;
   
   /// Theta angle of the orientation of the slice
   double theta;

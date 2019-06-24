@@ -4,6 +4,7 @@
 class tooltips {
  public:
   tooltips(){}
+
   const std::string ntucs_tooltip = "This controls the edge length of the quadratic slice. The length is the number of unit cells times the unit cell length in {100},{010},{001}.";
 
   const std::string ntucs_p_tooltip = "This controls the edge length of the quadratic slice. The length is the number of unit cells times the periodicity length in the current orientatin.";
