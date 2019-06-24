@@ -5,7 +5,7 @@
 #include "img_out.hpp"
 
 /// Standard constructor initialize with the standard values and derive some more quantities
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), inv_a(2*M_PI), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -69,19 +69,17 @@ Matrix surface_projection::get_z_rot_m (double ang) const {
 
  
 
-double surface_projection::level_set_gyroid( double x, double y, double z, double a) {
+double surface_projection::level_set_gyroid( double x, double y, double z, double inv_a) {
   double s = (2*M_PI)/(a);
-  return sin(s*x)*cos(s*y) + sin(s*y)*cos(s*z) + cos(s*x)*sin(s*z);
+  return sin(inv_a*x)*cos(inv_a*y) + sin(inv_a*y)*cos(inv_a*z) + cos(inv_a*x)*sin(inv_a*z);
 }
 
-double surface_projection::level_set_diamond( double x, double y, double z, double a) {
-  double s = (2*M_PI)/(a);
-  return cos(s*x)*cos(s*y)*cos(s*z) - sin(s*x)*sin(s*y)*sin(s*z);
+double surface_projection::level_set_diamond( double x, double y, double z, double inv_a) {
+  return cos(inv_a*x)*cos(inv_a*y)*cos(inv_a*z) - sin(inv_a*x)*sin(inv_a*y)*sin(inv_a*z);
 }
 
-double surface_projection::level_set_primitive( double x, double y, double z, double a) {
-  double s = (2*M_PI)/(a);
-  return cos(s*x)+cos(s*y)+cos(s*z);
+double surface_projection::level_set_primitive( double x, double y, double z, double inv_a) {
+  return cos(inv_a*x)+cos(inv_a*y)+cos(inv_a*z);
 }
 
 /**
@@ -157,41 +155,49 @@ void surface_projection::set_up_points(){
   ny = dot_prod( Rz, dot_prod( Rx, ny));
   nz = dot_prod( Rz, dot_prod( Rx, nz));  
   
+  //the total index of that particle in the array
+  int ind = 0;
+  double iy = -L_2;
   //a single loop would be nicer, but i find this less confusing  
   for(unsigned int ii=0; ii<n_points_y; ii++){ //height, the row index (vertical)
+    double jx = -L_2;
     for(unsigned int jj=0; jj<n_points_x; jj++){ //width, the column index! (horizontal)
+
+      double kz;
+
+
+	  //check if we are periodic. If so, slice_height will be handeled differently
+	  if( periodicity_length == -1 ){
+
+         kz = slice_height - 0.5*slice_width;// kz = ((kk*dz)-L_2.) + (slice_height+L_2.) - 0.5*slice_width;
+	     //aperiodic. slice_height is an absolute length
+	   } else {
+
+        kz = periodicity_length*(slice_height - 0.5*slice_width);// kz = ((kk*dz)-L_2.) + ((periodicity_length*slice_height)+L_2.) - 0.5*periodicity_length*slice_width;
+	    //periodic. slice_height is the fraction of the periodicity length
+	  }
+
       for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
 
-	//the total index of that particle in the array
-	int ind=ii*(n_points_x*n_points_z) + jj*n_points_z + kk; 
 
 	//now compute the absolute position of all voxels
-	double x,y,z;
+	  double x = jx*nx[0] + iy*ny[0] +kz*nz[0];
 
-	//check if we are periodic. If so, slice_height will be handeled differently
+	  double y = jx*nx[1] + iy*ny[1] +kz*nz[1];
 
-
-	if( periodicity_length == -1 ){
-	  //aperiodic. slice_height is an absolute length
-	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + (slice_height+L/2.)*nz[0] - 0.5*slice_width*nz[0];
-	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + (slice_height+L/2.)*nz[1] - 0.5*slice_width*nz[1];
-	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + (slice_height+L/2.)*nz[2] - 0.5*slice_width*nz[2];
-
-
-	} else {
-	  //periodic. slice_height is the fraction of the periodicity length
-	  x = ((jj*dx)-L/2.)*nx[0] + ((ii*dy)-L/2.)*ny[0] + ((kk*dz)-L/2)*nz[0] + ((periodicity_length*slice_height)+L/2.)*nz[0] - 0.5*periodicity_length*slice_width*nz[0];
-	  y = ((jj*dx)-L/2.)*nx[1] + ((ii*dy)-L/2.)*ny[1] + ((kk*dz)-L/2)*nz[1] + ((periodicity_length*slice_height)+L/2.)*nz[1] - 0.5*periodicity_length*slice_width*nz[1];
-	  z = ((jj*dx)-L/2.)*nx[2] + ((ii*dy)-L/2.)*ny[2] + ((kk*dz)-L/2)*nz[2] + ((periodicity_length*slice_height)+L/2.)*nz[2] - 0.5*periodicity_length*slice_width*nz[2];
-	}
-
+	  double z = jx*nx[2] + iy*ny[2] +kz*nz[2];
 	
 	//assign the position
-	points[3*ind]=x;
-	points[(3*ind)+1]=y;
-	points[(3*ind)+2]=z;
+	points[ind]=x;
+	points[ind+1]=y;
+	points[ind+2]=z;
+
+     kz += dz; // next z-pixel
+	 ind += 3; // running index
       }
+      jx += dx; // next x-pixel
     }
+    iy += dy; // next y-pixel
   }
   
 }
@@ -201,13 +207,14 @@ void surface_projection::set_grid (){
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
-    double level = 0;
+    double level = 0; 
+
     if( type == 0 ){ //gyroid
-      level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], a );
+      level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 1 ){ //diamon
-      level = level_set_diamond( points[ii], points[ii+1], points[ii+2], a );
+      level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
-      level = level_set_primitive( points[ii], points[ii+1], points[ii+2], a );
+      level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
     }
     
     if( level < mem_width && level > -mem_width ){
@@ -222,17 +229,21 @@ void surface_projection::set_grid (){
 void surface_projection::project_grid (){
 
 
+  unsigned int ind_grid = 0;
+  unsigned int ind_proj = 0;
   for(unsigned int ii=0; ii<n_points_y; ii++){ //y direcion=height (vertical)
     for(unsigned int jj=0; jj<n_points_x; jj++){//x direction=width (horizontal)
       for(unsigned int kk=0; kk<n_points_z; kk++){
         
-	int ind = ii *( n_points_x * n_points_z ) + jj * n_points_z + kk;
 
-	if(grid[ind] == 1){
-	  projection[(ii*n_points_x)+jj] += 1;
+	if(grid[ind_grid] == 1){
+	  projection[ind_proj] += 1;
 	}
+
+    ind_grid++; // run 3d-index
 	
       }
+    ind_proj++;// run 2d-index
     }
   }
 
@@ -263,6 +274,8 @@ void surface_projection::update_containers(){
 void surface_projection::update_geometry(){
   //update box
   L = ntucs * a;
+
+  L_2 = L/2.;
 
   //update points number
   dx = L / n_points_x;
@@ -587,6 +600,8 @@ void surface_projection::set_a ( double val ){
     a = 1.0;
   else
     a = val;
+
+  inv_a = 2*M_PI/(a); // period for nodal representations 
 }
 
 

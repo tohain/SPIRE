@@ -152,6 +152,7 @@ public:
 
   /// Edge length of cubic "sim"box.
   double L;
+  double L_2; // L_2 = L/2
   
   double dx;
   double dy;
@@ -167,6 +168,8 @@ public:
   double mem_width;
   //gyroid unit cell length
   double a;
+  //gyroid period
+  double inv_a;
   
   //slice orientation
   double theta;
