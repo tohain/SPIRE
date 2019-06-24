@@ -24,7 +24,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	img_preview->Add( m_bitmap1, 0, wxALL|wxEXPAND, 5 );
 
 
-	root->Add( img_preview, 2, wxEXPAND, 1 );
+	root->Add( img_preview, 4, wxEXPAND, 1 );
 
 	wxBoxSizer* controls;
 	controls = new wxBoxSizer( wxVERTICAL );
@@ -250,7 +250,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	wxBoxSizer* bSizer3311;
 	bSizer3311 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_staticText241 = new wxStaticText( orientation, wxID_ANY, wxT("Periodicity Length"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText241 = new wxStaticText( orientation, wxID_ANY, wxT("Periodicity Length/Unit cell size in current orientation"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText241->Wrap( -1 );
 	bSizer3311->Add( m_staticText241, 0, wxALL, 5 );
 
@@ -548,7 +548,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	controls->Add( control, 0, wxEXPAND | wxALL, 5 );
 
 
-	root->Add( controls, 2, wxEXPAND, 5 );
+	root->Add( controls, 3, wxEXPAND, 5 );
 
 	wxGridSizer* gSizer2;
 	gSizer2 = new wxGridSizer( 1, 1, 0, 0 );
@@ -599,6 +599,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	invert_ctl->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	invert_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
 	max_prev_points_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
+    m_filePicker2->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
 	b_render->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
@@ -638,6 +639,7 @@ sp_gui::~sp_gui()
 	invert_ctl->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	invert_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
 	max_prev_points_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
+    m_filePicker2->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
 	b_render->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );

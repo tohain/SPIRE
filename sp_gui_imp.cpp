@@ -140,7 +140,17 @@ void sp_gui_imp::update_controls_periodicity(){
 
 void sp_gui_imp::focus_ntucs_ctl( wxFocusEvent& event ){
   text_help->SetValue("");
-  *text_help << help->ntucs_tooltip;
+  if(sp->get_periodicity_length() == -1 ){
+        *text_help << help->ntucs_tooltip;
+    } else {
+        *text_help << help->ntucs_p_tooltip;
+    }
+
+}
+
+void sp_gui_imp::focus_filename_ctl( wxFocusEvent& event ){
+ text_help->SetValue("");
+ *text_help << help->filename_tooltip;
 }
 
 
