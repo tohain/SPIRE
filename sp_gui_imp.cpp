@@ -1,10 +1,11 @@
 ﻿#include "sp_gui_imp.h"
 
-sp_gui_imp::sp_gui_imp( wxWindow* parent )
-:
-sp_gui( parent )
-{
-
+/** \brief Default constructor
+ *
+ * Sets a few element properties which are read from the \ref
+ * surface_projection class and draws a first preview
+ */
+sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
   //initialize surface_projection object
   sp = new surface_projection();
   
@@ -35,8 +36,8 @@ sp_gui( parent )
 
 
 /**
- *  Writes all parameters to to sp class and calls necessary methods
- *  to update it
+ *  Writes all parameters from the GUI into the \ref sp class and
+ *  calls necessary methods to update the GUI and the \ref sp class
  */
 void sp_gui_imp::write_parameters(){
 
@@ -78,7 +79,7 @@ void sp_gui_imp::write_parameters(){
 
 
 /**
- *  reads all parameters from the sp obejct and set all gui objects
+ *  reads all parameters from the sp obejct and updates GUI controls
  */
 void sp_gui_imp::read_parameters(){
   //geometry
@@ -144,8 +145,7 @@ void sp_gui_imp::focus_ntucs_ctl( wxFocusEvent& event ){
     *text_help << help->ntucs_tooltip;
   } else {
     *text_help << help->ntucs_p_tooltip;
-  }
-  
+  }  
 }
 
 void sp_gui_imp::focus_filename_ctl( wxFocusEvent& event ){
@@ -238,6 +238,10 @@ void sp_gui_imp::focus_d_ctl( wxFocusEvent& event ){
  *  and start computations
  */
 
+/**
+ * Handles a change of number in unit cells. Needs to update geometry,
+ * periodicity and GUI
+ */
 void sp_gui_imp::ntucs_change( wxSpinEvent& event )
 {
   //update parameter
@@ -257,6 +261,7 @@ void sp_gui_imp::ntucs_change( wxSpinEvent& event )
   //redraw  
   draw_preview();
 }
+
 
 void sp_gui_imp::a_change( wxSpinDoubleEvent& event )
 {
@@ -528,6 +533,12 @@ void sp_gui_imp::button_quit( wxCommandEvent& event )
   Close( true );
 }
 
+
+/**
+ * This function calls the neccessary function from the underlying
+ * \ref surface_projection class to update the slice orientation
+ * according to the Miller indeces and update the GUI
+ */
 void sp_gui_imp::update_orientation_from_hkl(){
   //get indeces
   int h = h_ctl->GetValue();
@@ -567,12 +578,18 @@ void sp_gui_imp::draw_preview(){
 }
 
 
+/**
+ * This method calls the neccessary functions from \ref surface
+ * projection to compute the projection with the current parameters
+ * and draw it onto the GUI
+ */
 void sp_gui_imp::compute_and_draw(){
 
   //compute the projection
   sp->compute_projection();
   unsigned char *proj = sp->get_image( invert_ctl->GetValue() );
-  
+
+  //width and height of image
   int w = sp->get_width();
   int h = sp->get_height();
   
@@ -584,8 +601,7 @@ void sp_gui_imp::compute_and_draw(){
             
       rgb_img[3*ind]=proj[ind];
       rgb_img[3*ind+1]=proj[ind];
-      rgb_img[3*ind+2]=proj[ind];
-      
+      rgb_img[3*ind+2]=proj[ind];      
     }
   }
 
@@ -606,6 +622,11 @@ void sp_gui_imp::compute_and_draw(){
 }
 
 
+/**
+ * Redraws (without recomputing) the current image and especially
+ * rescales the current image to the current size of the
+ * wxStaticBitmap
+ */
 void sp_gui_imp::redraw()
 {
   //get the current size of the staticBitmap, which is the size we

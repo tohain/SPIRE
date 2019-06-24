@@ -1,10 +1,12 @@
 #include "surface_projection.hpp"
 
 
-// eport as pgm image
+// export as pgm image
 #include "img_out.hpp"
 
-/// Standard constructor initialize with the standard values and derive some more quantities
+/** Standard constructor initialize with the standard values and
+ *  derive some more quantities
+ */
 surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1), periodicity_length(-1) {
 
   //update orientation from hkl
@@ -26,6 +28,7 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_hei
   update_containers();
   
 }
+
 
 surface_projection::~surface_projection(){
   //TODO free all the memory, but the program will stop anyways when
@@ -86,28 +89,43 @@ Matrix surface_projection::get_z_rot_m (double ang) const {
 }
 
  
-
+/**
+ * Nodal representation of a Gyroid Ia\bar(3)d surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
 double surface_projection::level_set_gyroid( double x, double y, double z, double a) {
   double s = (2*M_PI)/(a);
   return sin(s*x)*cos(s*y) + sin(s*y)*cos(s*z) + cos(s*x)*sin(s*z);
 }
 
+/**
+ * Nodal representation of a Diamond Pn\bar(3)m surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
 double surface_projection::level_set_diamond( double x, double y, double z, double a) {
   double s = (2*M_PI)/(a);
   return cos(s*x)*cos(s*y)*cos(s*z) - sin(s*x)*sin(s*y)*sin(s*z);
 }
 
+/**
+ * Nodal representation of a Primitive Im\bar(3)m surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
 double surface_projection::level_set_primitive( double x, double y, double z, double a) {
   double s = (2*M_PI)/(a);
   return cos(s*x)+cos(s*y)+cos(s*z);
 }
 
 /**
- * Computes the rotation angles needed to get the orientation given by
- * the Miller indeces hkl. Only works if all indeces are positive!
+ * Computes and sets the theta and phi angles to match the orientation
+ * given by the Miller indeces
  */
 void surface_projection::set_orientation_from_hkl(){
 
+  // Normal vector of the plane given by Miller indeces
   std::vector<double> n = {double(h), double(k), double(l)};
 
   //make it unit length
@@ -136,10 +154,9 @@ void surface_projection::set_orientation_from_hkl(){
   }
 
 
-  //rotate vector, so it will aligned with yz plane
+  //get length of projection of normal vector in xy plane
   double n_xy = sqrt(n[0]*n[0]+n[1]*n[1]);
    
-
   //get angle to rotate around x axis to align vector with {0, 0, 1}  
   double _theta;
   if( l == 0 ){
@@ -151,8 +168,7 @@ void surface_projection::set_orientation_from_hkl(){
         _theta = M_PI - atan2( n_xy, -n[2] );
   }
 
-
-  //apply the angles
+  //set the angles
   theta = _theta; phi = _phi;
 }
 
@@ -234,7 +250,7 @@ void surface_projection::set_up_points(){
 
 /**
  * Evalutes the voxels in the level set. Sets the "colors" of the
- * voxels to 1 if thei are within the membrane
+ * voxels to 1 if they are within the membrane
  */
 void surface_projection::set_grid (){
   
@@ -323,16 +339,15 @@ void surface_projection::update_geometry(){
     
 }
 
-
+/**
+ * This function computes the projection. It is basically just a
+ * wrapper around the functions performing the single steps. It might
+ * be more efficient to do that in a single loop, but with modern
+ * compiler optimizations and loop unrolling this should not make too
+ * much of a difference
+ */
 void surface_projection::compute_projection( ){
 
-  /*
-  std::cout << "computing with:\n";
-  std::cout << "theta=" << theta << " phi=" << phi << " L=" << L << std::endl;
-  std::cout << "slice_width=" << slice_width << " slice_height=" << slice_height << std::endl;
-  std::cout << "mem_width=" << mem_width <<  " a=" << a << std::endl;
-  std::cout << "type=" << type << std::endl;
-  */
     //get the points in the slice    
     set_up_points();
     
@@ -345,7 +360,6 @@ void surface_projection::compute_projection( ){
     //get projection
     memset( projection.data(), 0, sizeof(double) * projection.size() );
     project_grid();
-      
 }
 
 
@@ -423,7 +437,7 @@ void surface_projection::update_periodicity_length(){
 
   if (step_size < 0) step_size  = -step_size ;
 
-  //stop after some steps
+  //stop after some steps, rather arbitrary number
   long long max_steps = 100;
 
   //count how many steps we need
@@ -463,11 +477,15 @@ void surface_projection::update_periodicity_length(){
     //success
     periodicity_length =step_count * step_size;
   }
-
 }
 
 
-
+/**
+ * This function basically only converts the projection array to a
+ * rescaled array, where the minimal value is set to 0 and the maximum
+ * to 255. Also inverts if necessary. Memory management could be
+ * imporved I guess
+ */
 unsigned char* surface_projection::get_image(bool invert){
 
   //new image array
