@@ -2,7 +2,6 @@
 #ifndef SP_PROJ_I
 #define SP_PROJ_I
 
-#include <cassert>
 #include <sstream>
 #include <iomanip>
 #include <cmath>

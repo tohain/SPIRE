@@ -47,7 +47,7 @@
             <property name="minimum_size">750,500</property>
             <property name="name">sp_gui</property>
             <property name="pos"></property>
-            <property name="size">1281,624</property>
+            <property name="size">1094,569</property>
             <property name="style">wxDEFAULT_FRAME_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Surface Projection GUI</property>
@@ -64,7 +64,7 @@
                 <object class="sizeritem" expanded="0">
                     <property name="border">1</property>
                     <property name="flag">wxEXPAND</property>
-                    <property name="proportion">4</property>
+                    <property name="proportion">2</property>
                     <object class="wxGridSizer" expanded="0">
                         <property name="cols">1</property>
                         <property name="hgap">0</property>
@@ -136,7 +136,7 @@
                 <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
-                    <property name="proportion">3</property>
+                    <property name="proportion">2</property>
                     <object class="wxBoxSizer" expanded="1">
                         <property name="minimum_size"></property>
                         <property name="name">controls</property>
@@ -2131,7 +2131,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">Periodicity Length/Unit cell size in current orientation</property>
+                                                                <property name="label">Periodicity Length</property>
                                                                 <property name="markup">0</property>
                                                                 <property name="max_size"></property>
                                                                 <property name="maximize_button">0</property>
@@ -4352,7 +4352,6 @@
                                                             <property name="window_extra_style"></property>
                                                             <property name="window_name"></property>
                                                             <property name="window_style"></property>
-                                                            <event name="OnSetFocus">focus_filename_ctl</event>
                                                         </object>
                                                     </object>
                                                     <object class="sizeritem" expanded="0">

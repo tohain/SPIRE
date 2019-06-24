@@ -36,8 +36,7 @@ class sp_gui_imp : public sp_gui
 		void focus_nrpointsxy_ctl( wxFocusEvent& event );
 		void focus_npointsz_ctl( wxFocusEvent& event );
 		void focus_updateprev_ctl( wxFocusEvent& event );
-		void focus_invert_ctl( wxFocusEvent& event );
-                void focus_filename_ctl( wxFocusEvent& event );  
+		void focus_invert_ctl( wxFocusEvent& event );  
                 void ntucs_change( wxSpinEvent& event );
                 void a_change( wxSpinDoubleEvent& event );
 		void surface_change( wxCommandEvent& event );
