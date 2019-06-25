@@ -10,6 +10,26 @@
 #include <vector>
 #include <cstring>
 #include <cstdio>
+#include <exception>
+
+
+/** \brief Quick and dirty implementation of an invalid parameter exception
+ *
+ * This exception is thrown, if a parameter choice would cause
+ * faulty maths, unphysical behavior or just makes no sense at all
+ */
+class invalid_parameter_exception : public std::exception {
+  /// Constructor, initializes \ref msg
+  invalid_parameter_exception( std::string _msg );
+
+  /// RETURNS a short string what this exception is
+  virtual const char* what() const throw();
+  /// Returns a string conatining more details
+  const std::string details() const;
+
+  /// String holding details on the exception
+  std::string msg;
+};
 
 /// Quick and dirty 3x3 Matrix object, consisting of 3 rows
 struct Matrix {

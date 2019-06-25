@@ -5,6 +5,19 @@
 #include "img_out.hpp"
 
 
+invalid_parameter_exception::invalid_parameter_exception( std::string _msg ) : msg(_msg){
+}
+
+const char* invalid_parameter_exception::what() const throw() {
+    return "Invalid parameter choice!";
+}
+
+const std::string invalid_parameter_exception::details() const {
+  return msg;
+}
+
+
+
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
