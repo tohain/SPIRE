@@ -194,35 +194,34 @@ void surface_projection::set_up_points(){
 
       double kz;
 
-
-	  //check if we are periodic. If so, slice_height will be handeled differently
-	  if( periodicity_length == -1 ){
-
-         kz = slice_height - 0.5*slice_width;// kz = ((kk*dz)-L_2.) + (slice_height+L_2.) - 0.5*slice_width;
-	     //aperiodic. slice_height is an absolute length
-	   } else {
-
+      //check if we are periodic. If so, slice_height will be handeled differently
+      if( periodicity_length == -1 ){
+	
+	kz = slice_height - 0.5*slice_width;// kz = ((kk*dz)-L_2.) + (slice_height+L_2.) - 0.5*slice_width;
+	//aperiodic. slice_height is an absolute length
+      } else {
+	
         kz = periodicity_length*(slice_height - 0.5*slice_width);// kz = ((kk*dz)-L_2.) + ((periodicity_length*slice_height)+L_2.) - 0.5*periodicity_length*slice_width;
-	    //periodic. slice_height is the fraction of the periodicity length
-	  }
-
+	//periodic. slice_height is the fraction of the periodicity length
+      }
+      
       for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
-
-
+	
+	
 	//now compute the absolute position of all voxels
 	  double x = jx*nx[0] + iy*ny[0] +kz*nz[0];
-
+	  
 	  double y = jx*nx[1] + iy*ny[1] +kz*nz[1];
-
+	  
 	  double z = jx*nx[2] + iy*ny[2] +kz*nz[2];
-	
-	//assign the position
-	points[ind]=x;
-	points[ind+1]=y;
-	points[ind+2]=z;
-
-     kz += dz; // next z-pixel
-	 ind += 3; // running index
+	  
+	  //assign the position
+	  points[ind]=x;
+	  points[ind+1]=y;
+	  points[ind+2]=z;
+	  
+	  kz += dz; // next z-pixel
+	  ind += 3; // running index
       }
       jx += dx; // next x-pixel
     }
@@ -580,107 +579,157 @@ double surface_projection::get_periodicity_length() const{
 
 
 void surface_projection::set_theta( double ang ){
-  if( ang > M_PI )
-   theta  = M_PI;
-  else if( ang < 0 )
+  if( ang > M_PI ){
+    theta  = M_PI - tolerance;
+    throw invalid_parameter_exception( "Angle too large" );
+  } else if( ang < 0 ) {
     theta = 0;
-  else
+    throw invalid_parameter_exception( "No negative angles allowed" );
+  } else {
     theta = ang;
+  }
 }
 
 void surface_projection::set_phi( double ang ){
-  if( ang > 2*M_PI )
-    phi  = 2*M_PI;
-  else if( ang < 0 )
+  if( ang > 2*M_PI ){
+    phi  = 2*M_PI - tolerance;
+    throw invalid_parameter_exception( "Angle too large" );
+  } else if( ang < 0 ) {
     phi = 0;
-  else
+    throw invalid_parameter_exception( "No negative angles allowed" );
+  } else {
     phi = ang;
+  }
 }
 
 void surface_projection::set_type(int val ){
-  type = val;
+  if( val < 0 || val >= surface_choices.size() ){
+    val = 0;
+    throw invalid_parameter_exception( "Surface not available" );
+  } else {
+    type = val;
+  }
 }
 
 void surface_projection::set_ntucs( int val ){
-  if( val < 0 )
+  if( val < 0 ){
     ntucs = 1;
-  else
+    throw invalid_parameter_exception("At least one unit cell must be projected");
+  } else {
     ntucs = val;
-
+  }
+  
   //update geometry and arrrays
   update_geometry();
 }
 
 void surface_projection::set_slice_width ( double val ){
-  if( val < 0 )
-    slice_width = 0;
-  else
+  if( val < 0 ){
+    slice_width = 0.1;
+    throw invalid_parameter_exception("Slice width can't be negative");
+  } else {
     slice_width = val;
+  }
 }
 
 void surface_projection::set_slice_height ( double val ){
+  //check for invalid parameter
+  if( periodicity_length > 0 &&
+      (slice_height < 0 || slice_height > 1 ) ){
+    //set valid value
+    slice_height = 0;
+    throw invalid_parameter_exception("periodic orientation, slice height must be in [0, 1]");
+  }
+  //set value
   slice_height = val;
 }
 
 
 void surface_projection::set_mem_width ( double val ){
-  if( val < 0 )
+  if( val < 0 ){
     mem_width = 0;
-  else
+    throw invalid_parameter_exception(" membrane width can't be smaller than 0");
+  } else {
     mem_width = val;
+  }
 }
 
 void surface_projection::set_a ( double val ){
-  if( val < 0 )
-    a = 1.0;
-  else
+  if( val < tolerance ){
+    a = tolerance;
+    inv_a = 2*M_PI/(a); // period for nodal representations     
+    throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
+  } else {
     a = val;
+    inv_a = 2*M_PI/(a); // period for nodal representations     
+  }
 
-  inv_a = 2*M_PI/(a); // period for nodal representations 
+
 }
 
 
 void surface_projection::set_n_points_x( int val ){
-  if( val < 0)
+  if( val < 0){
     n_points_x = 1;
-  else
+    //recompute the resolution
+    dx = L / n_points_x;
+    throw invalid_parameter_exception("Must have a minimum of 1 point");
+  } else {
     n_points_x = val;
-
-  //recompute the resolution
-  dx = L / n_points_x;
+    //recompute the resolution
+    dx = L / n_points_x;
+  }
 }
 
 void surface_projection::set_n_points_y( int val ){
-  if( val < 0)
+  if( val < 0){
     n_points_y = 1;
-  else
+    //recompute the resolution
+    dy = L / n_points_y;      
+    throw invalid_parameter_exception("Must have a minimum of 1 point");
+  } else {    
     n_points_y = val;
-
-  //recompute the resolution
-  dy = L / n_points_y;  
+    //recompute the resolution
+    dy = L / n_points_y;      
+  }   
 }
 
 void surface_projection::set_n_points_z( int val ){
-  if( val < 0)
+  if( val < 0){
     n_points_z = 1;
-  else
+    //recompute the resolution
+    dz = slice_width / n_points_z;      
+    throw invalid_parameter_exception("Must have a minimum of 1 point");
+  } else {
     n_points_z = val;
-
-  //recompute the resolution
-  dz = slice_width / n_points_z;  
+    //recompute the resolution
+    dz = slice_width / n_points_z;      
+  }
 }
 
 
 void surface_projection::set_h( int val ){
-    h = val;  
+  if( val == 0 && k == 0 && l == 0){
+    h = 1;
+    throw invalid_parameter_exception("At least one of hkl must be non-zero");
+  }
+  h = val;
 }
 
 void surface_projection::set_k( int val ){
-    k = val;  
+  if( h == 0 && val == 0 && l == 0){
+    k = 1;
+    throw invalid_parameter_exception("At least one of hkl must be non-zero");
+  }
+  k = val;
 }
 
 void surface_projection::set_l( int val ){
-    l = val;  
+  if( h == 0 && k == 0 && val == 0){
+    l = 1;
+    throw invalid_parameter_exception("At least one of hkl must be non-zero");
+  }
+  l = val;
 }
 
 void surface_projection::set_periodicity_length( double val ){

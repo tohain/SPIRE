@@ -246,7 +246,16 @@ void sp_gui_imp::focus_d_ctl( wxFocusEvent& event ){
 void sp_gui_imp::ntucs_change( wxSpinEvent& event )
 {
   //update parameter
-  sp->set_ntucs( ntucs_ctl->GetValue() );
+  try {
+    sp->set_ntucs( ntucs_ctl->GetValue() );
+  } catch( invalid_parameter_exception e ){
+    wxMessageBox( e.details(),
+		  e.what(),
+		  wxICON_INFORMATION);
+    //get corrected value
+    ntucs_ctl->SetValue( sp->get_ntucs() );
+  }
+  
   //update geometry
   sp->update_geometry();
 
@@ -267,7 +276,15 @@ void sp_gui_imp::ntucs_change( wxSpinEvent& event )
 void sp_gui_imp::a_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_a( a_ctl->GetValue() );
+  try {
+    sp->set_a( a_ctl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(),
+		  e.what(),
+		  wxICON_INFORMATION);
+    //get corrected value
+    a_ctl->SetValue( sp->get_a() );
+  }
 
   //update geometry
   sp->update_geometry();
@@ -288,7 +305,12 @@ void sp_gui_imp::a_change( wxSpinDoubleEvent& event )
 void sp_gui_imp::surface_change( wxCommandEvent& event )
 {
   //update parameter
-  sp->set_type( type_ctl->GetSelection() );
+  try {
+    sp->set_type( type_ctl->GetSelection() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
+    type_ctl->SetSelection( sp->get_type() );
+  }
 
   //redraw
   draw_preview();
@@ -297,7 +319,12 @@ void sp_gui_imp::surface_change( wxCommandEvent& event )
 void sp_gui_imp::d_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_mem_width( d_ctl->GetValue() );
+  try {
+    sp->set_mem_width( d_ctl->GetValue() );
+  } catch (invalid_parameter_exception e ) {
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
+    d_ctl->SetValue( sp->get_mem_width() );
+  }
   
   //redraw
   draw_preview();  
@@ -306,7 +333,12 @@ void sp_gui_imp::d_change( wxSpinDoubleEvent& event )
 void sp_gui_imp::theta_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_theta( theta_ctl->GetValue() );
+  try {
+    sp->set_theta( theta_ctl->GetValue() );
+  } catch( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    theta_ctl->SetValue( sp->get_theta() );
+  }
 
   //update periodicity
   sp->update_periodicity_length();
@@ -319,7 +351,12 @@ void sp_gui_imp::theta_change( wxSpinDoubleEvent& event )
 void sp_gui_imp::phi_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_phi( phi_ctl->GetValue() );
+  try {
+    sp->set_phi( phi_ctl->GetValue() );
+  } catch( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    phi_ctl->SetValue( sp->get_phi() );
+  } 
 
   //update periodicity
   sp->update_periodicity_length();
@@ -329,6 +366,9 @@ void sp_gui_imp::phi_change( wxSpinDoubleEvent& event )
   draw_preview();  
 }
 
+/**
+ * Disables the hkl controls, enables angle controls
+ */
 void sp_gui_imp::selection_angles(  wxCommandEvent& event ){
   h_ctl->Enable(false);
   k_ctl->Enable(false);
@@ -338,6 +378,9 @@ void sp_gui_imp::selection_angles(  wxCommandEvent& event ){
   phi_ctl->Enable(true);    
 }
 
+/**
+ * Enables the hkl controls, disables angle controls
+ */
 void sp_gui_imp::selection_miller(  wxCommandEvent& event ){
   theta_ctl->Enable(false);
   phi_ctl->Enable(false);
@@ -349,89 +392,92 @@ void sp_gui_imp::selection_miller(  wxCommandEvent& event ){
 
 void sp_gui_imp::h_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
-    
-    //update parameter
+   
+  //update parameter
+  try {
     sp->set_h( h_ctl->GetValue() );
-
-    //update the angles
-    sp->set_orientation_from_hkl();
-
-    //get new periodicity
-    sp->update_periodicity_length();
-
-    //update the gui
-    update_controls_periodicity();
-    theta_ctl->SetValue( sp->get_theta() );
-    phi_ctl->SetValue( sp->get_phi() );    
-               
-    //redraw
-    draw_preview();
+  } catch (invalid_parameter_exception e){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    h_ctl->SetValue( sp->get_h() );
+  }
+  
+  //update the angles
+  sp->set_orientation_from_hkl();
+  
+  //get new periodicity
+  sp->update_periodicity_length();
+  
+  //update the gui
+  update_controls_periodicity();
+  theta_ctl->SetValue( sp->get_theta() );
+  phi_ctl->SetValue( sp->get_phi() );    
+  
+  //redraw
+  draw_preview();
     
-  } else {
-    wxMessageBox( wxT("Invalid orientation. At least one indeces must be > 0"), wxT("Error"), wxICON_INFORMATION);
-    h_ctl->SetValue(1);
- } 
+
 }
 
 void sp_gui_imp::k_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
-    
-    //update parameter
+
+  //update parameter
+  try {
     sp->set_k( k_ctl->GetValue() );
-
-    //update the angles
-    sp->set_orientation_from_hkl();
-
-    //get new periodicity
-    sp->update_periodicity_length();
-
-    //update the gui
-    update_controls_periodicity();
-    theta_ctl->SetValue( sp->get_theta() );
-    phi_ctl->SetValue( sp->get_phi() );    
-               
-    //redraw
-    draw_preview();
-    
-  } else {
-    wxMessageBox( wxT("Invalid orientation. At least one indeces must be > 0"), wxT("Error"), wxICON_INFORMATION);
-    k_ctl->SetValue(1);
- }
+  } catch (invalid_parameter_exception e){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    k_ctl->SetValue( sp->get_k() );
+  }
+  
+  //update the angles
+  sp->set_orientation_from_hkl();
+  
+  //get new periodicity
+  sp->update_periodicity_length();
+  
+  //update the gui
+  update_controls_periodicity();
+  theta_ctl->SetValue( sp->get_theta() );
+  phi_ctl->SetValue( sp->get_phi() );    
+  
+  //redraw
+  draw_preview();
 }
 
 void sp_gui_imp::l_change( wxSpinEvent& event )
 {
-  if( h_ctl->GetValue() != 0 || k_ctl->GetValue() != 0 || l_ctl->GetValue() != 0 ){
-    
-    //update parameter
+  //update parameter
+  try {
     sp->set_l( l_ctl->GetValue() );
+  } catch (invalid_parameter_exception e){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    l_ctl->SetValue( sp->get_l() );
+  }
 
-    //update the angles
-    sp->set_orientation_from_hkl();
-
-    //get new periodicity
-    sp->update_periodicity_length();
-
-    //update the gui
-    update_controls_periodicity();
-    theta_ctl->SetValue( sp->get_theta() );
-    phi_ctl->SetValue( sp->get_phi() );
-               
-    //redraw
-    draw_preview();
-    
-  } else {
-    wxMessageBox( wxT("Invalid orientation. At least one indeces must be > 0"), wxT("Error"), wxICON_INFORMATION);
-    l_ctl->SetValue(1);
- } 
+  //update the angles
+  sp->set_orientation_from_hkl();
+  
+  //get new periodicity
+  sp->update_periodicity_length();
+  
+  //update the gui
+  update_controls_periodicity();
+  theta_ctl->SetValue( sp->get_theta() );
+  phi_ctl->SetValue( sp->get_phi() );
+  
+  //redraw
+  draw_preview();   
 }
 
 void sp_gui_imp::slicewidth_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_slice_width( slicewidth_ctl->GetValue() );
+  try {
+    sp->set_slice_width( slicewidth_ctl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
+    slicewidth_ctl->SetValue( sp->get_slice_width() );
+  }
 
   //update geometry
   sp->update_geometry();
@@ -446,7 +492,12 @@ void sp_gui_imp::slicewidth_change( wxSpinDoubleEvent& event )
 void sp_gui_imp::sliceheight_change( wxSpinDoubleEvent& event )
 {
   //update parameter
-  sp->set_slice_height( sliceheight_ctl->GetValue() );
+  try {
+    sp->set_slice_height( sliceheight_ctl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_ERROR);
+    sliceheight_ctl->SetValue( sp->get_slice_height() );
+  }
 
   //redraw
   draw_preview();    
@@ -454,8 +505,13 @@ void sp_gui_imp::sliceheight_change( wxSpinDoubleEvent& event )
 
 void sp_gui_imp::n_points_xy_change( wxSpinEvent& event ){
   //update parameter
-  sp->set_n_points_x( n_points_xy_ctl->GetValue() );
-  sp->set_n_points_y( n_points_xy_ctl->GetValue() );  
+  try {
+    sp->set_n_points_x( n_points_xy_ctl->GetValue() );
+    sp->set_n_points_y( n_points_xy_ctl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
+    n_points_xy_ctl->SetValue( sp->get_width() );
+  }
 
   //update_geometry
   sp->update_geometry();
@@ -475,7 +531,12 @@ void sp_gui_imp::n_points_xy_change( wxSpinEvent& event ){
 void sp_gui_imp::n_points_z_change( wxSpinEvent& event ){
 
   //update parameter
-  sp->set_n_points_z( n_points_z_ctl->GetValue() );  
+  try {
+    sp->set_n_points_z( n_points_z_ctl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
+    n_points_z_ctl->SetValue( sp->get_depth() );
+  }
 
   //update_geometry
   sp->update_geometry();
@@ -541,30 +602,25 @@ void sp_gui_imp::button_quit( wxCommandEvent& event )
  * according to the Miller indeces and update the GUI
  */
 void sp_gui_imp::update_orientation_from_hkl(){
-  //get indeces
-  int h = h_ctl->GetValue();
-  int k = k_ctl->GetValue();
-  int l = l_ctl->GetValue();  
 
-  //check for valid orientation
-  if( h != 0 || k != 0 || l != 0 ){
-    //set parameters
-    sp->set_h( h ); sp->set_k( k ); sp->set_l( l );
-
-    //convert indeces to angles
-    sp->set_orientation_from_hkl();
-
-    //periodicity
-    sp->update_periodicity_length();
-    update_controls_periodicity();
-    
-    //update gui
-    theta_ctl->SetValue( sp->get_theta() );
-    phi_ctl->SetValue( sp->get_phi() );
-  } else {
-    wxMessageBox( wxT("Invalid orientation. At least one indeces must be > 0"), wxT("Error"), wxICON_INFORMATION);
-    h_ctl->SetValue(1);
+  //set parameters
+  try {
+    sp->set_h( h_ctl->GetValue() ); sp->set_k( k_ctl->GetValue() ); sp->set_l( l_ctl->GetValue() );
+  } catch (invalid_parameter_exception e){
+    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION);
+    h_ctl->SetValue( sp->get_h() );k_ctl->SetValue( sp->get_k() );l_ctl->SetValue( sp->get_l() );
   }
+
+  //convert indeces to angles
+  sp->set_orientation_from_hkl();
+  
+  //periodicity
+  sp->update_periodicity_length();
+  update_controls_periodicity();
+    
+  //update gui
+  theta_ctl->SetValue( sp->get_theta() );
+  phi_ctl->SetValue( sp->get_phi() );
 }
 
 

@@ -19,6 +19,8 @@
  * faulty maths, unphysical behavior or just makes no sense at all
  */
 class invalid_parameter_exception : public std::exception {
+
+public:
   /// Constructor, initializes \ref msg
   invalid_parameter_exception( std::string _msg );
 
