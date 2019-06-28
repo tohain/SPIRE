@@ -612,7 +612,7 @@ void surface_projection::set_type(int val ){
 }
 
 void surface_projection::set_ntucs( int val ){
-  if( val < 0 ){
+  if( val <= 0 ){
     ntucs = 1;
     throw invalid_parameter_exception("At least one unit cell must be projected");
   } else {
@@ -656,7 +656,7 @@ void surface_projection::set_mem_width ( double val ){
 
 void surface_projection::set_a ( double val ){
   if( val < tolerance ){
-    a = tolerance;
+    a = 1;
     inv_a = 2*M_PI/(a); // period for nodal representations     
     throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
   } else {
@@ -669,8 +669,8 @@ void surface_projection::set_a ( double val ){
 
 
 void surface_projection::set_n_points_x( int val ){
-  if( val < 0){
-    n_points_x = 1;
+  if( val <= 0){
+    n_points_x = 50;
     //recompute the resolution
     dx = L / n_points_x;
     throw invalid_parameter_exception("Must have a minimum of 1 point");
@@ -682,8 +682,8 @@ void surface_projection::set_n_points_x( int val ){
 }
 
 void surface_projection::set_n_points_y( int val ){
-  if( val < 0){
-    n_points_y = 1;
+  if( val <= 0){
+    n_points_y = 50;
     //recompute the resolution
     dy = L / n_points_y;      
     throw invalid_parameter_exception("Must have a minimum of 1 point");
@@ -695,8 +695,8 @@ void surface_projection::set_n_points_y( int val ){
 }
 
 void surface_projection::set_n_points_z( int val ){
-  if( val < 0){
-    n_points_z = 1;
+  if( val <= 0){
+    n_points_z = 50;
     //recompute the resolution
     dz = slice_width / n_points_z;      
     throw invalid_parameter_exception("Must have a minimum of 1 point");

@@ -118,7 +118,7 @@ void sp_gui_imp::update_controls_periodicity(){
   //is fractional and in [0,1] or unlimited
   if( sp->get_periodicity_length() == -1 ){
     //aperiodic. No limits :)
-    slicewidth_ctl->SetRange(-9999, 9999);
+    slicewidth_ctl->SetRange(0, 9999);
     sliceheight_ctl->SetRange(-9999, 9999);
     
     //write to indicator

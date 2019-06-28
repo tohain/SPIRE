@@ -74,8 +74,8 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText9->Wrap( -1 );
 	dimension->Add( m_staticText9, 0, wxALL, 5 );
 
-	a_ctl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 999, 1, 1 );
-	a_ctl->SetDigits( 0 );
+	a_ctl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 999, 1, 0.01 );
+	a_ctl->SetDigits( 2 );
 	dimension->Add( a_ctl, 0, wxALL, 5 );
 
 
@@ -238,7 +238,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText81->Wrap( -1 );
 	hkl->Add( m_staticText81, 0, wxALL, 5 );
 
-	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 0 );
+	l_ctl = new wxSpinCtrl( orientation, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, -999, 999, 1 );
 	hkl->Add( l_ctl, 0, wxALL, 5 );
 
 
@@ -350,7 +350,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText91->Wrap( -1 );
 	n_points->Add( m_staticText91, 0, wxALL, 5 );
 
-	n_points_xy_ctl = new wxSpinCtrl( resolution, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 1000000, 50 );
+	n_points_xy_ctl = new wxSpinCtrl( resolution, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 1, 1000000, 150 );
 	n_points->Add( n_points_xy_ctl, 0, wxALL, 5 );
 
 
@@ -360,7 +360,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText10->Wrap( -1 );
 	n_points->Add( m_staticText10, 0, wxALL, 5 );
 
-	n_points_z_ctl = new wxSpinCtrl( resolution, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 0, 1000000, 50 );
+	n_points_z_ctl = new wxSpinCtrl( resolution, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS|wxSP_WRAP, 1, 1000000, 50 );
 	n_points->Add( n_points_z_ctl, 0, wxALL, 5 );
 
 
@@ -599,7 +599,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	invert_ctl->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	invert_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
 	max_prev_points_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
-    m_filePicker2->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
+	m_filePicker2->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
 	b_render->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
@@ -639,7 +639,7 @@ sp_gui::~sp_gui()
 	invert_ctl->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( sp_gui::invert_change ), NULL, this );
 	invert_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_invert_ctl ), NULL, this );
 	max_prev_points_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_updateprev_ctl ), NULL, this );
-    m_filePicker2->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
+	m_filePicker2->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_filename_ctl ), NULL, this );
 	b_render->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );

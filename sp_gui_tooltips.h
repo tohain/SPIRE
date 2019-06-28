@@ -24,9 +24,9 @@ class tooltips {
   
   const std::string slicewidth_p_tooltip = "The width of the slice as a fraction of the periodicitiy length in the current orientation. 1 means the slice width covers an entire unit cell.";
   
-  const std::string sliceheight_tooltip = "The position of the slice along the normal vector of the slice in absolute length units. 0 means the slice cuts the origin.";
+  const std::string sliceheight_tooltip = "The position of the center of the slice along the normal vector of the slice in absolute length units. 0 means the slice cuts the origin.";
   
-  const std::string sliceheight_p_tooltip = "The position of the slice along the normal vector of the slice as a fraction of the periodicity length. 0 and 1 are therefore equivalent.";
+  const std::string sliceheight_p_tooltip = "The position of the center of the slice along the normal vector of the slice as a fraction of the periodicity length. 0 and 1 are therefore equivalent.";
   
   const std::string nr_points_xy_tooltip = "This parameter controls the resolution and is the number of samples along a single edge of the slice in the x and y direction (i.e. perpendicular to the normal vector). High number of points means better resolution but slower computation. The distance between the single samples (should equal picel size) is given below (dx,dy).";
   
