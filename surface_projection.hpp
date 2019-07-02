@@ -75,6 +75,9 @@ public:
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
 
+  /// Outputs the grid
+  void print_grid( std::string fn );
+  
   /// Returns the number of points in the slice in x direction
   int get_width() const;
   /// Returns the number of points in the slice in y direction  

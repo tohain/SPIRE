@@ -18,6 +18,25 @@ const std::string invalid_parameter_exception::details() const {
 
 
 
+
+/** This function prints the grid to a file. The file has the form 
+ * x y z color
+ * This function does NOT compute the grid, so make sure it is
+ * up to date before calling this function
+ */
+void surface_projection::print_grid( std::string fn ){
+
+  std::ofstream out ( fn );
+  
+  for( unsigned int ii=0; ii<points.size(); ii+=3 ){
+    out << points[ii] << " " << points[ii+1] << " ";
+    out << points[ii+2] << " " << grid[ii/3] << std::endl;    
+  }
+
+  out.close();
+}
+
+
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
