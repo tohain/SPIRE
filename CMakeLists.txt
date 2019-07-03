@@ -7,7 +7,7 @@ set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 option(BUILD_GUI "Builds the GUI instead of terminal interface" ON)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp)
+SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp)
 
 #the source files for the gui
 SET(SRC_GUI sp_app.cpp sp_gui.cpp sp_gui_imp.cpp)
