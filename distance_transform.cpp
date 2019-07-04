@@ -14,14 +14,16 @@
  * Allocates necessary memory for the transformed map and initializes
  * class parameters
  *
- * \param[in] data the data to transform
- * \param[in] the length of the data - not necessary, but for consistency
+ * \param[in] data The data to transform
+ * \param[in] n The length of the data - not necessary, but for consistency
+ * \param[in] pixsize The size of a pixel in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n ){
+distance_transform::distance_transform( std::vector<double> data, int n, double pixsize ){
   //initialize parameters
   img = data;
   dim = 1;  
   size[0]=n; size[1]=-1; size[2]=-1;
+  pix_size[0]=pixsize; pix_size[1]=1; pix_size[2]=1;
   
   //allocate memory
   map = std::vector<double> (n, 0);
@@ -36,13 +38,15 @@ distance_transform::distance_transform( std::vector<double> data, int n ){
  * \param[in] data The array holding the image data. 
  * \param[in] n the width of the grid (=nr of cols)
  * \param[in] k the height of the grid (=nr of rows)
+ * \param[in] pixsize_x The size of a pixel in x(n) direction in length units
+ * \param[in] pixsize_y The size of a pixel in y(k) direction in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n, int k ){
+distance_transform::distance_transform( std::vector<double> data, int n, int k, double pixsize_x, double pixsize_y ){
   //initialize parameters
   img = data;
   dim = 2;
   size[0]=n; size[1]=k; size[2]=-1;
-
+  pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=1;
 
   //allocate memory
   map = std::vector<double> (n*k, 0);
@@ -60,12 +64,16 @@ distance_transform::distance_transform( std::vector<double> data, int n, int k )
  * \param[in] n the width of the grid (=nr of cols)
  * \param[in] k the height of the grid (=nr of rows)
  * \param[in] l the depth of the grid (=height of "stacks")
+ * \param[in] pixsize_x The size of a pixel in x(n) direction in length units
+ * \param[in] pixsize_y The size of a pixel in y(k) direction in length units
+ * \param[in] pixsize_z The size of a pixel in z(l) direction in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n, int k, int l ){
+distance_transform::distance_transform( std::vector<double> data, int n, int k, int l, double pixsize_x, double pixsize_y, double pixsize_z ){
   //initialize parameters
   img = data;
   dim = 3;
   size[0]=n; size[1]=k; size[2]=l;
+  pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=pixsize_z;
   
   //allocate memory
   map = std::vector<double> (n*k*l, 0);
@@ -87,8 +95,11 @@ distance_transform::~distance_transform(){
  *
  * This algorithm looks for the lowest envelope of parabolas situated
  * at poins (i, grid[i])
+ *
+ * \param[in] grid The 1D array to transform
+ * \param[in] pixsize The size of a pixel in length units
  */
-std::vector<double> distance_transform::do_distance_transform( std::vector<double> &grid ){
+std::vector<double> distance_transform::do_distance_transform( std::vector<double> &grid, double pixsize ){
 
   std::vector<double> transform ( grid.size(), 0 );
   
@@ -114,7 +125,7 @@ std::vector<double> distance_transform::do_distance_transform( std::vector<doubl
     //found the previous lowest envelope
     k++;
     if( k < v.size() ){
-      v.at(k) = ii;
+      v[k] = ii;
     } else {
       v.push_back( ii );
     }
@@ -140,7 +151,10 @@ std::vector<double> distance_transform::do_distance_transform( std::vector<doubl
     while( z[k+1] < ii ){
       k++;
     }
-    transform[ii] = ( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
+    
+    //get the "real" distances in length units by multiplying squared
+    //index distances by pixelsize
+    transform[ii] = pixsize * pixsize *  ( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
   }
 
   return transform;
@@ -148,7 +162,8 @@ std::vector<double> distance_transform::do_distance_transform( std::vector<doubl
 
 
 /**
- * computes the cost function of the given image data and writes it to grid
+ * Applies a cost function on the given image/grid. The cost function
+ * is chosen so an Euclidean Distance Map (EDM) is computed.
  */
 std::vector<double> distance_transform::eval_grid_function( std::vector<double> &data ){
 
@@ -182,13 +197,14 @@ void distance_transform::compute_distance_map(){
     std::vector<double> grid = eval_grid_function( img );
 
     //do the distance transform
-    map = do_distance_transform( grid );
+    map = do_distance_transform( grid, pix_size[0] );
   } //end dim=1 case
 
   else if ( dim == 2 ){
     //2d case
-    
-    std::vector<double> col_map ( map.size(), 0 );
+
+    // the object holding the 2d distance map col wise
+    std::vector<double> cols_map ( map.size(), 0 );
     
     //do the distance transform for each column first
     for( unsigned int ii=0; ii < size[0]; ii++ ){
@@ -201,12 +217,12 @@ void distance_transform::compute_distance_map(){
       
       //get the grid
       std::vector<double> col_grid = eval_grid_function( col );
-
+      
       //get distance map of column
-      std::vector<double> col_map = do_distance_transform( col_grid );
+      std::vector<double> col_map = do_distance_transform( col_grid, pix_size[1] );
       
       //cpy preliminary map in to map vector
-      memcpy( col_map.data()+(ii*size[1]), col_map.data(), sizeof(double) * col_map.size() );
+      memcpy( cols_map.data()+(ii*size[1]), col_map.data(), sizeof(double) * col_map.size() );
       
     } //end column wise distance transform
 
@@ -222,11 +238,11 @@ void distance_transform::compute_distance_map(){
       //get the iith row
       std::vector<double> row (size[0], 0);
       for( unsigned int jj=0; jj<size[0]; jj++){
-	row[jj] = col_map[ ii + jj*size[1] ];
+	row[jj] = cols_map[ ii + jj*size[1] ];
       }
 
       //now get the transform
-      std::vector<double> row_map = do_distance_transform( row );
+      std::vector<double> row_map = do_distance_transform( row, pix_size[0] );
 
       //cpy the final map data to map object
       memcpy( map.data()+(ii*size[0]), row_map.data(), sizeof(double) * row_map.size() );
@@ -259,7 +275,7 @@ void distance_transform::compute_distance_map(){
       std::vector<double> stack_grid = eval_grid_function( stack );
 
       // compute distance map of stack
-      std::vector<double> stack_map = do_distance_transform( stack_grid );
+      std::vector<double> stack_map = do_distance_transform( stack_grid, pix_size[2] );
 
       //copy stack distance into map
       memcpy( map_stacks.data() + ii*size[2], stack_map.data(), stack_map.size() * sizeof(double) );
@@ -282,7 +298,7 @@ void distance_transform::compute_distance_map(){
       }
 
       //distance transform of columns
-      std::vector<double> col_map = do_distance_transform( col );
+      std::vector<double> col_map = do_distance_transform( col, pix_size[1] );
       
       //copy data
       memcpy( map_cols.data()+ii*col_map.size(), col_map.data(), sizeof(double) * col_map.size() );
@@ -306,7 +322,7 @@ void distance_transform::compute_distance_map(){
       }
 
       //do the distance transform
-      std::vector<double> row_map = do_distance_transform( row );
+      std::vector<double> row_map = do_distance_transform( row, pix_size[0] );
 
       //store map in temp map
       memcpy( map_unsorted.data()+ii*row_map.size(), row_map.data(), sizeof(double) * row_map.size());
@@ -332,6 +348,10 @@ void distance_transform::compute_distance_map(){
 
 /*
  * getters
+ */
+
+/**
+ * Returns a copy of the distance map
  */
 std::vector<double> distance_transform::get_distance_map() const {
   return map;
