@@ -13,8 +13,11 @@
 /**
  * Allocates necessary memory for the transformed map and initializes
  * class parameters
+ *
+ * \param[in] data the data to transform
+ * \param[in] the length of the data - not necessary, but for consistency
  */
-distance_transform::distance_transform( double *data, int n ){
+distance_transform::distance_transform( std::vector<double> data, int n ){
   //initialize parameters
   img = data;
   dim = 1;  
@@ -27,19 +30,20 @@ distance_transform::distance_transform( double *data, int n ){
 
 /**
  * Allocates necessary memory for the transformed map and initializes
- * class parameters. Image must be provided as a concatenated list of
- * rows
+ * class parameters. The data must be provided as followed: with
+ * increasing index, first the rows gets filled, then the columns
  *
  * \param[in] data The array holding the image data. 
- * \param[in] n the number of columns in the image
- * \param[in] k the number of rows in the image
+ * \param[in] n the width of the grid (=nr of cols)
+ * \param[in] k the height of the grid (=nr of rows)
  */
-distance_transform::distance_transform( double *data, int n, int k ){
+distance_transform::distance_transform( std::vector<double> data, int n, int k ){
   //initialize parameters
   img = data;
   dim = 2;
   size[0]=n; size[1]=k; size[2]=-1;
-  
+
+
   //allocate memory
   map = std::vector<double> (n*k, 0);
 }
@@ -47,14 +51,17 @@ distance_transform::distance_transform( double *data, int n, int k ){
 
 /**
  * Allocates necessary memory for the transformed map and initializes
- * class parameters
+ * class parameters. The data must be provided as follwed: with
+ * increasing index, first the stacks are filled up, then the rows are
+ * filled with stacks, and finally the columns are filled with the
+ * layers made of rows of stacks.
  *
  * \param[in] data The array holding the image data
- * \param[in] n the number of columns in the image
- * \param[in] k the number of rows in the image
- * \param[in] l the number of layers(?) in the image
+ * \param[in] n the width of the grid (=nr of cols)
+ * \param[in] k the height of the grid (=nr of rows)
+ * \param[in] l the depth of the grid (=height of "stacks")
  */
-distance_transform::distance_transform( double *data, int n, int k, int l ){
+distance_transform::distance_transform( std::vector<double> data, int n, int k, int l ){
   //initialize parameters
   img = data;
   dim = 3;
@@ -170,43 +177,40 @@ void distance_transform::compute_distance_map(){
 
   if( dim == 1 ){
     //one dimensional case
-
-    //cpy img data into a vector
-    std::vector<double> data (size[0], 0);
-    memcpy( data.data(), img, size[0] * sizeof(double ) );
     
     //get grid
-    std::vector<double> grid = eval_grid_function( data );
+    std::vector<double> grid = eval_grid_function( img );
 
     //do the distance transform
     map = do_distance_transform( grid );
-  }
+  } //end dim=1 case
 
   else if ( dim == 2 ){
     //2d case
-
-    std::vector<double> tmp_map ( map.size(), 0 );
+    
+    std::vector<double> col_map ( map.size(), 0 );
     
     //do the distance transform for each column first
     for( unsigned int ii=0; ii < size[0]; ii++ ){
-
+      
       //get the ii-th column
       std::vector<double> col (size[1], 0);
       for( unsigned int jj=0; jj<size[1]; jj++){
-	col.at(jj) = img[ii + jj * size[0]];
+	col[jj] = img[ii + jj * size[0]];
       }
-
+      
       //get the grid
       std::vector<double> col_grid = eval_grid_function( col );
 
       //get distance map of column
       std::vector<double> col_map = do_distance_transform( col_grid );
-
-      //cpy preliminary map in to map vector
-      memcpy( tmp_map.data()+(ii*size[1]), col_map.data(), sizeof(double) * col_map.size() );
       
-    }
+      //cpy preliminary map in to map vector
+      memcpy( col_map.data()+(ii*size[1]), col_map.data(), sizeof(double) * col_map.size() );
+      
+    } //end column wise distance transform
 
+    
     /*
      * careful, map is now not row based, but column based. We need to
      * reverse that in the following step
@@ -218,7 +222,7 @@ void distance_transform::compute_distance_map(){
       //get the iith row
       std::vector<double> row (size[0], 0);
       for( unsigned int jj=0; jj<size[0]; jj++){
-	row[jj] = tmp_map[ ii + jj*size[1] ];
+	row[jj] = col_map[ ii + jj*size[1] ];
       }
 
       //now get the transform
@@ -226,22 +230,104 @@ void distance_transform::compute_distance_map(){
 
       //cpy the final map data to map object
       memcpy( map.data()+(ii*size[0]), row_map.data(), sizeof(double) * row_map.size() );
-    }
-       
+    } // end row wise (and final) distance transform
 
-  }
+    
+  } //end dim=2 case
   
+  else if ( dim == 3 ){
+
+    //same story as with dim = 2
+
+    // the distance map after the stack wise distance map computation
+    std::vector<double> map_stacks ( map.size(), 0 );
+    // the distance map after the column wise distance map computation
+    std::vector<double> map_cols ( map.size(), 0 );    
+    // the final transofrm, but in the wron order
+    std::vector<double> map_unsorted ( map.size(), 0 );
+    
+    //start with distance transform of each stack
+    for( unsigned int ii=0; ii<size[0]*size[1]; ii++){
+
+      //get the stack
+      std::vector<double> stack ( size[2], 0 );
+      for(unsigned int jj=0; jj<size[2]; jj++){
+	stack[jj] = img[jj + ii*size[2] ];
+      }
+      
+      // apply edm cost function
+      std::vector<double> stack_grid = eval_grid_function( stack );
+
+      // compute distance map of stack
+      std::vector<double> stack_map = do_distance_transform( stack_grid );
+
+      //copy stack distance into map
+      memcpy( map_stacks.data() + ii*size[2], stack_map.data(), stack_map.size() * sizeof(double) );
+    } //end stack transform
+
+    
+    /*
+     * map_stacks now should have the same index structure as our
+     * original grid
+     */
+    
+    // do the column wise transform
+    for( unsigned int ii=0; ii<size[0]*size[2]; ii++){
+
+      // get the columns
+      std::vector<double> col (size[1], 0 );
+      for( unsigned int jj=0; jj<size[1]; jj++){
+	int ind = ii + jj*(size[2]*size[0]);
+	col[jj] = map_stacks[ ind ];
+      }
+
+      //distance transform of columns
+      std::vector<double> col_map = do_distance_transform( col );
+      
+      //copy data
+      memcpy( map_cols.data()+ii*col_map.size(), col_map.data(), sizeof(double) * col_map.size() );
+    }
+
+    /*
+     * there is a new order. To access the rows in the original array,
+     * we now need to access the columns in the new order. Not that
+     * the dimensions changed: n-->l ; k --> n ; k --> l
+     */
+
+    //do the distance transofrm on each row(old order)/col(current
+    //order)
+    for(unsigned int ii=0; ii<size[1]*size[2]; ii++){
+
+      //get the row/col
+      std::vector<double> row (size[0], 0 );
+      for( unsigned jj=0; jj<size[0]; jj++ ){
+	int ind = ii + jj*size[1]*size[2];
+	row[jj] = map_cols[ind];
+      }
+
+      //do the distance transform
+      std::vector<double> row_map = do_distance_transform( row );
+
+      //store map in temp map
+      memcpy( map_unsorted.data()+ii*row_map.size(), row_map.data(), sizeof(double) * row_map.size());
+    } // end row distance map
+
+    //we need some sorting to arrange the grid in the original order
+    for(unsigned int ii=0; ii<size[0]*size[1]; ii++){
+
+      //get the original stacks
+      std::vector<double> stack (size[2], 0);
+      for(unsigned int jj=0; jj<size[2]; jj++){
+	stack[jj] = map_unsorted[ii + jj*size[0]*size[1]];
+      }
+
+      //store final distance map in the map array in correct order
+      memcpy( map.data()+ii*stack.size(), stack.data(), sizeof(double)*stack.size() );
+    } // end final sorting
+    
+  }
 
 }
-
-
-
-
-
-
-
-
-
 
 
 /*

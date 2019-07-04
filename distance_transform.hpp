@@ -32,13 +32,13 @@ class distance_transform {
 public:
   
   /// Constructor for a 1D transform
-  distance_transform( double *data, int n );
+  distance_transform( std::vector<double> data, int n );
 
   /// Constructor for a 2D transform
-  distance_transform( double *data, int n, int k );
+  distance_transform( std::vector<double> data, int n, int k );
 
   /// Constructor for a 3D transform
-  distance_transform( double *data, int n, int k, int l );  
+  distance_transform( std::vector<double> data, int n, int k, int l );  
 
   /// Destructor, freeing memory
   ~distance_transform();
@@ -62,7 +62,7 @@ private:
 private:
 
   /// The image to transform
-  double *img;
+  std::vector<double> img;
   
   /// The array holding the distance map
   std::vector<double> map;
