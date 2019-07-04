@@ -13,6 +13,8 @@
 #include <exception>
 
 
+#include "distance_transform.hpp"
+
 /** \brief Quick and dirty implementation of an invalid parameter exception
  *
  * This exception is thrown, if a parameter choice would cause
@@ -104,6 +106,9 @@ public:
   double get_a() const;
   /// Returns the width of the membrane
   double get_mem_width() const;
+  /// Returns the surface level
+  double get_surface_level() const;
+
   /// Returns the width of the slice
   double get_slice_width() const;
   /// Returns the position of the slice along its normal vector
@@ -138,6 +143,8 @@ public:
   void set_slice_height( double val );
   /// Sets the membrane width
   void set_mem_width( double val );
+  /// Sets the surface_level
+  void set_surface_level( double val );
   /// Sets the unit cell size of the surface
   void set_a( double val );
   /// Sets the number of points in the slice in x direction
@@ -250,8 +257,17 @@ private:
   double mem_width;
   /// Unit cell size of the surface in {100},{010},{001} direciton
   double a;
-  //gyroid period
+  /// Surface period
   double inv_a;
+
+  /// This parameter controlls the proportions of the two different
+  /// channels. 0 means equal volume in both of them
+  double surface_level;
+
+
+  /// Holds information for the membranes in pairs of (distance,
+  /// width). For n membranes this container has then 2*n entries
+  std::vector<double> membranes;
   
   /// Theta angle of the orientation of the slice
   double theta;
@@ -281,7 +297,7 @@ private:
 
   /// Type of surface to project
   int type;
-
+  
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",

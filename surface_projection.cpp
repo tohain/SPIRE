@@ -40,7 +40,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.2), a(1), inv_a(2*M_PI), n_points_x(50), n_points_y(50), n_points_z(50), type(2), h(0), k(0), l(1) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.03), a(1), inv_a(2*M_PI), n_points_x(100), n_points_y(100), n_points_z(75), type(2), h(0), k(0), l(1), surface_level( 0.f ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -56,6 +56,7 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_hei
   //periodicity
   //sets periodicty length
   update_periodicity_length();
+
 }
 
 
@@ -263,10 +264,18 @@ void surface_projection::set_up_points(){
  * voxels to 1 if they are within the membrane
  */
 void surface_projection::set_grid (){
+
+  // First compute the distance map of the current grid
+
+  //We need to set an interval where points are getting markes. Since
+  //the surface is samples it's highly unlikely that a point has
+  //exactly the wanted level set constraint
+  double min_width = 0.01;
+  
+  // the level set value of the present points
+  double level = 0; 
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
-
-    double level = 0; 
 
     if( type == 0 ){ //gyroid
       level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], inv_a );
@@ -280,12 +289,43 @@ void surface_projection::set_grid (){
       throw std::string("type not supported");
     }
     
-    if( level < mem_width && level > -mem_width ){
+    if( level < min_width && level > -min_width ){
       grid[int(ii/3)] = 1;
     }
-
   }
 
+
+  // compute the distance transform of the grid
+  distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz );
+  dt.compute_distance_map();
+  std::vector<double> dmap = dt.get_distance_map();  
+
+  // now also mark each point, which is within the desired thickness of the membrane
+  for( unsigned int ii=0; ii<grid.size(); ii++){
+
+    bool mark_point = false;
+    double real_distance = sqrt( dmap[ii] );
+    
+    //check if this point is within the "main" membrane
+    if( real_distance < mem_width ){
+      mark_point = true;
+    }
+
+    //check if this point is within several other membranes
+    for( unsigned int jj=0; jj<membranes.size(); jj+=2){
+      
+      if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
+	  real_distance < membranes[jj] + membranes[jj+1]/2. ){
+	mark_point = true;
+      }
+      
+    }
+    
+    if( mark_point ){
+      grid[ii] = 1;
+    }
+  }
+  
 }
 
 
@@ -572,6 +612,10 @@ double surface_projection::get_mem_width() const {
   return mem_width;
 }
 
+double surface_projection::get_surface_level() const {
+  return surface_level;
+}
+
 double surface_projection::get_slice_width() const {
   return slice_width;
 }
@@ -688,6 +732,10 @@ void surface_projection::set_mem_width ( double val ){
   } else {
     mem_width = val;
   }
+}
+
+void surface_projection::set_surface_level( double val ){
+  surface_level = val;
 }
 
 void surface_projection::set_a ( double val ){
