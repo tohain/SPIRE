@@ -25,20 +25,27 @@
  *
  * It is based on a one-dimensional distance transform. For higher
  * dimensional cases, the 1D transform is applied repeatetly. See the
- * publication for more details
+ * publication for more details.
+ *
+ * This class comes as a template, so distance maps of ints, floats,
+ * doubles,... can be computed without first converting the
+ * vector. Internally it will be converted to a double in the \ref
+ * eval_grid_function function. So make sure it can be converted to a
+ * floating point number
  */
+template <class T>
 class distance_transform {
 
 public:
   
   /// Constructor for a 1D transform
-  distance_transform( std::vector<double> data, int n, double pixsize = 1);
+  distance_transform( std::vector<T> data, int n, double pixsize = 1);
 
   /// Constructor for a 2D transform
-  distance_transform( std::vector<double> data, int n, int k, double pixsize_x = 1, double pixsize_y = 1 );
+  distance_transform( std::vector<T> data, int n, int k, double pixsize_x = 1, double pixsize_y = 1 );
 
   /// Constructor for a 3D transform
-  distance_transform( std::vector<double> data, int n, int k, int l, double pixsize_x = 1, double pixsize_y = 1, double pixsize_z = 1 );  
+  distance_transform( std::vector<T> data, int n, int k, int l, double pixsize_x = 1, double pixsize_y = 1, double pixsize_z = 1 );  
 
   /// Destructor, freeing memory
   ~distance_transform();
@@ -56,12 +63,11 @@ private:
   std::vector<double> do_distance_transform( std::vector<double> &grid, double pixsize = 1 );
 
   /// evaluates the function on the given data
-  std::vector<double> eval_grid_function( std::vector<double> &data );
-  
-private:
-
+  template <class U>
+  std::vector<double> eval_grid_function( std::vector<U> &data );
+    
   /// The image to transform
-  std::vector<double> img;
+  std::vector<T> img;
   
   /// The array holding the distance map
   std::vector<double> map;
@@ -73,6 +79,7 @@ private:
   /// The size of a pixel in length units for each direction (x,y,z)
   double pix_size[3];
 };
+
 
 
 #endif

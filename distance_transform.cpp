@@ -10,6 +10,13 @@
 
 #include "distance_transform.hpp"
 
+
+// Start of with a few template instantiations
+template class distance_transform<int>;
+template class distance_transform<float>;
+template class distance_transform<double>;
+
+
 /**
  * Allocates necessary memory for the transformed map and initializes
  * class parameters
@@ -18,7 +25,8 @@
  * \param[in] n The length of the data - not necessary, but for consistency
  * \param[in] pixsize The size of a pixel in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n, double pixsize ){
+template <class T>
+distance_transform<T>::distance_transform( std::vector<T> data, int n, double pixsize ){
   //initialize parameters
   img = data;
   dim = 1;  
@@ -41,9 +49,10 @@ distance_transform::distance_transform( std::vector<double> data, int n, double 
  * \param[in] pixsize_x The size of a pixel in x(n) direction in length units
  * \param[in] pixsize_y The size of a pixel in y(k) direction in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n, int k, double pixsize_x, double pixsize_y ){
+template <class T>
+distance_transform<T>::distance_transform( std::vector<T> data, int n, int k, double pixsize_x, double pixsize_y ){
   //initialize parameters
-  img = data;
+  img = data;  
   dim = 2;
   size[0]=n; size[1]=k; size[2]=-1;
   pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=1;
@@ -68,7 +77,8 @@ distance_transform::distance_transform( std::vector<double> data, int n, int k, 
  * \param[in] pixsize_y The size of a pixel in y(k) direction in length units
  * \param[in] pixsize_z The size of a pixel in z(l) direction in length units
  */
-distance_transform::distance_transform( std::vector<double> data, int n, int k, int l, double pixsize_x, double pixsize_y, double pixsize_z ){
+template <class T>
+distance_transform<T>::distance_transform( std::vector<T> data, int n, int k, int l, double pixsize_x, double pixsize_y, double pixsize_z ){
   //initialize parameters
   img = data;
   dim = 3;
@@ -83,7 +93,8 @@ distance_transform::distance_transform( std::vector<double> data, int n, int k, 
 /**
  * Destructor, just frees memory
  */
-distance_transform::~distance_transform(){
+template <class T>
+distance_transform<T>::~distance_transform(){
 }
 
 
@@ -99,7 +110,8 @@ distance_transform::~distance_transform(){
  * \param[in] grid The 1D array to transform
  * \param[in] pixsize The size of a pixel in length units
  */
-std::vector<double> distance_transform::do_distance_transform( std::vector<double> &grid, double pixsize ){
+template <class T>
+std::vector<double> distance_transform<T>::do_distance_transform( std::vector<double> &grid, double pixsize ){
 
   std::vector<double> transform ( grid.size(), 0 );
   
@@ -164,22 +176,31 @@ std::vector<double> distance_transform::do_distance_transform( std::vector<doubl
 /**
  * Applies a cost function on the given image/grid. The cost function
  * is chosen so an Euclidean Distance Map (EDM) is computed.
+ *
+ * This is a weird construction with two templates. However, this is
+ * needed, since this function will be called with a vector of type of
+ * the class parameter (int, float, ...) and also with double (see
+ * do_distance_trasnform ). Therefore we need instanciations of this
+ * function with int and double, thus we can't use T here in the
+ * argument, but need an additional type.
  */
-std::vector<double> distance_transform::eval_grid_function( std::vector<double> &data ){
+template <class T> template <class U>
+std::vector<double> distance_transform<T>::eval_grid_function( std::vector<U> &data ){
 
   //initialize memory and set it to zero
   std::vector<double> grid (data.size(), 0);
-
+  
   for(unsigned int ii=0; ii<data.size(); ii++){
     if( data[ii] == 0 ){
       grid[ii] = std::numeric_limits<double>::max();
     } else {
-     grid[ii] = 0;
-    }
+      grid[ii] = 0;
+    }  
   }
-
+  
   return grid;
 }
+
 
 
 
@@ -188,7 +209,8 @@ std::vector<double> distance_transform::eval_grid_function( std::vector<double> 
  * couple of times, depending on the dimension. The result is stored
  * in \ref map
  */
-void distance_transform::compute_distance_map(){
+template <class T>
+void distance_transform<T>::compute_distance_map(){
 
   if( dim == 1 ){
     //one dimensional case
@@ -351,8 +373,11 @@ void distance_transform::compute_distance_map(){
  */
 
 /**
- * Returns a copy of the distance map
+ * Returns a copy of the distance map. The distances are given in
+ * squared distances of the same length units as the pixel
+ * sizes. Dimensionless if pixelsizes=1
  */
-std::vector<double> distance_transform::get_distance_map() const {
+template <class T>
+std::vector<double> distance_transform<T>::get_distance_map() const {
   return map;
 }
