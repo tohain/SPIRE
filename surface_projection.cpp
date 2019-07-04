@@ -132,6 +132,14 @@ double surface_projection::level_set_primitive( double x, double y, double z, do
 }
 
 /**
+ * For debugging purposes: just a simple layer
+ *
+ */
+double surface_projection::level_set_layer( double x, double y, double z, double inv_a) {
+  return mod(z, 1./a);
+}
+
+/**
  * Computes and sets the theta and phi angles to match the orientation
  * given by the Miller indeces
  */
@@ -266,6 +274,10 @@ void surface_projection::set_grid (){
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 3 ){ //layer
+      level = level_set_layer( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else {
+      throw std::string("type not supported");
     }
     
     if( level < mem_width && level > -mem_width ){
@@ -591,6 +603,11 @@ double surface_projection::get_dz() const{
 double surface_projection::get_periodicity_length() const{
   return periodicity_length;
 }
+
+std::vector<int> surface_projection::get_grid() const {
+  return grid;
+}
+
 
 /*************************
  * Setters

@@ -97,7 +97,9 @@ public:
   int get_type() const;
   /// Returns the projection array
   std::vector<double> get_projection() const;
-
+  /// Returns the grid
+  std::vector<int> get_grid() const;
+  
   /// Returns the periodicity (unit cell size) of the surface
   double get_a() const;
   /// Returns the width of the membrane
@@ -186,7 +188,10 @@ private:
   double level_set_diamond( double x, double y, double z, double a);
 
   /// Nodal approximation of the level set function of a p surface
-  double level_set_primitive( double x, double y, double z, double a);  
+  double level_set_primitive( double x, double y, double z, double a);
+
+  /// for debugging: just a single layer
+  double level_set_layer( double x, double y, double z, double a);
   
   /// Computes the position of the voxels in the slice
   void set_up_points();
@@ -280,7 +285,8 @@ private:
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
-						    "Primitive"};
+						    "Primitive",
+						    "Layer"};
   
   /******************************************************************
    * data, do not access manually unless you know what you're doing
