@@ -30,7 +30,7 @@ distance_transform<T>::distance_transform( std::vector<T> data, int n, double pi
   //initialize parameters
   img = data;
   dim = 1;  
-  size[0]=n; size[1]=-1; size[2]=-1;
+  size[0]=n; size[1]=1; size[2]=1;
   pix_size[0]=pixsize; pix_size[1]=1; pix_size[2]=1;
   
   //allocate memory
@@ -54,7 +54,7 @@ distance_transform<T>::distance_transform( std::vector<T> data, int n, int k, do
   //initialize parameters
   img = data;  
   dim = 2;
-  size[0]=n; size[1]=k; size[2]=-1;
+  size[0]=n; size[1]=k; size[2]=1;
   pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=1;
 
   //allocate memory
@@ -84,7 +84,7 @@ distance_transform<T>::distance_transform( std::vector<T> data, int n, int k, in
   dim = 3;
   size[0]=n; size[1]=k; size[2]=l;
   pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=pixsize_z;
-  
+
   //allocate memory
   map = std::vector<double> (n*k*l, 0);
 }
@@ -113,25 +113,37 @@ distance_transform<T>::~distance_transform(){
 template <class T>
 std::vector<double> distance_transform<T>::do_distance_transform( std::vector<double> &grid, double pixsize ){
 
+  // The grid will be in length units. In it's initial call in
+  // 1d/2d/3d it is just max or 0 (in both cases units don't
+  // matter). After a second call in 2d/3d the units will be in length
+  // units, so any grid[*] is in length units
+
+
   std::vector<double> transform ( grid.size(), 0 );
   
   //Index of rightmost parabola in lower envelope
   unsigned int k = 0;
-  //Locations of parabolas in lower envelope
+  //indeces/locations of parabolas in lower envelope
   std::vector<int> v = {0}; 
-  //Locations of boundaries between parabolas
-  std::vector<double> z = {-std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
-
+  //Locations of boundaries between parabolas in length units
+  std::vector<double> z = {-pixsize*std::numeric_limits<double>::max(), pixsize*std::numeric_limits<double>::max()};
+  
   //find the envelope
   for( unsigned int ii=1; ii<grid.size(); ii++){
     //intersection of two parabolas
-    double s = ( ( grid[ii] + (ii*ii) ) - (grid[ v[k] ] + (v[k]*v[k])) ) / (2*(ii-v[k]));
+
+    //the position of the index in length units
+    double ii_l = ii*pixsize;
+    
+    //this needs to be in length units already! so convert pixel
+    //values to length units where neccessary
+    double s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
 
     //check where the intersection is. If it is left of the previous
     //parabola, the current one is the new lowest envelope
     while( s <= z[k] ){
       k--;
-      s = ( ( grid[ii] + (ii*ii) ) - (grid[ v[k] ] + (v[k]*v[k])) ) / (2*(ii-v[k]));
+      s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / (2*(ii_l-(v[k]*pixsize)));
     }
 
     //found the previous lowest envelope
@@ -160,13 +172,13 @@ std::vector<double> distance_transform<T>::do_distance_transform( std::vector<do
   //grid
   k=0;
   for(unsigned int ii=0; ii<grid.size(); ii++){
-    while( z[k+1] < ii ){
+    while( z[k+1] < ii*pixsize ){
       k++;
     }
     
     //get the "real" distances in length units by multiplying squared
     //index distances by pixelsize
-    transform[ii] = pixsize * pixsize *  ( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
+    transform[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
   }
 
   return transform;
@@ -183,16 +195,19 @@ std::vector<double> distance_transform<T>::do_distance_transform( std::vector<do
  * do_distance_trasnform ). Therefore we need instanciations of this
  * function with int and double, thus we can't use T here in the
  * argument, but need an additional type.
+ *
+ *\param[in] data the grid on which to evaluate the function
+ *\param[in] max The max value the cost function will take 
  */
 template <class T> template <class U>
-std::vector<double> distance_transform<T>::eval_grid_function( std::vector<U> &data ){
+std::vector<double> distance_transform<T>::eval_grid_function( std::vector<U> &data, double max ){
 
   //initialize memory and set it to zero
   std::vector<double> grid (data.size(), 0);
   
   for(unsigned int ii=0; ii<data.size(); ii++){
     if( data[ii] == 0 ){
-      grid[ii] = std::numeric_limits<double>::max();
+      grid[ii] = max;
     } else {
       grid[ii] = 0;
     }  
@@ -216,7 +231,10 @@ void distance_transform<T>::compute_distance_map(){
     //one dimensional case
     
     //get grid
-    std::vector<double> grid = eval_grid_function( img );
+
+    //set the max value to a couple of lengths of the entire grid
+    double max = size[0] * pix_size[0] * 10;
+    std::vector<double> grid = eval_grid_function<T>( img, max );
 
     //do the distance transform
     map = do_distance_transform( grid, pix_size[0] );
@@ -238,7 +256,8 @@ void distance_transform<T>::compute_distance_map(){
       }
       
       //get the grid
-      std::vector<double> col_grid = eval_grid_function( col );
+      double max = std::max(size[0],size[1]) * std::max(pix_size[0],pix_size[1]) * 10;
+      std::vector<double> col_grid = eval_grid_function<double>( col, max );
       
       //get distance map of column
       std::vector<double> col_map = do_distance_transform( col_grid, pix_size[1] );
@@ -294,7 +313,9 @@ void distance_transform<T>::compute_distance_map(){
       }
       
       // apply edm cost function
-      std::vector<double> stack_grid = eval_grid_function( stack );
+      double max = std::max( std::max( size[0], size[1] ), size[2]) *
+	std::max( std::max( pix_size[0], pix_size[1] ), pix_size[2] ) * 10;
+      std::vector<double> stack_grid = eval_grid_function<double>( stack, max );
 
       // compute distance map of stack
       std::vector<double> stack_map = do_distance_transform( stack_grid, pix_size[2] );
@@ -349,7 +370,7 @@ void distance_transform<T>::compute_distance_map(){
       //store map in temp map
       memcpy( map_unsorted.data()+ii*row_map.size(), row_map.data(), sizeof(double) * row_map.size());
     } // end row distance map
-
+    
     //we need some sorting to arrange the grid in the original order
     for(unsigned int ii=0; ii<size[0]*size[1]; ii++){
 
@@ -366,6 +387,29 @@ void distance_transform<T>::compute_distance_map(){
   }
 
 }
+
+
+/**
+ * Outputs the distance map to the console
+ */
+template <class T>
+void distance_transform<T>::print_map() const {
+  
+  for( unsigned int ii=0; ii < size[2]; ii++){ //layers
+    std::cout << "Layer " << ii << std::endl;
+    for( unsigned int jj=0; jj < size[1]; jj++){ //columns
+      for( unsigned int kk=0; kk< size[0]; kk++){ //rows
+
+	int ind = ii + kk * size[2] + jj * size[2]*size[0];	
+	
+	std::cout << " " << std::setprecision(3) << std::setw(6) << sqrt(map[ind]) << " ";	  
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl << std::endl;
+  }
+}
+
 
 
 /*

@@ -14,7 +14,9 @@
 #include <limits>
 #include <vector>
 #include <cstring>
-
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 /** \brief This class computes the euclidean distance map of a structure
  *
@@ -53,9 +55,11 @@ public:
   /// Performs the distance transformation
   void compute_distance_map();
 
-
   /// get distance map
   std::vector<double> get_distance_map() const ;
+
+  /// outputs the map to console
+  void print_map() const;
   
 private:
 
@@ -64,7 +68,7 @@ private:
 
   /// evaluates the function on the given data
   template <class U>
-  std::vector<double> eval_grid_function( std::vector<U> &data );
+  std::vector<double> eval_grid_function( std::vector<U> &data, double max );
     
   /// The image to transform
   std::vector<T> img;
