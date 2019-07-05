@@ -10,13 +10,6 @@
 
 #include "distance_transform.hpp"
 
-
-// Start of with a few template instantiations
-template class distance_transform<int>;
-template class distance_transform<float>;
-template class distance_transform<double>;
-
-
 /**
  * Allocates necessary memory for the transformed map and initializes
  * class parameters
@@ -425,3 +418,9 @@ template <class T>
 std::vector<double> distance_transform<T>::get_distance_map() const {
   return map;
 }
+
+
+// explicit template instantiations
+template class distance_transform<int>;
+template class distance_transform<float>;
+template class distance_transform<double>;
