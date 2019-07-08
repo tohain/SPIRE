@@ -40,7 +40,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.01), a(1), inv_a(2*M_PI), n_points_x(75), n_points_y(75), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.3f ) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(75), n_points_y(75), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -58,11 +58,9 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_hei
   update_periodicity_length();
 
   
-  membranes.push_back(-0.05);
-  membranes.push_back(0.01);
-
-  membranes.push_back(0.15);
-  membranes.push_back(0.01);  
+  //add main membrane. This can't be deleted
+  membranes.push_back( 0 );
+  membranes.push_back( 0.03 );
 }
 
 
@@ -276,7 +274,7 @@ void surface_projection::set_grid (){
   //We need to set an interval where points are getting markes. Since
   //the surface is samples it's highly unlikely that a point has
   //exactly the wanted level set constraint
-  double min_width = 0.03;
+  double min_width = 0.025;
   
   // the level set value of the present points
   double level = 0; 
@@ -325,12 +323,13 @@ void surface_projection::set_grid (){
     double real_distance = sqrt( dmap[ii] );
     
     //check if this point is within the "main" membrane
-    if( real_distance < mem_width ){
+    // this will extend symmetrically into both channels
+    if( real_distance < 0.5*membranes[1] ){
       mark_point = true;
     }
 
     //check if this point is within several other membranes
-    for( unsigned int jj=0; jj<membranes.size(); jj+=2){
+    for( unsigned int jj=2; jj<membranes.size(); jj+=2){
 
       if( membranes[jj] <= 0 ){
 	//inside membrane
@@ -363,8 +362,8 @@ void surface_projection::set_grid (){
 
 
 void surface_projection::project_grid (){
-
-
+  
+  
   unsigned int ind_grid = 0;
   unsigned int ind_proj = 0;
   for(unsigned int ii=0; ii<n_points_y; ii++){ //y direcion=height (vertical)
@@ -657,10 +656,6 @@ double surface_projection::get_a() const{
   return a;
 }
 
-double surface_projection::get_mem_width() const {
-  return mem_width;
-}
-
 double surface_projection::get_surface_level() const {
   return surface_level;
 }
@@ -706,6 +701,33 @@ std::vector<int> surface_projection::get_grid() const {
  * Setters
  *************************/
 
+void surface_projection::edit_membrane( int id, double dist, double width ){
+
+  if( 2*id >= membranes.size() ){
+    throw invalid_parameter_exception( "Membrane not found" );
+  } else if( width < 0 ){    
+    throw invalid_parameter_exception( "Membrane width can't be negative" );
+  } else {
+    if( id == 0 && dist != 0 ){
+      throw invalid_parameter_exception( "Main membrane distance must be 0" );
+    }
+    membranes[2*id] = dist;
+    membranes[2*id + 1] = width;
+  }
+
+}
+
+void surface_projection::delete_membrane( int id ){
+  
+  if( 2*id >= membranes.size() ){
+    throw invalid_parameter_exception( "Membrane not found" );
+  } else if ( id == 0 ){
+    throw invalid_parameter_exception( "Main membrane can't be deleted" );
+  } else {
+    membranes.erase( membranes.begin() + 2*id, membranes.begin()+(2*id+2) );
+  }
+
+}
 
 void surface_projection::set_theta( double ang ){
   if( ang > M_PI ){
@@ -773,15 +795,6 @@ void surface_projection::set_slice_height ( double val ){
   slice_height = val;
 }
 
-
-void surface_projection::set_mem_width ( double val ){
-  if( val < 0 ){
-    mem_width = 0;
-    throw invalid_parameter_exception(" membrane width can't be smaller than 0");
-  } else {
-    mem_width = val;
-  }
-}
 
 void surface_projection::set_surface_level( double val ){
   surface_level = val;

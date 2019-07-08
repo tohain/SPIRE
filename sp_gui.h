@@ -23,14 +23,16 @@
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
+#include <wx/listctrl.h>
+#include <wx/button.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/scrolwin.h>
 #include <wx/filepicker.h>
-#include <wx/button.h>
 #include <wx/gauge.h>
+#include <wx/menu.h>
 #include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -54,8 +56,14 @@ class sp_gui : public wxFrame
 		wxSpinCtrlDouble* a_ctl;
 		wxStaticText* m_staticText11;
 		wxChoice* type_ctl;
-		wxStaticText* m_staticText20;
-		wxSpinCtrlDouble* d_ctl;
+		wxStaticText* m_staticText26;
+		wxStaticLine* m_staticline8;
+		wxListCtrl* membranes_ctrl;
+		wxSpinCtrl* membrane_idx;
+		wxSpinCtrlDouble* membrane_dist;
+		wxSpinCtrlDouble* membrane_width;
+		wxButton* m_button5;
+		wxButton* m_button6;
 		wxPanel* orientation;
 		wxStaticText* m_staticText16;
 		wxStaticLine* m_staticline3;
@@ -108,6 +116,9 @@ class sp_gui : public wxFrame
 		wxGauge* m_gauge1;
 		wxButton* b_quit;
 		wxTextCtrl* text_help;
+		wxMenuBar* m_menubar1;
+		wxMenu* m_menu1;
+		wxMenu* m_menu2;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void focus_ntucs_ctl( wxFocusEvent& event ) = 0;
@@ -116,8 +127,11 @@ class sp_gui : public wxFrame
 		virtual void a_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void surface_change( wxCommandEvent& event ) = 0;
 		virtual void focus_type_ctl( wxFocusEvent& event ) = 0;
-		virtual void focus_d_ctl( wxFocusEvent& event ) = 0;
-		virtual void d_change( wxSpinDoubleEvent& event ) = 0;
+		virtual void membrane_selected( wxListEvent& event ) = 0;
+		virtual void mem_change_d( wxSpinDoubleEvent& event ) = 0;
+		virtual void mem_change_w( wxSpinDoubleEvent& event ) = 0;
+		virtual void membrane_add( wxCommandEvent& event ) = 0;
+		virtual void membrane_delete( wxCommandEvent& event ) = 0;
 		virtual void selection_angles( wxCommandEvent& event ) = 0;
 		virtual void focus_theta_ctl( wxFocusEvent& event ) = 0;
 		virtual void theta_change( wxSpinDoubleEvent& event ) = 0;

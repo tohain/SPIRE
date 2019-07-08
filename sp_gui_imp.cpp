@@ -11,6 +11,13 @@ sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
   
   //set up gui
 
+  //set up columns of list view
+  membranes_ctrl->AppendColumn( "ID" );
+  membranes_ctrl->AppendColumn( "DIST" );
+  membranes_ctrl->AppendColumn( "WIDTH" );  
+  read_membranes();
+  membranes_ctrl->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+  
   //set range of the spinners
   phi_ctl->SetRange(0, 2*M_PI );
   theta_ctl->SetRange(0, M_PI );  
@@ -35,6 +42,25 @@ sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
 }
 
 
+/** 
+ * parses the membranes from the membranes vector in
+ * the surface projection object and views the data
+ * in the list
+ */
+void sp_gui_imp::read_membranes(){
+
+  //clear all items
+  membranes_ctrl->DeleteAllItems();
+  
+  for( unsigned int ii=0; ii<sp->get_membranes().size(); ii+=2 ){
+    membranes_ctrl->InsertItem( int(ii/2.), std::to_string(int(ii/2.)) );
+    membranes_ctrl->SetItem( int(ii/2.), 1, std::to_string(sp->get_membranes()[ii]) );
+    membranes_ctrl->SetItem( int(ii/2.), 2, std::to_string(sp->get_membranes()[ii+1]) );
+  }   
+}
+
+
+
 /**
  *  Writes all parameters from the GUI into the \ref sp class and
  *  calls necessary methods to update the GUI and the \ref sp class
@@ -47,8 +73,7 @@ void sp_gui_imp::write_parameters(){
   sp->set_a( a_ctl->GetValue() );
   //type
   sp->set_type( type_ctl->GetSelection() );
-  //mem_width
-  sp->set_mem_width( d_ctl->GetValue() );
+
 
   if( ortype_ang_ctl->IsEnabled() ){
     
@@ -86,7 +111,6 @@ void sp_gui_imp::read_parameters(){
   ntucs_ctl->SetValue( sp->get_ntucs() );
   a_ctl->SetValue( sp->get_a() );
   type_ctl->SetSelection( sp->get_type() );
-  d_ctl->SetValue( sp->get_mem_width() );
 
   theta_ctl->SetValue( sp->get_theta() );
   phi_ctl->SetValue( sp->get_phi() );
@@ -227,10 +251,7 @@ void sp_gui_imp::focus_type_ctl( wxFocusEvent& event ){
   *text_help << help->type_tooltip;  
 }
 
-void sp_gui_imp::focus_d_ctl( wxFocusEvent& event ){
-  text_help->SetValue("");
-  *text_help << help->memwidth_tooltip;  
-}
+
 
 
 /*
@@ -316,19 +337,6 @@ void sp_gui_imp::surface_change( wxCommandEvent& event )
   draw_preview();
 }
 
-void sp_gui_imp::d_change( wxSpinDoubleEvent& event )
-{
-  //update parameter
-  try {
-    sp->set_mem_width( d_ctl->GetValue() );
-  } catch (invalid_parameter_exception e ) {
-    wxMessageBox( e.details(), e.what(), wxICON_INFORMATION );
-    d_ctl->SetValue( sp->get_mem_width() );
-  }
-  
-  //redraw
-  draw_preview();  
-}
 
 void sp_gui_imp::theta_change( wxSpinDoubleEvent& event )
 {
@@ -552,6 +560,89 @@ void sp_gui_imp::n_points_z_change( wxSpinEvent& event ){
 }
 
 
+/** 
+ * a membrane from the list view was selecetd. Load props into
+ * textboxes 
+ */
+void sp_gui_imp::membrane_selected( wxListEvent& event ){
+
+  //get index;
+  int i_idx = event.GetIndex();
+    
+  membrane_idx->SetValue( std::to_string(i_idx) );
+  membrane_width->SetValue( membranes_ctrl->GetItemText( i_idx, 2 ) );
+  membrane_dist->SetValue( membranes_ctrl->GetItemText( i_idx, 1 ) );
+  
+}
+
+
+void sp_gui_imp::membrane_save(){
+
+
+  double d,w;
+  long i;
+  i = membrane_idx->GetValue();
+  d = membrane_dist->GetValue();
+  w = membrane_width->GetValue();
+  
+  //save new data to sp object
+  try {
+    sp->edit_membrane( i, d, w );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(),
+		  e.what(),
+		  wxICON_ERROR);
+  }
+
+  //update values
+  read_membranes();
+  
+  //redraw
+  draw_preview();
+}
+
+
+void sp_gui_imp::mem_change_w( wxSpinDoubleEvent& event ){
+  membrane_save();
+}
+
+void sp_gui_imp::mem_change_d( wxSpinDoubleEvent& event ){
+   membrane_save();
+}
+
+void sp_gui_imp::membrane_add( wxCommandEvent& event ){
+
+  double d,w;
+  long i;
+  i = membrane_idx->GetValue();
+  d = membrane_dist->GetValue();
+  w = membrane_width->GetValue();
+
+  sp->add_membrane( d, w );
+  read_membranes();
+
+  //draw preview
+  draw_preview();
+}
+
+
+void sp_gui_imp::membrane_delete( wxCommandEvent& event ){
+
+  // delete membrane
+  try {
+    sp->delete_membrane( membrane_idx->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(),
+		  e.what(),
+		  wxICON_INFORMATION);
+  }
+
+  //update gui
+  read_membranes();
+  draw_preview();
+}
+
+
 
 void sp_gui_imp::invert_change( wxCommandEvent& event )
 {
@@ -567,6 +658,9 @@ void sp_gui_imp::button_render( wxCommandEvent& event )
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
   std::string fn (m_filePicker2->GetPath().c_str());
+
+  //sp->print_grid( fn );
+  
   
   if( fn == "" ){
     wxMessageBox( wxT("Please select a valid filename"),
@@ -588,6 +682,7 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
 		    wxICON_ERROR);
     }
   }
+  
 }
 
 void sp_gui_imp::button_quit( wxCommandEvent& event )

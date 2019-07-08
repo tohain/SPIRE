@@ -108,8 +108,6 @@ public:
   
   /// Returns the periodicity (unit cell size) of the surface
   double get_a() const;
-  /// Returns the width of the membrane
-  double get_mem_width() const;
   /// Returns the surface level
   double get_surface_level() const;
   /// Returns the membranes
@@ -147,8 +145,12 @@ public:
   void set_slice_width( double val );
   /// Sets the position of the slice along ints normal vector
   void set_slice_height( double val );
-  /// Sets the membrane width
-  void set_mem_width( double val );
+
+  /// set membrane
+  void edit_membrane( int id, double dist, double width );
+  /// deletes a meberane
+  void delete_membrane( int id );
+  
   /// Sets the surface_level
   void set_surface_level( double val );
   /// Sets the unit cell size of the surface
@@ -254,13 +256,6 @@ private:
    */
   double slice_height;
 
-  /** \brief Membrane width
-   *
-   * This gives the width of the membrane, however, I'm not sure in
-   * which units. It is the value the level set conditions are
-   * compared to, to see if it is withing the level set conditions
-   */
-  double mem_width;
   /// Unit cell size of the surface in {100},{010},{001} direciton
   double a;
   /// Surface period

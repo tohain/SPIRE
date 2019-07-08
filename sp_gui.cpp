@@ -70,7 +70,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	dimension->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_staticText9 = new wxStaticText( geometry, wxID_ANY, wxT("Unit Cell Length"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText9 = new wxStaticText( geometry, wxID_ANY, wxT("Unit Cell Size"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	m_staticText9->Wrap( -1 );
 	dimension->Add( m_staticText9, 0, wxALL, 5 );
 
@@ -102,22 +102,73 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	surface_type->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_staticText20 = new wxStaticText( geometry, wxID_ANY, wxT("Membrane width"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-	m_staticText20->Wrap( -1 );
-	surface_type->Add( m_staticText20, 0, wxALL, 5 );
-
-	d_ctl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0.1, 0.01 );
-	d_ctl->SetDigits( 3 );
-	surface_type->Add( d_ctl, 0, wxALL, 5 );
-
-
-	surface_type->Add( 0, 0, 1, wxEXPAND, 5 );
-
 
 	bSizer101->Add( surface_type, 1, wxEXPAND, 5 );
 
 
 	bSizer27->Add( bSizer101, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer381;
+	bSizer381 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText26 = new wxStaticText( geometry, wxID_ANY, wxT("MyLabeMembranesl"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText26->Wrap( -1 );
+	bSizer381->Add( m_staticText26, 0, wxALL, 5 );
+
+	m_staticline8 = new wxStaticLine( geometry, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer381->Add( m_staticline8, 1, wxEXPAND | wxALL, 5 );
+
+
+	bSizer27->Add( bSizer381, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer351;
+	bSizer351 = new wxBoxSizer( wxHORIZONTAL );
+
+	wxBoxSizer* bSizer371;
+	bSizer371 = new wxBoxSizer( wxVERTICAL );
+
+	membranes_ctrl = new wxListCtrl( geometry, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING );
+	bSizer371->Add( membranes_ctrl, 1, wxALL, 5 );
+
+	wxBoxSizer* bSizer363;
+	bSizer363 = new wxBoxSizer( wxHORIZONTAL );
+
+	membrane_idx = new wxSpinCtrl( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0 );
+	membrane_idx->Enable( false );
+
+	bSizer363->Add( membrane_idx, 0, wxALL, 5 );
+
+	membrane_dist = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -100, 100, 0, 0.01 );
+	membrane_dist->SetDigits( 4 );
+	bSizer363->Add( membrane_dist, 0, wxALL, 5 );
+
+	membrane_width = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 0, 0.01 );
+	membrane_width->SetDigits( 4 );
+	bSizer363->Add( membrane_width, 0, wxALL, 5 );
+
+
+	bSizer371->Add( bSizer363, 0, wxEXPAND, 5 );
+
+
+	bSizer351->Add( bSizer371, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer362;
+	bSizer362 = new wxBoxSizer( wxVERTICAL );
+
+	m_button5 = new wxButton( geometry, wxID_ANY, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer362->Add( m_button5, 0, wxALL, 5 );
+
+	m_button6 = new wxButton( geometry, wxID_ANY, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer362->Add( m_button6, 0, wxALL, 5 );
+
+
+	bSizer351->Add( bSizer362, 0, wxEXPAND, 5 );
+
+
+	bSizer351->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	bSizer27->Add( bSizer351, 0, wxEXPAND, 5 );
 
 
 	geometry->SetSizer( bSizer27 );
@@ -564,6 +615,23 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	this->SetSizer( root );
 	this->Layout();
+	m_menubar1 = new wxMenuBar( 0 );
+	m_menu1 = new wxMenu();
+	wxMenuItem* m_menuItem2;
+	m_menuItem2 = new wxMenuItem( m_menu1, wxID_ANY, wxString( wxT("Quit") ) , wxEmptyString, wxITEM_NORMAL );
+	m_menu1->Append( m_menuItem2 );
+
+	m_menubar1->Append( m_menu1, wxT("File") );
+
+	m_menu2 = new wxMenu();
+	wxMenuItem* m_menuItem1;
+	m_menuItem1 = new wxMenuItem( m_menu2, wxID_ANY, wxString( wxT("About") ) , wxEmptyString, wxITEM_NORMAL );
+	m_menu2->Append( m_menuItem1 );
+
+	m_menubar1->Append( m_menu2, wxT("Help") );
+
+	this->SetMenuBar( m_menubar1 );
+
 
 	this->Centre( wxBOTH );
 
@@ -574,8 +642,11 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	a_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
-	d_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_d_ctl ), NULL, this );
-	d_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::d_change ), NULL, this );
+	membranes_ctrl->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
+	membrane_dist->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
+	membrane_width->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );
+	m_button5->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_add ), NULL, this );
+	m_button6->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_delete ), NULL, this );
 	ortype_ang_ctl->Connect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
 	theta_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );
@@ -614,8 +685,11 @@ sp_gui::~sp_gui()
 	a_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
-	d_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_d_ctl ), NULL, this );
-	d_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::d_change ), NULL, this );
+	membranes_ctrl->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
+	membrane_dist->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
+	membrane_width->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );
+	m_button5->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_add ), NULL, this );
+	m_button6->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_delete ), NULL, this );
 	ortype_ang_ctl->Disconnect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
 	theta_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );
