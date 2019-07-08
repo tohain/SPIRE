@@ -40,7 +40,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.03), a(1), inv_a(2*M_PI), n_points_x(100), n_points_y(100), n_points_z(75), type(2), h(0), k(0), l(1), surface_level( 0.f ) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), mem_width(0.01), a(1), inv_a(2*M_PI), n_points_x(75), n_points_y(75), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.3f ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -57,6 +57,12 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_hei
   //sets periodicty length
   update_periodicity_length();
 
+  
+  membranes.push_back(-0.05);
+  membranes.push_back(0.01);
+
+  membranes.push_back(0.15);
+  membranes.push_back(0.01);  
 }
 
 
@@ -270,10 +276,15 @@ void surface_projection::set_grid (){
   //We need to set an interval where points are getting markes. Since
   //the surface is samples it's highly unlikely that a point has
   //exactly the wanted level set constraint
-  double min_width = 0.01;
+  double min_width = 0.03;
   
   // the level set value of the present points
   double level = 0; 
+
+
+  // Stores wether the point is inside (true) or outside (false) of the
+  // original membrane
+  std::vector<bool> channel (grid.size(), false);
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
@@ -289,15 +300,22 @@ void surface_projection::set_grid (){
       throw std::string("type not supported");
     }
     
-    if( level < min_width && level > -min_width ){
+    if( level < (surface_level + min_width) && level > ( surface_level - min_width ) ){
       grid[int(ii/3)] = 1;
+    }
+    if( level < surface_level ){
+      channel[int(ii/3.)] = false;
+    } else {
+      channel[int(ii/3.)] = true;
     }
   }
 
 
   // compute the distance transform of the grid
-  distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz );
+  //distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz );
+  distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz);  
   dt.compute_distance_map();
+
   std::vector<double> dmap = dt.get_distance_map();  
 
   // now also mark each point, which is within the desired thickness of the membrane
@@ -313,13 +331,28 @@ void surface_projection::set_grid (){
 
     //check if this point is within several other membranes
     for( unsigned int jj=0; jj<membranes.size(); jj+=2){
+
+      if( membranes[jj] <= 0 ){
+	//inside membrane
       
-      if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
-	  real_distance < membranes[jj] + membranes[jj+1]/2. ){
-	mark_point = true;
+	if( real_distance > -membranes[jj] - membranes[jj+1]/2. &&
+	    real_distance < -membranes[jj] + membranes[jj+1]/2. &&
+	    channel[ii] ){
+	  
+	  mark_point = true;
+	}
+      } else {
+	//outside
+
+	if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
+	    real_distance < membranes[jj] + membranes[jj+1]/2. &&
+	    !channel[ii] ){
+	  
+	  mark_point = true;
+	}	
       }
-      
-    }
+
+    }//end cycle membranes
     
     if( mark_point ){
       grid[ii] = 1;
@@ -557,12 +590,28 @@ unsigned char* surface_projection::get_image(bool invert){
   return img;  
 }
 
+/** 
+ * adds a membrane to the membrane array
+ *
+ *\param[in] dist The distance to the "original" membrane
+ *\param[in] width The width of the membrane
+ */
+void surface_projection::add_membrane(double dist, double width ){
+
+  membranes.push_back( dist );
+  membranes.push_back( width );
+}
+
 
 
 
 /*************************
  *  Getters
  *************************/
+
+std::vector<double> surface_projection::get_membranes() const {
+  return membranes;
+}
 
 std::vector<double> surface_projection::get_projection() const {
   return projection;

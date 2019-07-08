@@ -74,6 +74,10 @@ public:
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
 
+  /// Adds a membrane
+  void add_membrane( double dist, double width );
+  
+  
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
 
@@ -108,6 +112,8 @@ public:
   double get_mem_width() const;
   /// Returns the surface level
   double get_surface_level() const;
+  /// Returns the membranes
+  std::vector<double> get_membranes() const;
 
   /// Returns the width of the slice
   double get_slice_width() const;
