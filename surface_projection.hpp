@@ -313,6 +313,10 @@ private:
   std::vector<double> points;
   /// Array holding the color (electron density) of the voxels
   std::vector<int> grid;
+  /// Array denoting the channel a voxel is in. 1 is the most inner
+  /// one, ascending outwards. The sign denotes if it is inside or
+  /// outside of the main membrane
+  std::vector<int> channel;
 
   /// The 2D projection
   std::vector<double> projection;

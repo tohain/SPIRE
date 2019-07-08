@@ -27,10 +27,16 @@ const std::string invalid_parameter_exception::details() const {
 void surface_projection::print_grid( std::string fn ){
 
   std::ofstream out ( fn );
-  
+  out << "x y z color channel" << std::endl;
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
     out << points[ii] << " " << points[ii+1] << " ";
-    out << points[ii+2] << " " << grid[ii/3] << std::endl;    
+    out << points[ii+2] << " " << grid[ii/3] << " ";
+    if( channel[ii/3.] < 0 ){
+      out << -channel[ii/3.];
+    } else {
+      out << channel[ii/3.];
+    }
+    out << std::endl;
   }
 
   out.close();
@@ -40,7 +46,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(75), n_points_y(75), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(99), n_points_y(99), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -61,6 +67,7 @@ surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_hei
   //add main membrane. This can't be deleted
   membranes.push_back( 0 );
   membranes.push_back( 0.03 );
+
 }
 
 
@@ -265,7 +272,8 @@ void surface_projection::set_up_points(){
 
 /**
  * Evalutes the voxels in the level set. Sets the "colors" of the
- * voxels to 1 if they are within the membrane
+ * voxels to 1 if they are within the membrane. Also updates the
+ * channel array
  */
 void surface_projection::set_grid (){
 
@@ -278,14 +286,11 @@ void surface_projection::set_grid (){
   
   // the level set value of the present points
   double level = 0; 
-
-
-  // Stores wether the point is inside (true) or outside (false) of the
-  // original membrane
-  std::vector<bool> channel (grid.size(), false);
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
+    //compute level set
+    
     if( type == 0 ){ //gyroid
       level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 1 ){ //diamon
@@ -297,25 +302,70 @@ void surface_projection::set_grid (){
     } else {
       throw std::string("type not supported");
     }
-    
+
+    //mark appropriate pixels '1'
     if( level < (surface_level + min_width) && level > ( surface_level - min_width ) ){
       grid[int(ii/3)] = 1;
     }
-    if( level < surface_level ){
-      channel[int(ii/3.)] = false;
+    
+    //note here, if we are inside or outside of the main
+    //membrane. This is needed in a later step to assign the channel
+    //numbers
+    if( level > surface_level ){
+      //outside
+      channel[int(ii/3.)] = -1;
     } else {
-      channel[int(ii/3.)] = true;
-    }
+      //inside
+      channel[int(ii/3.)] = 1;
+    } 
+	
   }
 
 
+  // next step is to compute the distance transform. We need to label
+  // all points according to in which channel they are also. We do
+  // that by comparing the distances to the main membrane with the
+  // distance map
+  
   // compute the distance transform of the grid
   //distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz );
   distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz);  
   dt.compute_distance_map();
-
   std::vector<double> dmap = dt.get_distance_map();  
 
+
+  // now assign channel number
+  
+  // get all the positions of the membranes in ascending order
+  std::vector<double> mem_pos ( membranes.size()*0.5, 0);
+  for(unsigned int ii=0; ii<membranes.size(); ii+=2){
+    mem_pos[ii/2.] = membranes[ii];
+  }
+  mem_pos.push_back( -std::numeric_limits<double>::max() );
+  mem_pos.push_back( std::numeric_limits<double>::max() );  
+  //sort
+  std::sort( mem_pos.begin(), mem_pos.end() );
+
+  
+  for( unsigned int ii=0; ii<channel.size(); ii++){
+    //start with the inner most shell
+    int ch_id=0;
+
+    //find the right channel
+    for( ; ch_id < mem_pos.size()-1; ch_id++ ){     
+      if( channel[ii] * sqrt(dmap[ii]) >= mem_pos[ch_id] &&
+	  channel[ii] * sqrt(dmap[ii]) < mem_pos[ch_id+1])
+	break;
+    }
+          
+    //found the appropriate membrane, save the channel number
+    //the sign still marks, if in or outside of main membrane
+    channel[ii] = (ch_id+1)*channel[ii];
+  }
+
+
+
+  
   // now also mark each point, which is within the desired thickness of the membrane
   for( unsigned int ii=0; ii<grid.size(); ii++){
 
@@ -331,21 +381,21 @@ void surface_projection::set_grid (){
     //check if this point is within several other membranes
     for( unsigned int jj=2; jj<membranes.size(); jj+=2){
 
-      if( membranes[jj] <= 0 ){
-	//inside membrane
+      if( membranes[jj] >= 0 ){
+	//outside membrane
       
-	if( real_distance > -membranes[jj] - membranes[jj+1]/2. &&
-	    real_distance < -membranes[jj] + membranes[jj+1]/2. &&
-	    channel[ii] ){
+	if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
+	    real_distance < membranes[jj] + membranes[jj+1]/2. &&
+	    channel[ii] > 0 ){
 	  
 	  mark_point = true;
 	}
       } else {
-	//outside
+	//inside
 
-	if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
-	    real_distance < membranes[jj] + membranes[jj+1]/2. &&
-	    !channel[ii] ){
+	if( real_distance > -membranes[jj] - membranes[jj+1]/2. &&
+	    real_distance < -membranes[jj] + membranes[jj+1]/2. &&
+	    channel[ii] < 0 ){
 	  
 	  mark_point = true;
 	}	
@@ -391,11 +441,14 @@ void surface_projection::project_grid (){
 void surface_projection::update_containers(){
   //resize and reset arrays
   points.resize( n_points_x * n_points_y * n_points_z * 3, 0 );
-  memset( points.data(), 0, sizeof(double) * points.size() );
+  //memset( points.data(), 0, sizeof(double) * points.size() );
   
   /// Array holding the color (electron density) of the voxels
   grid.resize( n_points_x * n_points_y * n_points_z, 0 );
-  memset( grid.data(), 0, sizeof(int) * grid.size() );
+  //memset( grid.data(), 0, sizeof(int) * grid.size() );
+
+  /// The channel
+  channel.resize( n_points_x * n_points_y * n_points_z, 0 );
   
   /// The 2D projection
   projection.resize( n_points_x * n_points_y, 0 );
