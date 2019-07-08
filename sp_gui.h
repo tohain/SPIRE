@@ -56,6 +56,8 @@ class sp_gui : public wxFrame
 		wxSpinCtrlDouble* a_ctl;
 		wxStaticText* m_staticText11;
 		wxChoice* type_ctl;
+		wxStaticText* m_staticText27;
+		wxSpinCtrlDouble* level_set_ctrl;
 		wxStaticText* m_staticText26;
 		wxStaticLine* m_staticline8;
 		wxListCtrl* membranes_ctrl;
@@ -127,6 +129,7 @@ class sp_gui : public wxFrame
 		virtual void a_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void surface_change( wxCommandEvent& event ) = 0;
 		virtual void focus_type_ctl( wxFocusEvent& event ) = 0;
+		virtual void level_change( wxSpinDoubleEvent& event ) = 0;
 		virtual void membrane_selected( wxListEvent& event ) = 0;
 		virtual void mem_change_d( wxSpinDoubleEvent& event ) = 0;
 		virtual void mem_change_w( wxSpinDoubleEvent& event ) = 0;

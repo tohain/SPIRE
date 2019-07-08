@@ -102,6 +102,17 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	surface_type->Add( 0, 0, 1, wxEXPAND, 5 );
 
+	m_staticText27 = new wxStaticText( geometry, wxID_ANY, wxT("Channel Proportion"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText27->Wrap( -1 );
+	surface_type->Add( m_staticText27, 0, wxALL, 5 );
+
+	level_set_ctrl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -999, 999, 0, 0.001 );
+	level_set_ctrl->SetDigits( 4 );
+	surface_type->Add( level_set_ctrl, 0, wxALL, 5 );
+
+
+	surface_type->Add( 0, 0, 1, wxEXPAND, 5 );
+
 
 	bSizer101->Add( surface_type, 1, wxEXPAND, 5 );
 
@@ -642,6 +653,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	a_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	level_set_ctrl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::level_change ), NULL, this );
 	membranes_ctrl->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
 	membrane_dist->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
 	membrane_width->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );
@@ -685,6 +697,7 @@ sp_gui::~sp_gui()
 	a_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	level_set_ctrl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::level_change ), NULL, this );
 	membranes_ctrl->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
 	membrane_dist->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
 	membrane_width->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );

@@ -643,6 +643,23 @@ void sp_gui_imp::membrane_delete( wxCommandEvent& event ){
 }
 
 
+void sp_gui_imp::level_change(  wxSpinDoubleEvent& event ){
+
+  try {
+    sp->set_surface_level( level_set_ctrl->GetValue() );
+  } catch ( invalid_parameter_exception e ){
+    wxMessageBox( e.details(),
+		  e.what(),
+		  wxICON_INFORMATION);
+  }
+
+  //read possibly (exception handling) new values
+  level_set_ctrl->SetValue( sp->get_surface_level() );
+
+  //redraw
+  draw_preview();
+}
+
 
 void sp_gui_imp::invert_change( wxCommandEvent& event )
 {

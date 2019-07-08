@@ -67,7 +67,8 @@ protected:
   void mem_change_d( wxSpinDoubleEvent& event );
   void mem_change_w( wxSpinDoubleEvent& event );
   void membrane_add( wxCommandEvent& event );
-  void membrane_delete( wxCommandEvent& event );  
+  void membrane_delete( wxCommandEvent& event );
+  void level_change( wxSpinDoubleEvent& event );  
 public:
   /** Constructor */
   sp_gui_imp( wxWindow* parent );
