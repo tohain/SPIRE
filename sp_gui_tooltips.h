@@ -39,5 +39,17 @@ class tooltips {
 
   const std::string filename_tooltip = "The path and filename to save the currently displayed image. Use the browse button to open a file dialog. The extensions determines the format the image is saved to. Currently supported: *.png and *.tiff";
 
+  const std::string level_set_tooltip = "This parameter controls the proportions of the two channels. 0 means equal sizes. So far, it is dimension less and is just the level set for the main (id=0) membrane";
+
+  const std::string membrane_list_tooltip = "This lists all membranes currently in the system. The membrane with id=0 is the *main* membrane. The distances of other membranes are measured from here.";
+
+  const std::string mem_dst_tooltip = "This control changes the distance of the above selected membrane to the main membrane (id=0)";
+
+  const std::string mem_width_tooltip = "This control changes the width of the above selected membrane";
+
+  const std::string mem_delete_tooltip = "This button deletes the currently selected membrane";
+
+  const std::string mem_add_tooltip = "This button adds a membrane";
+  
 };
 

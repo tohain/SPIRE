@@ -149,7 +149,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	bSizer363->Add( membrane_idx, 0, wxALL, 5 );
 
-	membrane_dist = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -100, 100, 0, 0.01 );
+	membrane_dist = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -100, 100, 0.010000, 0.01 );
 	membrane_dist->SetDigits( 4 );
 	bSizer363->Add( membrane_dist, 0, wxALL, 5 );
 
@@ -653,12 +653,18 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	a_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	level_set_ctrl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_level_set ), NULL, this );
 	level_set_ctrl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::level_change ), NULL, this );
 	membranes_ctrl->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
+	membranes_ctrl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_membrane_list ), NULL, this );
+	membrane_dist->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_mem_dst ), NULL, this );
 	membrane_dist->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
+	membrane_width->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_mem_width ), NULL, this );
 	membrane_width->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );
 	m_button5->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_add ), NULL, this );
+	m_button5->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_button_add ), NULL, this );
 	m_button6->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_delete ), NULL, this );
+	m_button6->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_button_delete ), NULL, this );
 	ortype_ang_ctl->Connect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
 	theta_ctl->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Connect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );
@@ -697,12 +703,18 @@ sp_gui::~sp_gui()
 	a_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::a_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( sp_gui::surface_change ), NULL, this );
 	type_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_type_ctl ), NULL, this );
+	level_set_ctrl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_level_set ), NULL, this );
 	level_set_ctrl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::level_change ), NULL, this );
 	membranes_ctrl->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( sp_gui::membrane_selected ), NULL, this );
+	membranes_ctrl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_membrane_list ), NULL, this );
+	membrane_dist->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_mem_dst ), NULL, this );
 	membrane_dist->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_d ), NULL, this );
+	membrane_width->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_mem_width ), NULL, this );
 	membrane_width->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::mem_change_w ), NULL, this );
 	m_button5->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_add ), NULL, this );
+	m_button5->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_button_add ), NULL, this );
 	m_button6->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::membrane_delete ), NULL, this );
+	m_button6->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_button_delete ), NULL, this );
 	ortype_ang_ctl->Disconnect( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEventHandler( sp_gui::selection_angles ), NULL, this );
 	theta_ctl->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( sp_gui::focus_theta_ctl ), NULL, this );
 	theta_ctl->Disconnect( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxSpinDoubleEventHandler( sp_gui::theta_change ), NULL, this );

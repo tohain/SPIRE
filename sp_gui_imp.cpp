@@ -160,6 +160,35 @@ void sp_gui_imp::update_controls_periodicity(){
 }
 
 
+void sp_gui_imp::focus_level_set( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->level_set_tooltip;
+}
+
+void sp_gui_imp::focus_membrane_list( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->membrane_list_tooltip;
+}
+  
+void sp_gui_imp::focus_mem_dst( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->mem_dst_tooltip;
+}
+
+void sp_gui_imp::focus_mem_width( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->mem_width_tooltip;
+}
+
+void sp_gui_imp::focus_button_delete( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->mem_delete_tooltip;
+}
+
+void sp_gui_imp::focus_button_add( wxFocusEvent& event ){
+  text_help->SetValue("");
+  *text_help << help->mem_add_tooltip;
+}
 
 
 

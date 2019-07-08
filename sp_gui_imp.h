@@ -31,7 +31,12 @@ protected:
   void focus_ntucs_ctl( wxFocusEvent& event );		
   void focus_a_ctl( wxFocusEvent& event );
   void focus_type_ctl( wxFocusEvent& event );
-
+  void focus_level_set( wxFocusEvent& event );
+  void focus_membrane_list( wxFocusEvent& event );
+  void focus_mem_dst( wxFocusEvent& event );
+  void focus_mem_width( wxFocusEvent& event );
+  void focus_button_delete( wxFocusEvent& event );
+  void focus_button_add( wxFocusEvent& event );
   void focus_theta_ctl( wxFocusEvent& event );
   void focus_phi_ctl( wxFocusEvent& event );
   void focus_h_ctl( wxFocusEvent& event );

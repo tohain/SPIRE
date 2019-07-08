@@ -975,6 +975,7 @@
                                                                         <property name="window_extra_style"></property>
                                                                         <property name="window_name"></property>
                                                                         <property name="window_style"></property>
+                                                                        <event name="OnSetFocus">focus_level_set</event>
                                                                         <event name="OnSpinCtrlDouble">level_change</event>
                                                                     </object>
                                                                 </object>
@@ -1201,6 +1202,7 @@
                                                                         <property name="window_name"></property>
                                                                         <property name="window_style"></property>
                                                                         <event name="OnListItemSelected">membrane_selected</event>
+                                                                        <event name="OnSetFocus">focus_membrane_list</event>
                                                                     </object>
                                                                 </object>
                                                                 <object class="sizeritem" expanded="0">
@@ -1336,6 +1338,7 @@
                                                                                 <property name="window_extra_style"></property>
                                                                                 <property name="window_name"></property>
                                                                                 <property name="window_style"></property>
+                                                                                <event name="OnSetFocus">focues_mem_dst</event>
                                                                                 <event name="OnSpinCtrlDouble">mem_change_d</event>
                                                                             </object>
                                                                         </object>
@@ -1401,6 +1404,7 @@
                                                                                 <property name="window_extra_style"></property>
                                                                                 <property name="window_name"></property>
                                                                                 <property name="window_style"></property>
+                                                                                <event name="OnSetFocus">focus_mem_width</event>
                                                                                 <event name="OnSpinCtrlDouble">mem_change_w</event>
                                                                             </object>
                                                                         </object>
@@ -1488,6 +1492,7 @@
                                                                         <property name="window_name"></property>
                                                                         <property name="window_style"></property>
                                                                         <event name="OnButtonClick">membrane_add</event>
+                                                                        <event name="OnSetFocus">focus_button_add</event>
                                                                     </object>
                                                                 </object>
                                                                 <object class="sizeritem" expanded="0">
@@ -1561,6 +1566,7 @@
                                                                         <property name="window_name"></property>
                                                                         <property name="window_style"></property>
                                                                         <event name="OnButtonClick">membrane_delete</event>
+                                                                        <event name="OnSetFocus">focus_button_delete</event>
                                                                     </object>
                                                                 </object>
                                                             </object>
