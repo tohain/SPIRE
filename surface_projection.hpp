@@ -77,6 +77,11 @@ public:
   /// Adds a membrane
   void add_membrane( double dist, double width );
   
+  /// Computes the volumes of the channels
+  void compute_volume();
+
+  /// Computes the surface area of the membranes
+  void compute_surface_area();
   
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
@@ -112,7 +117,10 @@ public:
   double get_surface_level() const;
   /// Returns the membranes
   std::vector<double> get_membranes() const;
-
+  /// Return channel volumes
+  std::vector<double> get_channel_volumes() const;
+  /// Return surface areas of the membranes
+  std::vector<double> get_membrane_surface_area() const;
   /// Returns the width of the slice
   double get_slice_width() const;
   /// Returns the position of the slice along its normal vector
@@ -207,6 +215,9 @@ private:
 
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, double a);
+
+  /// for debugging: just a single sphere
+  double level_set_sphere( double x, double y, double z, double a);  
   
   /// Computes the position of the voxels in the slice
   void set_up_points();
@@ -216,6 +227,16 @@ private:
   
   /// Computes the 2D projection
   void project_grid ();
+
+  /// Returns the id of a pixel up
+  inline int p_up( int val );
+  inline int p_down( int val );
+  inline int p_right( int val );
+  inline int p_left( int val );
+  inline int p_for( int val );
+  inline int p_back( int val );  
+
+
   
   /////////////////////////////////////////////
   // parameter
@@ -298,12 +319,20 @@ private:
 
   /// Type of surface to project
   int type;
+
+
+  /// The volumes of the channels
+  std::vector<double> volumes;
+
+  /// The surface area of the membranes
+  std::vector<double> surface_area;
   
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
-						    "Layer"};
+						    "Layer",
+						    "Sphere"};
   
   /******************************************************************
    * data, do not access manually unless you know what you're doing
@@ -313,11 +342,13 @@ private:
   std::vector<double> points;
   /// Array holding the color (electron density) of the voxels
   std::vector<int> grid;
-  /// Array denoting the channel a voxel is in. 1 is the most inner
-  /// one, ascending outwards. The sign denotes if it is inside or
-  /// outside of the main membrane
+  /// Array denoting the channel a voxel is in. Membranes are
+  /// considered channels. 1 is the innermoste channel, 2 the
+  /// innermoste membrane, ...
   std::vector<int> channel;
 
+  
+  
   /// The 2D projection
   std::vector<double> projection;
 };

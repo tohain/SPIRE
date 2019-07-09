@@ -27,7 +27,7 @@ const std::string invalid_parameter_exception::details() const {
 void surface_projection::print_grid( std::string fn ){
 
   std::ofstream out ( fn );
-  out << "x y z color channel" << std::endl;
+  out << "#x y z color channel" << std::endl;
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
     out << points[ii] << " " << points[ii+1] << " ";
     out << points[ii+2] << " " << grid[ii/3] << " ";
@@ -46,7 +46,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(99), n_points_y(99), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
+surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(90), n_points_y(90), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -149,6 +149,14 @@ double surface_projection::level_set_primitive( double x, double y, double z, do
  */
 double surface_projection::level_set_layer( double x, double y, double z, double inv_a) {
   return mod(z, 1./a);
+}
+
+/**
+ * For debugging purposes: just a simple sphere
+ *
+ */
+double surface_projection::level_set_sphere( double x, double y, double z, double inv_a) {
+  return (x*x+y*y+z*z);
 }
 
 /**
@@ -275,7 +283,7 @@ void surface_projection::set_up_points(){
  * voxels to 1 if they are within the membrane. Also updates the
  * channel array
  */
-void surface_projection::set_grid (){
+void surface_projection::set_grid(){
 
   // First compute the distance map of the current grid
 
@@ -299,22 +307,24 @@ void surface_projection::set_grid (){
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 3 ){ //layer
       level = level_set_layer( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else {
+    } else if( type == 4 ){ //sphere
+      level = level_set_sphere( points[ii], points[ii+1], points[ii+2], inv_a );
+    }
+    else {
       throw std::string("type not supported");
     }
-
-    //mark appropriate pixels '1'
-    if( level < (surface_level + min_width) && level > ( surface_level - min_width ) ){
+    
+    //mark appropriate voxels '1'. Also check if we are in the membrane, outside or inside
+    if( level <= (surface_level + min_width) && level > ( surface_level - min_width ) ){
       grid[int(ii/3)] = 1;
     }
-    
-    //note here, if we are inside or outside of the main
-    //membrane. This is needed in a later step to assign the channel
-    //numbers
+
+
+
     if( level > surface_level ){
       //outside
       channel[int(ii/3.)] = -1;
-    } else {
+    } else if ( level <= surface_level ) {
       //inside
       channel[int(ii/3.)] = 1;
     } 
@@ -336,10 +346,11 @@ void surface_projection::set_grid (){
 
   // now assign channel number
   
-  // get all the positions of the membranes in ascending order
-  std::vector<double> mem_pos ( membranes.size()*0.5, 0);
+  // get all the membranes
+  std::vector<double> mem_pos ( membranes.size(), 0);
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
-    mem_pos[ii/2.] = membranes[ii];
+    mem_pos[ii] = membranes[ii] + membranes[ii+1]/2.;
+    mem_pos[ii+1] = membranes[ii] - membranes[ii+1]/2.;
   }
   mem_pos.push_back( -std::numeric_limits<double>::max() );
   mem_pos.push_back( std::numeric_limits<double>::max() );  
@@ -355,17 +366,14 @@ void surface_projection::set_grid (){
     for( ; ch_id < mem_pos.size()-1; ch_id++ ){     
       if( channel[ii] * sqrt(dmap[ii]) >= mem_pos[ch_id] &&
 	  channel[ii] * sqrt(dmap[ii]) < mem_pos[ch_id+1])
-	break;
-    }
-          
+	  break;
+    }    
+    
     //found the appropriate membrane, save the channel number
     //the sign still marks, if in or outside of main membrane
     channel[ii] = (ch_id+1)*channel[ii];
   }
 
-
-
-  
   // now also mark each point, which is within the desired thickness of the membrane
   for( unsigned int ii=0; ii<grid.size(); ii++){
 
@@ -383,7 +391,7 @@ void surface_projection::set_grid (){
 
       if( membranes[jj] >= 0 ){
 	//outside membrane
-      
+	
 	if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
 	    real_distance < membranes[jj] + membranes[jj+1]/2. &&
 	    channel[ii] > 0 ){
@@ -656,10 +664,151 @@ void surface_projection::add_membrane(double dist, double width ){
 
 
 
+/**
+ * This function computes the volumes of the channels. It is just
+ * adding up the volumes of the appropriate voxels
+ *
+ */
+void surface_projection::compute_volume(){
+
+  volumes = std::vector<double> (membranes.size() + 1, 0 );
+  
+  double vox_vol = dx*dy*dz;
+  int ind;
+  
+  for( unsigned int ii=0; ii<channel.size(); ii++){
+    
+    ind = channel[ii];
+    if( ind < 0 ) ind*=-1;
+    volumes[ind-1]+=vox_vol;
+  }
+
+}
+
+
+
+/**
+ * returns the id of the pixel to the right
+ */
+int surface_projection::p_right( int val ){
+  int m = val % (n_points_x*n_points_z);
+  if( (n_points_x*n_points_z) - n_points_z <= m &&
+      m < (n_points_x*n_points_z) ){
+    return val - (( n_points_x - 1) * n_points_z);
+  } else {
+    return val + n_points_z;
+  }
+}
+
+/**
+ * returns the id of the pixel to the left
+ */
+int surface_projection::p_left( int val ){
+  int m = val % (n_points_x*n_points_z);
+  if( 0 <= m && m < n_points_z ){
+    return val + ((n_points_x - 1) * n_points_z);
+  } else {
+    return val - n_points_z;
+  }
+}
+
+/**
+ * returns the id of the pixel above
+ */
+int surface_projection::p_up( int val ){
+  if(val % n_points_z == n_points_z - 1){
+    return val-(n_points_z-1);
+  } else {
+    return val+1;
+  }  
+}
+
+/**
+ * returns the id of the pixel below
+ */
+int surface_projection::p_down( int val ){
+  if( val % n_points_z == 0 ){
+    return val+(n_points_z-1);
+  } else {
+    return val - 1;
+  }
+}
+
+
+/**
+ * returns the id of the pixel forward
+ */
+int surface_projection::p_back( int val ){
+  if( val < n_points_x * n_points_z ){
+    return val + ( n_points_x * n_points_z * (n_points_y-1) );
+  } else {
+    return val - (n_points_x * n_points_z);
+  }
+}
+
+/**
+ * returns the id of the pixel backwards
+ */
+int surface_projection::p_for( int val ){
+  if( val >= (n_points_y-1) * n_points_x * n_points_z ){
+    return val - ( n_points_x * n_points_z * (n_points_y-1) );
+  } else {
+    return val + (n_points_x * n_points_z);
+  }
+}
+
+
+/**
+ * computes the surface area of the membranes. Outside and inside
+ * separately
+ */
+void surface_projection::compute_surface_area(){
+
+  surface_area = std::vector<double> ( membranes.size(), 0 );
+
+  // iterate over all cells, and check if they are adjacent to a cell
+  // of different channel. Always check front, up, and right
+  for( unsigned int ii=0; ii<grid.size(); ii++){
+
+    int u = channel.at( p_up(ii)  );
+    int f = channel.at( p_for(ii) );
+    int r = channel.at( p_right(ii) );
+    int ch_id = channel.at( ii );
+    
+    if( u < 0) u *= -1;
+    if( f < 0) f *= -1;
+    if( r < 0) r *= -1;       
+    if( ch_id < 0 ) ch_id*=-1;
+
+
+    
+    if( ch_id > u ){
+      surface_area.at( ch_id - 2 ) += dx*dy;
+    }
+    if( ch_id > f ){
+      surface_area.at( ch_id - 2 ) += dx*dz;
+    }
+    if( ch_id > r ){
+      surface_area.at( ch_id - 2 ) += dy*dz;
+    }        
+    
+  }
+
+}
+
+
 
 /*************************
  *  Getters
  *************************/
+
+std::vector<double> surface_projection::get_channel_volumes() const {
+  return volumes;
+}
+
+std::vector<double> surface_projection::get_membrane_surface_area() const {
+  return surface_area;
+}
 
 std::vector<double> surface_projection::get_membranes() const {
   return membranes;
