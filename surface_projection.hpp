@@ -13,6 +13,7 @@
 #include <exception>
 
 
+#include "img_out.hpp"
 #include "distance_transform.hpp"
 
 /** \brief Quick and dirty implementation of an invalid parameter exception
@@ -55,7 +56,7 @@ class surface_projection {
 public:
 
   /// Default Constructor
-  surface_projection();
+  surface_projection(double *progress = NULL, char *status = NULL);
   /// Destructor
   ~surface_projection();
 
@@ -347,7 +348,11 @@ private:
   /// innermoste membrane, ...
   std::vector<int> channel;
 
-  
+
+  /// A variable where the progress of the computations are stored in
+  double *progress;
+  /// A string the current status of the code is written into. Max len=200
+  char* status;
   
   /// The 2D projection
   std::vector<double> projection;

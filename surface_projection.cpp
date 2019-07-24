@@ -1,10 +1,6 @@
 #include "surface_projection.hpp"
 
 
-// export as pgm image
-#include "img_out.hpp"
-
-
 invalid_parameter_exception::invalid_parameter_exception( std::string _msg ) : msg(_msg){
 }
 
@@ -46,7 +42,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection() : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(90), n_points_y(90), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ) {
+surface_projection::surface_projection( double *p, char* stat) : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(90), n_points_y(90), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ) {
 
   //update geometry
   //sets dx,dy,dz, L
@@ -487,19 +483,22 @@ void surface_projection::update_geometry(){
  * much of a difference
  */
 void surface_projection::compute_projection( ){
-
-    //get the points in the slice    
-    set_up_points();
     
-    //reset grid
-    memset( grid.data(), 0, sizeof(int) * grid.size() );
-
-    //get grid
-    set_grid();
-    
-    //get projection
-    memset( projection.data(), 0, sizeof(double) * projection.size() );
-    project_grid();
+  //get the points in the slice    
+  status = "Setting up grid";
+  set_up_points();
+  
+  //reset grid
+  memset( grid.data(), 0, sizeof(int) * grid.size() );
+  
+  //get grid
+  status = "Setting up the grid";
+  set_grid();
+  
+  //get projection
+  status = "Computing Projection";
+  memset( projection.data(), 0, sizeof(double) * projection.size() );
+  project_grid();
 }
 
 
@@ -773,24 +772,53 @@ void surface_projection::compute_surface_area(){
     int u = channel.at( p_up(ii)  );
     int f = channel.at( p_for(ii) );
     int r = channel.at( p_right(ii) );
+    int d = channel.at( p_down(ii)  );
+    int b = channel.at( p_back(ii) );
+    int l = channel.at( p_left(ii) );    
     int ch_id = channel.at( ii );
     
     if( u < 0) u *= -1;
     if( f < 0) f *= -1;
-    if( r < 0) r *= -1;       
+    if( r < 0) r *= -1;
+    if( d < 0) d *= -1;
+    if( b < 0) b *= -1;
+    if( l < 0) l *= -1;           
     if( ch_id < 0 ) ch_id*=-1;
 
 
     
     if( ch_id > u ){
+      //std::cout << "pix_id=" << ii << " ";
+      //std::cout << "met up. chid=" << ch_id << " up=" << u << std::endl;
       surface_area.at( ch_id - 2 ) += dx*dy;
     }
     if( ch_id > f ){
+      //std::cout << "pix_id=" << ii << " ";      
+      //std::cout << "met for. chid=" << ch_id << " f=" << f << std::endl;      
       surface_area.at( ch_id - 2 ) += dx*dz;
     }
     if( ch_id > r ){
+      //std::cout << "pix_id=" << ii << " ";      
+      //std::cout << "met right chid=" << ch_id << " r=" << r << std::endl;      
       surface_area.at( ch_id - 2 ) += dy*dz;
-    }        
+    }
+
+    
+    if( ch_id > d ){
+      //std::cout << "pix_id=" << ii << " ";      
+      //std::cout << "met down. chid=" << ch_id << " do=" << d << std::endl;      
+      surface_area.at( ch_id - 2 ) += dx*dy;
+    }
+    if( ch_id > b ){
+      //std::cout << "pix_id=" << ii << " ";      
+      //std::cout << "met ba. chid=" << ch_id << " back=" << b << std::endl;      
+      surface_area.at( ch_id - 2 ) += dx*dz;
+    }
+    if( ch_id > l ){
+      //std::cout << "pix_id=" << ii << " ";      
+      //std::cout << "met left. chid=" << ch_id << " lo=" << l << std::endl;      
+      surface_area.at( ch_id - 2 ) += dy*dz;
+    }            
     
   }
 
