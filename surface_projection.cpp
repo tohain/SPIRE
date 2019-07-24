@@ -44,12 +44,6 @@ void surface_projection::print_grid( std::string fn ){
  */
 surface_projection::surface_projection( double *p, char* stat) : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(90), n_points_y(90), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ) {
 
-  //update geometry
-  //sets dx,dy,dz, L
-  update_geometry();
-
-  //resize containers
-  update_containers();
 
   //update orientation from hkl
   //sets theta,phi
@@ -59,10 +53,16 @@ surface_projection::surface_projection( double *p, char* stat) : ntucs(1), slice
   //sets periodicty length
   update_periodicity_length();
 
+  //update geometry
+  //sets dx,dy,dz, L
+  update_geometry();
+
+  //resize containers
+  update_containers();
   
   //add main membrane. This can't be deleted
   membranes.push_back( 0 );
-  membranes.push_back( 0.03 );
+  membranes.push_back( 0.02 );
 
 }
 
@@ -71,14 +71,20 @@ surface_projection::~surface_projection(){
 
 }
 
-
+/**
+ * Quick and dirty dot product between two vectors
+ */
 double surface_projection::dot_prod ( std::vector<double> v, std::vector<double> w ){
+  assert( v.size() == 3 && w.size() == 3 );
   return v[0]*w[0]+v[1]*w[1]+v[2]*w[2];
 }
 
 
-
+/**
+ * Quick and dirty matrix-vector product
+ */
 std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> v ){
+  assert( v.size() == 3 );
   std::vector<double> r (3, 0);
   r[0] = dot_prod( m.v, v);
   r[1] = dot_prod( m.w, v);
@@ -239,13 +245,16 @@ void surface_projection::set_up_points(){
 
       //check if we are periodic. If so, slice_height will be handeled differently
       if( periodicity_length == -1 ){
-	
-	kz = slice_height - 0.5*slice_width;// kz = ((kk*dz)-L_2.) + (slice_height+L_2.) - 0.5*slice_width;
 	//aperiodic. slice_height is an absolute length
+
+	kz = a * ( slice_height - 0.5*slice_width );
+
       } else {
-	
-        kz = periodicity_length*(slice_height - 0.5*slice_width);// kz = ((kk*dz)-L_2.) + ((periodicity_length*slice_height)+L_2.) - 0.5*periodicity_length*slice_width;
 	//periodic. slice_height is the fraction of the periodicity length
+
+	//periodicity length is in fractions of a
+        kz = a * periodicity_length*(slice_height - 0.5*slice_width);
+
       }
       
       for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
@@ -284,9 +293,11 @@ void surface_projection::set_grid(){
   // First compute the distance map of the current grid
 
   //We need to set an interval where points are getting markes. Since
-  //the surface is samples it's highly unlikely that a point has
-  //exactly the wanted level set constraint
-  double min_width = 0.025;
+  //the surface is sampled it's highly unlikely that a point has
+  //exactly the wanted level set constraint. This is a bit iffy, since
+  //the minimal thickness of the membrane is not given in length
+  //units, but this level set value. However, this is the only way to do it
+  double min_width = 0.02;
   
   // the level set value of the present points
   double level = 0; 
@@ -315,8 +326,8 @@ void surface_projection::set_grid(){
       grid[int(ii/3)] = 1;
     }
 
-
-
+    //mark if the pixel is in the "outside" or "inside" channel
+    //respective to the main membrane
     if( level > surface_level ){
       //outside
       channel[int(ii/3.)] = -1;
@@ -329,12 +340,11 @@ void surface_projection::set_grid(){
 
 
   // next step is to compute the distance transform. We need to label
-  // all points according to in which channel they are also. We do
+  // all points according to which channel they are in also. We do
   // that by comparing the distances to the main membrane with the
   // distance map
   
   // compute the distance transform of the grid
-  //distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz );
   distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz);  
   dt.compute_distance_map();
   std::vector<double> dmap = dt.get_distance_map();  
@@ -342,23 +352,29 @@ void surface_projection::set_grid(){
 
   // now assign channel number
   
-  // get all the membranes
+  // get the boundaries of all the membranes
   std::vector<double> mem_pos ( membranes.size(), 0);
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
-    mem_pos[ii] = membranes[ii] + membranes[ii+1]/2.;
-    mem_pos[ii+1] = membranes[ii] - membranes[ii+1]/2.;
+    mem_pos[ii] = a * (membranes[ii] + membranes[ii+1]/2.);
+    mem_pos[ii+1] = a * (membranes[ii] - membranes[ii+1]/2.);
   }
   mem_pos.push_back( -std::numeric_limits<double>::max() );
   mem_pos.push_back( std::numeric_limits<double>::max() );  
-  //sort
+
+  //sort them in ascending order
   std::sort( mem_pos.begin(), mem_pos.end() );
 
-  
+  //now iterate over all pixels and assign each pixel a channel number
   for( unsigned int ii=0; ii<channel.size(); ii++){
+
+    //check if the distance of the current pixel is within the
+    //boundaries of the current membrane. The channel array already
+    //holds the sign of the distance value to the main membrane
+
     //start with the inner most shell
     int ch_id=0;
 
-    //find the right channel
+    //iterate over all the channels
     for( ; ch_id < mem_pos.size()-1; ch_id++ ){     
       if( channel[ii] * sqrt(dmap[ii]) >= mem_pos[ch_id] &&
 	  channel[ii] * sqrt(dmap[ii]) < mem_pos[ch_id+1])
@@ -370,7 +386,8 @@ void surface_projection::set_grid(){
     channel[ii] = (ch_id+1)*channel[ii];
   }
 
-  // now also mark each point, which is within the desired thickness of the membrane
+  //now iterate over all pixels again and mark the ones, which are
+  //within a secondary membrane
   for( unsigned int ii=0; ii<grid.size(); ii++){
 
     bool mark_point = false;
@@ -378,7 +395,7 @@ void surface_projection::set_grid(){
     
     //check if this point is within the "main" membrane
     // this will extend symmetrically into both channels
-    if( real_distance < 0.5*membranes[1] ){
+    if( real_distance < 0.5*a*membranes[1] ){
       mark_point = true;
     }
 
@@ -388,8 +405,8 @@ void surface_projection::set_grid(){
       if( membranes[jj] >= 0 ){
 	//outside membrane
 	
-	if( real_distance > membranes[jj] - membranes[jj+1]/2. &&
-	    real_distance < membranes[jj] + membranes[jj+1]/2. &&
+	if( real_distance > a * (membranes[jj] - membranes[jj+1]/2.) &&
+	    real_distance < a * (membranes[jj] + membranes[jj+1]/2.) &&
 	    channel[ii] > 0 ){
 	  
 	  mark_point = true;
@@ -397,8 +414,8 @@ void surface_projection::set_grid(){
       } else {
 	//inside
 
-	if( real_distance > -membranes[jj] - membranes[jj+1]/2. &&
-	    real_distance < -membranes[jj] + membranes[jj+1]/2. &&
+	if( real_distance > a * (-membranes[jj] - membranes[jj+1]/2.) &&
+	    real_distance < a * (-membranes[jj] + membranes[jj+1]/2.) &&
 	    channel[ii] < 0 ){
 	  
 	  mark_point = true;
@@ -406,7 +423,8 @@ void surface_projection::set_grid(){
       }
 
     }//end cycle membranes
-    
+
+    //mark the point if applicable
     if( mark_point ){
       grid[ii] = 1;
     }
@@ -414,7 +432,10 @@ void surface_projection::set_grid(){
   
 }
 
-
+/**
+ * This function projects the 3D grid into a 2D picture. Basically
+ * only adds up all pixel values in each stack
+ */
 void surface_projection::project_grid (){
   
   
@@ -424,18 +445,17 @@ void surface_projection::project_grid (){
     for(unsigned int jj=0; jj<n_points_x; jj++){//x direction=width (horizontal)
       for(unsigned int kk=0; kk<n_points_z; kk++){
         
-
 	if(grid[ind_grid] == 1){
 	  projection[ind_proj] += 1;
 	}
-
-    ind_grid++; // run 3d-index
+	
+	ind_grid++; // run 3d-index
 	
       }
-    ind_proj++;// run 2d-index
+      ind_proj++;// run 2d-index
     }
   }
-
+  
 }
 
 /**
@@ -472,7 +492,12 @@ void surface_projection::update_geometry(){
   //update points number
   dx = L / n_points_x;
   dy = L / n_points_y;
-  dz = slice_width / n_points_z;  
+  if( periodicity_length == -1 ){
+    dz = (a*slice_width) / n_points_z;
+  } else {
+    dz = (a*periodicity_length*slice_width) / n_points_z;
+  }
+
 }
 
 /**
@@ -518,17 +543,14 @@ std::vector<double> surface_projection::get_normal() {
 
   //rotate
   n = dot_prod( Rz, dot_prod( Rx, n));  
-
-  double scale = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] ); //necessary?
-  n[0]/=scale;n[1]/=scale;n[2]/=scale;
   
   return n;
 }
 
 /**
- * Returns the modulo of two floating point numbers. That's nmerically
- * not a nice thing, since we have to take rounding errors into
- * account.
+ * Returns the modulo of two floating point numbers. That's
+ * numerically not a nice thing, since we have to take rounding errors
+ * into account.
  */
 inline double surface_projection::mod( double lhs, double rhs ){
     
@@ -550,12 +572,12 @@ inline double surface_projection::mod( double lhs, double rhs ){
 }
 
 /**
- * Computes the periodicity length. That means, how far the plane must
- * be moved perpendicular to its normal vector so it will reach
- * another chrystallographic equivalent position. This is implemented
- * by looking for a scaling factor for the normal vector so it will
- * point to a point periodically equivalent to the origin (where we
- * started)
+ * Computes the periodicity length in units of a. That means, how
+ * far the plane must be moved perpendicular to its normal vector so
+ * it will reach another chrystallographic equivalent position. This
+ * is implemented by looking for a scaling factor for the normal
+ * vector so it will point to a point periodically equivalent to the
+ * origin (where we started)
  */
 void surface_projection::update_periodicity_length(){
 
@@ -604,7 +626,7 @@ void surface_projection::update_periodicity_length(){
       break;
     }
 
-    //not there yet, keep on goind
+    //not there yet, keep on going
     step_count++;
   }
 
@@ -614,7 +636,7 @@ void surface_projection::update_periodicity_length(){
     periodicity_length = -1;
   } else {
     //success
-    periodicity_length =step_count * step_size;
+    periodicity_length = (step_count * step_size) / a;
   }
 }
 
@@ -788,35 +810,21 @@ void surface_projection::compute_surface_area(){
 
     
     if( ch_id > u ){
-      //std::cout << "pix_id=" << ii << " ";
-      //std::cout << "met up. chid=" << ch_id << " up=" << u << std::endl;
       surface_area.at( ch_id - 2 ) += dx*dy;
     }
     if( ch_id > f ){
-      //std::cout << "pix_id=" << ii << " ";      
-      //std::cout << "met for. chid=" << ch_id << " f=" << f << std::endl;      
       surface_area.at( ch_id - 2 ) += dx*dz;
     }
     if( ch_id > r ){
-      //std::cout << "pix_id=" << ii << " ";      
-      //std::cout << "met right chid=" << ch_id << " r=" << r << std::endl;      
       surface_area.at( ch_id - 2 ) += dy*dz;
-    }
-
-    
+    }    
     if( ch_id > d ){
-      //std::cout << "pix_id=" << ii << " ";      
-      //std::cout << "met down. chid=" << ch_id << " do=" << d << std::endl;      
       surface_area.at( ch_id - 2 ) += dx*dy;
     }
     if( ch_id > b ){
-      //std::cout << "pix_id=" << ii << " ";      
-      //std::cout << "met ba. chid=" << ch_id << " back=" << b << std::endl;      
       surface_area.at( ch_id - 2 ) += dx*dz;
     }
     if( ch_id > l ){
-      //std::cout << "pix_id=" << ii << " ";      
-      //std::cout << "met left. chid=" << ch_id << " lo=" << l << std::endl;      
       surface_area.at( ch_id - 2 ) += dy*dz;
     }            
     
@@ -937,6 +945,9 @@ void surface_projection::edit_membrane( int id, double dist, double width ){
     throw invalid_parameter_exception( "Membrane not found" );
   } else if( width < 0 ){    
     throw invalid_parameter_exception( "Membrane width can't be negative" );
+  } else if ( id == 0 && width < 0.02 ) {
+    membranes[2*id + 1] = 0.02;
+    throw invalid_parameter_exception( "Width of main membrane can't be less than 0.02" );
   } else {
     if( id == 0 && dist != 0 ){
       throw invalid_parameter_exception( "Main membrane distance must be 0" );
