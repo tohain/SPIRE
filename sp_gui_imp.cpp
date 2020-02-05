@@ -6,11 +6,27 @@
  * surface_projection class and draws a first preview
  */
 sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
+  
+  //set up status
+  progress = new double;
+  *progress = 1;
+  status_string = new char[200];
+  status_string = "Ready";
+
   //initialize surface_projection object
-  sp = new surface_projection();
+  sp = new surface_projection(progress, status_string );
+
+  //set img empty, will be initialized later on
+  img = NULL;
+  preview = NULL;
   
   //set up gui
 
+  //status bar
+  status->SetFieldsCount( 2 );
+  status->SetStatusText( status_string, 0 );
+  status->SetStatusText( "", 1 );  
+  
   //set up columns of list view
   membranes_ctrl->AppendColumn( "ID" );
   membranes_ctrl->AppendColumn( "DIST" );
@@ -56,7 +72,7 @@ void sp_gui_imp::read_membranes(){
     membranes_ctrl->InsertItem( int(ii/2.), std::to_string(int(ii/2.)) );
     membranes_ctrl->SetItem( int(ii/2.), 1, std::to_string(sp->get_membranes()[ii]) );
     membranes_ctrl->SetItem( int(ii/2.), 2, std::to_string(sp->get_membranes()[ii+1]) );
-  }   
+  }
 }
 
 
@@ -154,7 +170,7 @@ void sp_gui_imp::update_controls_periodicity(){
 
     //write to indicator
     text_periodicitylength->SetValue("");    
-    *text_periodicitylength << sp->get_periodicity_length();
+    *text_periodicitylength << sp->get_a()*sp->get_periodicity_length();
   }
   
 }
@@ -190,6 +206,14 @@ void sp_gui_imp::focus_button_add( wxFocusEvent& event ){
   *text_help << help->mem_add_tooltip;
 }
 
+void sp_gui_imp::timer_tick( wxTimerEvent& event ){
+
+  //update status GUI elemnts
+  status->SetStatusText( status_string, 0 );
+  
+  std::cout << "tick\n";
+
+}
 
 
 void sp_gui_imp::focus_ntucs_ctl( wxFocusEvent& event ){
@@ -336,12 +360,13 @@ void sp_gui_imp::a_change( wxSpinDoubleEvent& event )
     a_ctl->SetValue( sp->get_a() );
   }
 
-  //update geometry
-  sp->update_geometry();
 
   //update periodicity
   sp->update_periodicity_length();
   update_controls_periodicity();
+
+  //update geometry
+  sp->update_geometry();
   
   //update gui
   dx_ctl->SetValue( sp->get_dx() );
@@ -697,17 +722,19 @@ void sp_gui_imp::invert_change( wxCommandEvent& event )
 }
 
 void sp_gui_imp::button_render( wxCommandEvent& event )
-{
-  compute_and_draw();
+{ 
+ compute_and_draw();
 }
 
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
   std::string fn (m_filePicker2->GetPath().c_str());
 
-  //sp->print_grid( fn );
+
   
+  sp->print_grid( fn );
   
+  /*
   if( fn == "" ){
     wxMessageBox( wxT("Please select a valid filename"),
 		  wxT("Nothing to see here"),
@@ -728,7 +755,7 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
 		    wxICON_ERROR);
     }
   }
-  
+  */  
 }
 
 void sp_gui_imp::button_quit( wxCommandEvent& event )
@@ -785,6 +812,31 @@ void sp_gui_imp::compute_and_draw(){
 
   //compute the projection
   sp->compute_projection();
+
+  /*
+  sp->compute_volume();
+
+  try {
+    sp->compute_surface_area();
+  } catch(std::out_of_range e){
+    std::cout << e.what() << std::endl;
+  }
+
+  
+  std::cout << "volumes: ";
+  for( auto it : sp->get_channel_volumes() ){
+    std::cout << it << " ";
+  }
+  std::cout << std::endl;
+
+  std::cout << "surface_areas: ";
+  for( auto it : sp->get_membrane_surface_area() ){
+    std::cout << it << " ";
+  }
+  std::cout << std::endl;
+  
+  */
+
   unsigned char *proj = sp->get_image( invert_ctl->GetValue() );
 
   //width and height of image
@@ -811,7 +863,7 @@ void sp_gui_imp::compute_and_draw(){
   if( img != NULL ){
     delete( img );
   }
-
+  
   //create wximage from array
   img = new wxImage( w, h, rgb_img );
 

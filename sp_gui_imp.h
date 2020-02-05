@@ -73,7 +73,8 @@ protected:
   void mem_change_w( wxSpinDoubleEvent& event );
   void membrane_add( wxCommandEvent& event );
   void membrane_delete( wxCommandEvent& event );
-  void level_change( wxSpinDoubleEvent& event );  
+  void level_change( wxSpinDoubleEvent& event );
+  void timer_tick( wxTimerEvent& event );  
 public:
   /** Constructor */
   sp_gui_imp( wxWindow* parent );
@@ -119,7 +120,12 @@ private:
 
   //A class storing the help strings
   tooltips *help;
-  
+
+  // the progress of the current action
+  double *progress;
+
+  // a progress string saying what the code is doing at the moment
+  char* status_string;
 };
 
 #endif // __sp_gui_imp__

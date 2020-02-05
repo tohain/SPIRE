@@ -643,6 +643,8 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 
 	this->SetMenuBar( m_menubar1 );
 
+	status = this->CreateStatusBar( 1, wxSTB_SIZEGRIP|wxBORDER_SIMPLE|wxBORDER_STATIC, wxID_ANY );
+	timer.SetOwner( this, wxID_ANY );
 
 	this->Centre( wxBOTH );
 
@@ -692,6 +694,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	b_render->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
+	this->Connect( wxID_ANY, wxEVT_TIMER, wxTimerEventHandler( sp_gui::timer_tick ) );
 }
 
 sp_gui::~sp_gui()
@@ -742,5 +745,6 @@ sp_gui::~sp_gui()
 	b_render->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_render ), NULL, this );
 	b_save->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_save ), NULL, this );
 	b_quit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( sp_gui::button_quit ), NULL, this );
+	this->Disconnect( wxID_ANY, wxEVT_TIMER, wxTimerEventHandler( sp_gui::timer_tick ) );
 
 }

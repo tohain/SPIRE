@@ -33,6 +33,8 @@
 #include <wx/filepicker.h>
 #include <wx/gauge.h>
 #include <wx/menu.h>
+#include <wx/statusbr.h>
+#include <wx/timer.h>
 #include <wx/frame.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -121,6 +123,8 @@ class sp_gui : public wxFrame
 		wxMenuBar* m_menubar1;
 		wxMenu* m_menu1;
 		wxMenu* m_menu2;
+		wxStatusBar* status;
+		wxTimer timer;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void focus_ntucs_ctl( wxFocusEvent& event ) = 0;
@@ -168,6 +172,7 @@ class sp_gui : public wxFrame
 		virtual void button_render( wxCommandEvent& event ) = 0;
 		virtual void button_save( wxCommandEvent& event ) = 0;
 		virtual void button_quit( wxCommandEvent& event ) = 0;
+		virtual void timer_tick( wxTimerEvent& event ) = 0;
 
 
 	public:
