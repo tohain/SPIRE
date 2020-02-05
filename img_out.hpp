@@ -1,3 +1,8 @@
+
+#ifndef _PGM_OUT_H
+#define _PGM_OUT_H
+
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -6,3 +11,6 @@
 #include <algorithm>
 
 void write_image( std::string fn, std::vector<double> data, int width, int height, bool invert = false );
+
+
+#endif

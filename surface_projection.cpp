@@ -438,7 +438,7 @@ void surface_projection::set_grid(){
  */
 void surface_projection::project_grid (){
   
-  
+    
   unsigned int ind_grid = 0;
   unsigned int ind_proj = 0;
   for(unsigned int ii=0; ii<n_points_y; ii++){ //y direcion=height (vertical)
