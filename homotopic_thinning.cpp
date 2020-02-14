@@ -1,12 +1,20 @@
 #include "homotopic_thinning.hpp"
 
 
-
+/*
+ * Constructor
+ * \param[in] nx size of the image in x direction
+ * \param[in] ny size of the image in y direction
+ * \param[in] nz size of the image in z direction
+ */
 homotopic_thinning::homotopic_thinning ( int nx, int ny, int nz, std::vector<int> image_, std::vector<double> dmap_ )  : n_points_x (nx), n_points_y (ny), n_points_z (nz), image( image_ ), dmap( dmap_ ) {
   
 }
 
-// copied from the std library and slightly adapted
+/*
+ * Just a small helper function to compute the intersection of two
+ * sets. Unfortunatly O(N^2)
+ */
 std::unordered_set<int> intersection( std::unordered_set<int> a, std::unordered_set<int> b ){
 
   std::unordered_set<int> intersection_set;
@@ -33,7 +41,7 @@ std::unordered_set<int> intersection( std::unordered_set<int> a, std::unordered_
  * id different from channel_id
  *
  * param[in] channel_id Id of the channel to get the exterior points for
- * param[in] n BACKGROUND adjacency
+ * param[in] n background adjacency
  */
 std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id, int n ){
 
@@ -63,8 +71,7 @@ std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id,
 	  break;
 	}
       }
-      
-      
+            
       if( found_background ){
 	exterior_points.insert( point() );
       }
@@ -78,7 +85,15 @@ std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id,
 
 
 
-
+/*
+ * Checks, if a point is deletable. So far, only the Bertrand and
+ * Malandain definition is implemented, maybe the Pudney definition
+ * will be added later on
+ *
+ * \param[in] id The id of the point to check
+ * \param[in] m The connectivity of the image
+ * \param[in] n The connectivity of the background
+ */
 bool homotopic_thinning::point_deletable( int id, int m, int n ){
 
   auto components_image = get_connected_components( id, m, true );
@@ -105,7 +120,6 @@ bool homotopic_thinning::point_deletable( int id, int m, int n ){
     }
     
   }
-
   
   int nr_background_connected_components = 0;
   for( unsigned int ii=0; ii<components_background.size(); ii++){
@@ -133,7 +147,16 @@ bool homotopic_thinning::point_deletable( int id, int m, int n ){
 
 
 
-
+/*
+ * This function computes the homotopic, medial skeleton of the 3D
+ * object, which is the channel with the id ch_id. Implementation of
+ * the pseudo-code in Pudney (1998) (I think it is inspired by Vincent
+ * (1991) )
+ *
+ * \param[in] ch_id The id of the channel to compute the skeleton of
+ *
+ * \return A set of points making up the skeleton
+ */
 std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
 
 
@@ -212,8 +235,7 @@ std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
  * \param[in] m The adjacency (6, 18, 26)
  * \param[in] img If true, count image components, false count background components
  *
- * returns 1 if it is only a single connected component, 2 if it is
- * more than one connected component and -1 if something else happens
+ * \return A vector of unordered sets containing the points of the connected components
  */
 std::vector< std::unordered_set<int> >  homotopic_thinning::get_connected_components( int center, int m, bool img ){
 
