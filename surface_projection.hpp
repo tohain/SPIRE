@@ -3,6 +3,7 @@
 #define SP_PROJ_I
 
 
+#include <iostream>
 #include <cassert>
 #include <sstream>
 #include <iomanip>
@@ -15,6 +16,7 @@
 
 #include "img_out.hpp"
 #include "distance_transform.hpp"
+#include "homotopic_thinning.hpp"
 
 /** \brief Quick and dirty implementation of an invalid parameter exception
  *
@@ -56,7 +58,7 @@ class surface_projection {
 public:
 
   /// Default Constructor
-  surface_projection(double *progress = NULL, char *status = NULL);
+  surface_projection(double &progress, std::string &status);
   /// Destructor
   ~surface_projection();
 
@@ -78,11 +80,15 @@ public:
   /// Adds a membrane
   void add_membrane( double dist, double width );
   
+  
   /// Computes the volumes of the channels
   void compute_volume();
 
   /// Computes the surface area of the membranes
   void compute_surface_area();
+
+  /// Returns all the points which are on the surface of the channel
+  std::vector<int> get_surface_points( int ch_id, int n = 26 );
   
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
@@ -111,6 +117,10 @@ public:
   std::vector<double> get_projection() const;
   /// Returns the grid
   std::vector<int> get_grid() const;
+  /// returns a copy of the channel array
+  std::vector<int> get_channel() const;  
+  /// Returns the points (=positions) of the points
+  std::vector<double> get_points() const;  
   
   /// Returns the periodicity (unit cell size) of the surface
   double get_a() const;
@@ -237,7 +247,6 @@ private:
   inline int p_for( int val );
   inline int p_back( int val );  
 
-
   
   /////////////////////////////////////////////
   // parameter
@@ -334,6 +343,7 @@ private:
 						    "Primitive",
 						    "Layer",
 						    "Sphere"};
+
   
   /******************************************************************
    * data, do not access manually unless you know what you're doing
@@ -345,14 +355,19 @@ private:
   std::vector<int> grid;
   /// Array denoting the channel a voxel is in. Membranes are
   /// considered channels. 1 is the innermoste channel, 2 the
-  /// innermoste membrane, ...
+  /// innermoste membrane, ... (except for the sphere surface, in this
+  /// case the order is inverted for whatever reason - I guess wierd
+  /// level set values.
+  /// negative/positive values denotes if the channel
+  /// is inside or outside of the main "membrane" (=the membrane set
+  /// by the level set constraint)
   std::vector<int> channel;
 
 
   /// A variable where the progress of the computations are stored in
-  double *progress;
+  double &progress;
   /// A string the current status of the code is written into. Max len=200
-  char* status;
+  std::string &status;
   
   /// The 2D projection
   std::vector<double> projection;

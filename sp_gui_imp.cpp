@@ -8,13 +8,11 @@
 sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
   
   //set up status
-  progress = new double;
-  *progress = 1;
-  status_string = new char[200];
+  progress = 1;
   status_string = "Ready";
 
   //initialize surface_projection object
-  sp = new surface_projection(progress, status_string );
+  sp = new surface_projection(progress, status_string);
 
   //set img empty, will be initialized later on
   img = NULL;
@@ -25,7 +23,7 @@ sp_gui_imp::sp_gui_imp( wxWindow* parent ) : sp_gui( parent ) {
   //status bar
   status->SetFieldsCount( 2 );
   status->SetStatusText( status_string, 0 );
-  status->SetStatusText( "", 1 );  
+  status->SetStatusText( "100%", 1 );  
   
   //set up columns of list view
   membranes_ctrl->AppendColumn( "ID" );
@@ -728,11 +726,34 @@ void sp_gui_imp::button_render( wxCommandEvent& event )
 
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
-  std::string fn (m_filePicker2->GetPath().c_str());
 
 
+  /*
+  distance_transform<int> dt ( sp->get_grid(), sp->get_width(), sp->get_height(), sp->get_depth(), sp->get_dx(), sp->get_dy(), sp->get_dz() );  
+  dt.compute_distance_map();
+  std::vector<double> dmap = dt.get_distance_map();  
   
-  sp->print_grid( fn );
+
+  homotopic_thinning compute_network ( sp->get_width(), sp->get_height(), sp->get_depth(), sp->get_channel(), dmap );
+
+  auto network = compute_network.find_channel_skeleton( 1 );
+
+  auto coords = sp->get_points();
+  
+  std::ofstream out ("network.dat");
+  for( auto it : network ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();
+
+  /*
+  
+  //std::string fn (m_filePicker2->GetPath().c_str());
+
+  //sp->find_channel_graph( 1, true );
+  //sp->find_channel_skeleton( 1 );
+  
+    //sp->print_grid( fn );
   
   /*
   if( fn == "" ){
@@ -803,6 +824,29 @@ void sp_gui_imp::draw_preview(){
 }
 
 
+/*
+ * This method updates the status and progress bar while the
+ * computation of the surface projection is performed. It extis when a
+ * progress of 1 is reached
+ */
+void sp_gui_imp::update_status_bar(){
+
+  std::stringstream ps ("");
+  
+  while( true ){
+    std::string tmp_string ( status_string );
+    status->SetStatusText( tmp_string, 0 );
+    ps.str("");
+    ps << std::setprecision(4) << progress * 100 << "%";
+    status->SetStatusText( ps.str(), 1 );
+    if( progress == 1 && tmp_string == "Ready"){
+      return;
+    }
+  }
+
+  
+}
+
 /**
  * This method calls the neccessary functions from \ref surface
  * projection to compute the projection with the current parameters
@@ -810,9 +854,19 @@ void sp_gui_imp::draw_preview(){
  */
 void sp_gui_imp::compute_and_draw(){
 
-  //compute the projection
-  sp->compute_projection();
+  
+  
+  //compute the projection in a separate thread
+  std::thread computation ( &surface_projection::compute_projection, sp );
+  //keep the interface up to date in a separate thread
+  std::thread progress_status ( &sp_gui_imp::update_status_bar, this );
 
+  //wait for the threads to join
+  computation.join();
+  progress_status.join();
+
+  //m_progressbar->SetValue(0);
+  
   /*
   sp->compute_volume();
 

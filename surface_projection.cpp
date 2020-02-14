@@ -1,6 +1,20 @@
 #include "surface_projection.hpp"
 
 
+
+/*
+ * homeotopic thinning
+ * skeletsination
+ * medial axis
+ * network generation
+ * deformation retract
+ *
+ * Vanessa robins
+ * morse graph/ morse complex
+ */
+
+
+
 invalid_parameter_exception::invalid_parameter_exception( std::string _msg ) : msg(_msg){
 }
 
@@ -42,7 +56,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double *p, char* stat) : ntucs(1), slice_width(0.1), slice_height(0.5), a(1), inv_a(2*M_PI), n_points_x(90), n_points_y(90), n_points_z(50), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ) {
+surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(1), inv_a(2*M_PI), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ) {
 
 
   //update orientation from hkl
@@ -233,6 +247,8 @@ void surface_projection::set_up_points(){
   ny = dot_prod( Rz, dot_prod( Rx, ny));
   nz = dot_prod( Rz, dot_prod( Rx, nz));  
   
+  long max_points = n_points_x*n_points_y*n_points_z;
+
   //the total index of that particle in the array
   int ind = 0;
   double iy = -L_2;
@@ -274,6 +290,7 @@ void surface_projection::set_up_points(){
 	  
 	  kz += dz; // next z-pixel
 	  ind += 3; // running index
+	  progress = ind / double(max_points);
       }
       jx += dx; // next x-pixel
     }
@@ -301,6 +318,8 @@ void surface_projection::set_grid(){
   
   // the level set value of the present points
   double level = 0; 
+
+  status = "Computing membrane";
   
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
@@ -335,7 +354,8 @@ void surface_projection::set_grid(){
       //inside
       channel[int(ii/3.)] = 1;
     } 
-	
+
+    progress = ii/(double(points.size()));
   }
 
 
@@ -343,14 +363,17 @@ void surface_projection::set_grid(){
   // all points according to which channel they are in also. We do
   // that by comparing the distances to the main membrane with the
   // distance map
-  
+
+  status = "Computing distance map";
+  progress = 0;
   // compute the distance transform of the grid
   distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz);  
   dt.compute_distance_map();
   std::vector<double> dmap = dt.get_distance_map();  
 
-
   // now assign channel number
+
+  status = "Computing channels";
   
   // get the boundaries of all the membranes
   std::vector<double> mem_pos ( membranes.size(), 0);
@@ -384,6 +407,8 @@ void surface_projection::set_grid(){
     //found the appropriate membrane, save the channel number
     //the sign still marks, if in or outside of main membrane
     channel[ii] = (ch_id+1)*channel[ii];
+
+    progress = ii/(0.5*channel.size());
   }
 
   //now iterate over all pixels again and mark the ones, which are
@@ -428,6 +453,8 @@ void surface_projection::set_grid(){
     if( mark_point ){
       grid[ii] = 1;
     }
+
+    progress = 0.5 + (ii/double(grid.size()));
   }
   
 }
@@ -457,6 +484,8 @@ void surface_projection::project_grid (){
   }
   
 }
+
+
 
 /**
  * This function resizes the containers for the voxel coordinates,
@@ -508,10 +537,14 @@ void surface_projection::update_geometry(){
  * much of a difference
  */
 void surface_projection::compute_projection( ){
-    
-  //get the points in the slice    
-  status = "Setting up grid";
+
+  progress = 0;
+  
+  //get the points in the slice  
+  status = "Computing the points";
   set_up_points();
+
+  progress = 0.3;
   
   //reset grid
   memset( grid.data(), 0, sizeof(int) * grid.size() );
@@ -519,11 +552,16 @@ void surface_projection::compute_projection( ){
   //get grid
   status = "Setting up the grid";
   set_grid();
+
+  progress = 0.6;
   
   //get projection
   status = "Computing Projection";
   memset( projection.data(), 0, sizeof(double) * projection.size() );
   project_grid();
+  progress = 1.0;
+  status = "Ready";
+  progress = 1;
 }
 
 
@@ -779,6 +817,7 @@ int surface_projection::p_for( int val ){
 }
 
 
+
 /**
  * computes the surface area of the membranes. Outside and inside
  * separately
@@ -832,11 +871,63 @@ void surface_projection::compute_surface_area(){
 
 }
 
+/*
+ * This function finds all the points which make up the interface to
+ * the next, outer membrane
+ */
+std::vector<int> surface_projection::get_surface_points( int ch_id, int n ){
+
+  std::vector<int> interface_points;
+
+  for( unsigned int ii=0; ii<channel.size(); ii++){
+
+    if( std::abs(channel[ii]) == std::abs( ch_id ) ){
+    
+      iterable_voxel point ( ii, n_points_x, n_points_y, n_points_z );
+      
+      std::unordered_set<int> nbs;
+      if( n == 6 ){
+	nbs = point.get_6_neighbors();
+      } else if( n == 18 ){
+	nbs = point.get_18_neighbors();
+      } else if ( n == 26 ){
+	nbs = point.get_26_neighbors();
+      } else {
+	throw std::string("no adjancy model found for n=" + std::to_string(n) );
+      }
+
+      bool found_background = false;
+      for( auto it : nbs ){
+	if( std::abs( channel[it] ) != std::abs( ch_id ) ){
+	  found_background = true;
+	  break;
+	}
+      }
+      
+      
+      if( found_background ){
+	interface_points.push_back( point() );
+      }
+
+    }
+  }
+
+  return interface_points;
+  
+}
+
+
+
+
 
 
 /*************************
  *  Getters
  *************************/
+
+std::vector<int> surface_projection::get_channel() const {
+  return channel;
+}
 
 std::vector<double> surface_projection::get_channel_volumes() const {
   return volumes;
@@ -932,6 +1023,10 @@ double surface_projection::get_periodicity_length() const{
 
 std::vector<int> surface_projection::get_grid() const {
   return grid;
+}
+
+std::vector<double> surface_projection::get_points() const {
+  return points;
 }
 
 
@@ -1122,3 +1217,5 @@ void surface_projection::set_l( int val ){
 void surface_projection::set_periodicity_length( double val ){
   periodicity_length = val;
 }
+
+
