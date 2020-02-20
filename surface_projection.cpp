@@ -56,7 +56,7 @@ void surface_projection::print_grid( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(1), inv_a(2*M_PI), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ) {
+surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(1), inv_a(2*M_PI), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
 
   //update orientation from hkl
@@ -314,7 +314,7 @@ void surface_projection::set_grid(){
   //exactly the wanted level set constraint. This is a bit iffy, since
   //the minimal thickness of the membrane is not given in length
   //units, but this level set value. However, this is the only way to do it
-  double min_width = 0.02;
+  double min_width = 0.02; 
   
   // the level set value of the present points
   double level = 0; 
@@ -989,6 +989,10 @@ double surface_projection::get_surface_level() const {
   return surface_level;
 }
 
+double surface_projection::get_channel_prop() const {
+  return s_tables.get_prop( surface_choices[type], surface_level );
+}
+
 double surface_projection::get_slice_width() const {
   return slice_width;
 }
@@ -1130,6 +1134,18 @@ void surface_projection::set_slice_height ( double val ){
   //set value
   slice_height = val;
 }
+
+
+/*
+ * this function is a wrapper for the surface_level parameter. Since
+ * this is a rather technical/mathematical parameter, this function
+ * takes as an argument the porortion of the *inner* channel and looks
+ * up/interpolates the appropriate surface_level value in a table
+ */
+void surface_projection::set_channel_vol_prop( double vol ){
+  surface_level = s_tables.get_level( surface_choices[ type ], vol );
+}
+
 
 
 void surface_projection::set_surface_level( double val ){

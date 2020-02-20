@@ -10,6 +10,9 @@ option(BUILD_GUI "Builds the GUI instead of terminal interface" ON)
 #add an option to build the gui or only terminal appliaction
 option(BUILD_TABLEBUILDER "Builds a tool to generate surface/volume lookup tables" OFF)
 
+#add an option to build the gui or only terminal appliaction
+option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channel proportions" OFF)
+
 #source files independent of interface
 SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp)
 
@@ -45,6 +48,11 @@ if(BUILD_TABLEBUILDER)
     message("CGAL not found, can't build the executable!")
   endif()
 endif(BUILD_TABLEBUILDER)
+
+
+if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
+    add_executable(get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
+endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
 
       
 

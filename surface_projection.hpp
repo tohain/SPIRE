@@ -14,9 +14,6 @@
 #include <exception>
 
 
-#include "img_out.hpp"
-#include "distance_transform.hpp"
-#include "homotopic_thinning.hpp"
 
 /** \brief Quick and dirty implementation of an invalid parameter exception
  *
@@ -37,6 +34,14 @@ public:
   /// String holding details on the exception
   std::string msg;
 };
+
+
+
+#include "img_out.hpp"
+#include "distance_transform.hpp"
+#include "homotopic_thinning.hpp"
+#include "surface_tables.hpp"
+
 
 /// Quick and dirty 3x3 Matrix object, consisting of 3 rows
 struct Matrix {
@@ -126,6 +131,8 @@ public:
   double get_a() const;
   /// Returns the surface level
   double get_surface_level() const;
+  /// Returns the surface level
+  double get_channel_prop() const;
   /// Returns the membranes
   std::vector<double> get_membranes() const;
   /// Return channel volumes
@@ -172,6 +179,8 @@ public:
   
   /// Sets the surface_level
   void set_surface_level( double val );
+  /// Sets the channel proportion
+  void set_channel_vol_prop( double val );
   /// Sets the unit cell size of the surface
   void set_a( double val );
   /// Sets the number of points in the slice in x direction
@@ -344,6 +353,9 @@ private:
 						    "Layer",
 						    "Sphere"};
 
+
+  /// Lookup tables for surface properties
+  SURFACE_TABLES s_tables;
   
   /******************************************************************
    * data, do not access manually unless you know what you're doing

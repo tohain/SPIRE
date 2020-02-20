@@ -698,7 +698,7 @@ void sp_gui_imp::membrane_delete( wxCommandEvent& event ){
 void sp_gui_imp::level_change(  wxSpinDoubleEvent& event ){
 
   try {
-    sp->set_surface_level( level_set_ctrl->GetValue() );
+    sp->set_channel_vol_prop( level_set_ctrl->GetValue() );
   } catch ( invalid_parameter_exception e ){
     wxMessageBox( e.details(),
 		  e.what(),
@@ -706,7 +706,7 @@ void sp_gui_imp::level_change(  wxSpinDoubleEvent& event ){
   }
 
   //read possibly (exception handling) new values
-  level_set_ctrl->SetValue( sp->get_surface_level() );
+  level_set_ctrl->SetValue( sp->get_channel_prop() );
 
   //redraw
   draw_preview();
@@ -728,7 +728,10 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
 {
 
 
+  sp->print_grid("grid.dat");
+
   /*
+  
   distance_transform<int> dt ( sp->get_grid(), sp->get_width(), sp->get_height(), sp->get_depth(), sp->get_dx(), sp->get_dy(), sp->get_dz() );  
   dt.compute_distance_map();
   std::vector<double> dmap = dt.get_distance_map();  
@@ -740,13 +743,51 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
 
   auto coords = sp->get_points();
   
-  std::ofstream out ("network.dat");
+  std::ofstream out ("network_1.dat");
   for( auto it : network ){
     out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
   }
   out.close();
 
-  /*
+  network = compute_network.find_channel_skeleton( 2 );
+  
+  out.open("network_2.dat");
+  for( auto it : network ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();  
+
+
+  network = compute_network.find_channel_skeleton( 3 );
+  
+  out.open("network_3.dat");
+  for( auto it : network ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();  
+
+
+  auto sur = sp->get_surface_points( 1 );
+  out.open("interface_1.dat");
+  for( auto it : sur ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();
+
+  sur = sp->get_surface_points( 2 );
+  out.open("interface_2.dat");
+  for( auto it : sur ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();  
+
+  sur = sp->get_surface_points( 3 );
+  out.open("interface_3.dat");
+  for( auto it : sur ){
+    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
+  }
+  out.close();  
+  
   
   //std::string fn (m_filePicker2->GetPath().c_str());
 

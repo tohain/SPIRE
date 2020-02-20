@@ -106,7 +106,7 @@ sp_gui::sp_gui( wxWindow* parent, wxWindowID id, const wxString& title, const wx
 	m_staticText27->Wrap( -1 );
 	surface_type->Add( m_staticText27, 0, wxALL, 5 );
 
-	level_set_ctrl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -999, 999, 0, 0.001 );
+	level_set_ctrl = new wxSpinCtrlDouble( geometry, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, 0.5, 0.01 );
 	level_set_ctrl->SetDigits( 4 );
 	surface_type->Add( level_set_ctrl, 0, wxALL, 5 );
 

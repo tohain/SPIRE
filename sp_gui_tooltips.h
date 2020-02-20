@@ -39,7 +39,7 @@ class tooltips {
 
   const std::string filename_tooltip = "The path and filename to save the currently displayed image. Use the browse button to open a file dialog. The extensions determines the format the image is saved to. Currently supported: *.png and *.tiff";
 
-  const std::string level_set_tooltip = "This parameter controls the proportions of the two channels. 0 means equal sizes. So far, it is dimension less and is just the level set for the main (id=0) membrane";
+  const std::string level_set_tooltip = "This parameter controls the volume fraction of the inner channel within the main membrane.";
 
   const std::string membrane_list_tooltip = "This lists all membranes currently in the system. The membrane with id=0 is the *main* membrane. The distances of other membranes are measured from here.";
 
