@@ -15,6 +15,71 @@
 
 
 
+#ifdef USE_CGAL
+
+
+/**
+ * This struct is copy & paste from a CGAL example for surface
+ * triangulations. Not quite sure what it does, but I think it defines
+ * something like the niehgborhood of points
+ */
+struct Perimeter {
+  double bound;
+  
+  Perimeter(double bound): bound(bound){
+  }
+
+
+  // overload the () operator of this class making it a Functor
+  template <typename AdvancingFront, typename Cell_handle>
+  double operator() (const AdvancingFront& adv, Cell_handle& c,
+                     const int& index) const
+  {
+    // bound == 0 is better than bound < infinity
+    // as it avoids the distance computations
+    if(bound == 0){
+      return adv.smallest_radius_delaunay_sphere (c, index);
+    }
+    
+    // If perimeter > bound, return infinity so that facet is not used
+    double d  = 0;
+    d = sqrt(squared_distance(c->vertex((index+1)%4)->point(),
+                              c->vertex((index+2)%4)->point()));
+    if(d>bound) return adv.infinity();
+    d += sqrt(squared_distance(c->vertex((index+2)%4)->point(),
+                               c->vertex((index+3)%4)->point()));
+    if(d>bound) return adv.infinity();
+    d += sqrt(squared_distance(c->vertex((index+1)%4)->point(),
+                               c->vertex((index+3)%4)->point()));
+    if(d>bound) return adv.infinity();
+    // Otherwise, return usual priority value: smallest radius of
+    // delaunay sphere
+    return adv.smallest_radius_delaunay_sphere (c, index);
+  }
+};
+
+// Some typedefs for CGAL
+typedef CGAL::Simple_cartesian<double> K;
+typedef K::Point_3  Point_3;
+typedef K::Vector_3 Vector_3;
+typedef std::array<std::size_t,3> Facet;
+
+
+
+
+// overload the output operator for facets 
+namespace std {
+  std::ostream&
+  operator<<(std::ostream& os, const Facet& f)
+  {
+    os << "3 " << f[0] << " " << f[1] << " " << f[2];
+    return os;
+  }
+}
+
+
+#endif
+
 invalid_parameter_exception::invalid_parameter_exception( std::string _msg ) : msg(_msg){
 }
 
@@ -730,6 +795,9 @@ void surface_projection::add_membrane(double dist, double width ){
  */
 void surface_projection::compute_volume(){
 
+  status = "Computing channel volumes";
+  progress = 0.0;
+  
   volumes = std::vector<double> (membranes.size() + 1, 0 );
   
   double vox_vol = dx*dy*dz;
@@ -740,8 +808,14 @@ void surface_projection::compute_volume(){
     ind = channel[ii];
     if( ind < 0 ) ind*=-1;
     volumes[ind-1]+=vox_vol;
+
+    progress = (double) ii / channel.size();
   }
 
+
+  progress = 1.0;
+  status = "Ready";
+  
 }
 
 
@@ -819,56 +893,96 @@ int surface_projection::p_for( int val ){
 
 
 /**
- * computes the surface area of the membranes. Outside and inside
- * separately
+ * computes the surface area of the membranes. Uses CGAL, in CASE
+ * that's not found, don't do anything. This works best - or rather
+ * works only if the voxels are cubes, i.e. are having the same length
+ * in all three spatial dimensions.
+ *
+ * In future I will probably implement a lookup table, if CGAL is not
+ * available
+ *
+ * TODO: find a good choice for the peremiter parameter!
+ *
  */
 void surface_projection::compute_surface_area(){
 
-  surface_area = std::vector<double> ( membranes.size(), 0 );
 
-  // iterate over all cells, and check if they are adjacent to a cell
-  // of different channel. Always check front, up, and right
-  for( unsigned int ii=0; ii<grid.size(); ii++){
+  status = "Computing surface area";
+  
+  surface_area = std::vector<double> ( int( 0.5*membranes.size() ), 0 );
 
-    int u = channel.at( p_up(ii)  );
-    int f = channel.at( p_for(ii) );
-    int r = channel.at( p_right(ii) );
-    int d = channel.at( p_down(ii)  );
-    int b = channel.at( p_back(ii) );
-    int l = channel.at( p_left(ii) );    
-    int ch_id = channel.at( ii );
+#ifdef USE_CGAL
+  
+  for( unsigned int ii=0; ii<int(0.5*membranes.size()); ii++){
+
+    // get all the points making  up the membrane
+    auto membrane_points = get_surface_points( (2*ii)+1, 6 );
+
+
+    /*
+    std::ofstream p_out ( "surface_points_" + std::to_string( ii ) + ".dat" );
+    for( auto it : membrane_points ){
+      p_out << points[3*it] << " " << points[3*it+1] << " " << points[3*it+2] << std::endl;
+    }
+    p_out.close();
+    */
     
-    if( u < 0) u *= -1;
-    if( f < 0) f *= -1;
-    if( r < 0) r *= -1;
-    if( d < 0) d *= -1;
-    if( b < 0) b *= -1;
-    if( l < 0) l *= -1;           
-    if( ch_id < 0 ) ch_id*=-1;
+    
+    // copy and paste the points into a CGAL compatible array
+    std::vector<Point_3> CGAL_membrane_points;
+    for(int jj=0; jj<membrane_points.size(); jj++){
+      double x = points.at( 3 * membrane_points.at(jj) );
+      double y = points.at( 3 * membrane_points.at(jj) + 1 );
+      double z = points.at( 3 * membrane_points.at(jj) + 2 );
+      CGAL_membrane_points.push_back( Point_3( x, y, z) );
+    }
+
+
+    // get the surface triangulation
+    std::vector<Facet> facets;
+    Perimeter perimeter( 0.5 );
+    CGAL::advancing_front_surface_reconstruction(CGAL_membrane_points.begin(),
+						 CGAL_membrane_points.end(),
+						 std::back_inserter(facets),
+						 perimeter);
+    
+
+    //compute surface area from triangulation
+    double total_area = 0;
+    
+    for( auto it : facets ){
+      Vector_3 ab = CGAL_membrane_points.at( it[0] ) - CGAL_membrane_points.at( it[1] );
+      Vector_3 ac = CGAL_membrane_points.at( it[0] ) - CGAL_membrane_points.at( it[2] );    
+      Vector_3 cross = CGAL::cross_product( ab, ac );
+      double area = 0.5 * sqrt( cross.squared_length() );
+      total_area+=area;
+    }
+
+    //safe area
+    surface_area[ii] = total_area;
 
 
     
-    if( ch_id > u ){
-      surface_area.at( ch_id - 2 ) += dx*dy;
-    }
-    if( ch_id > f ){
-      surface_area.at( ch_id - 2 ) += dx*dz;
-    }
-    if( ch_id > r ){
-      surface_area.at( ch_id - 2 ) += dy*dz;
-    }    
-    if( ch_id > d ){
-      surface_area.at( ch_id - 2 ) += dx*dy;
-    }
-    if( ch_id > b ){
-      surface_area.at( ch_id - 2 ) += dx*dz;
-    }
-    if( ch_id > l ){
-      surface_area.at( ch_id - 2 ) += dy*dz;
-    }            
+    // for debugging: output surfaces
+    std::ofstream triang_out ( "membrane_" + std::to_string(ii) + ".off" );
+    triang_out << "OFF\n" << CGAL_membrane_points.size() << " " << facets.size() << " 0\n";
+    std::copy(CGAL_membrane_points.begin(),
+	      CGAL_membrane_points.end(),
+	      std::ostream_iterator<Point_3>(triang_out, "\n"));
+    std::copy(facets.begin(),
+	      facets.end(),
+	      std::ostream_iterator<Facet>(triang_out, "\n"));
+    triang_out.close();
     
   }
 
+
+
+  status = "Ready";
+
+
+#endif
+  
 }
 
 /*
@@ -898,7 +1012,7 @@ std::vector<int> surface_projection::get_surface_points( int ch_id, int n ){
 
       bool found_background = false;
       for( auto it : nbs ){
-	if( std::abs( channel[it] ) != std::abs( ch_id ) ){
+	if( std::abs( channel[it] ) > std::abs( ch_id ) ){
 	  found_background = true;
 	  break;
 	}

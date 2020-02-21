@@ -727,67 +727,95 @@ void sp_gui_imp::button_render( wxCommandEvent& event )
 void sp_gui_imp::button_save( wxCommandEvent& event )
 {
 
-
-  sp->print_grid("grid.dat");
-
+  
   /*
+   * Perform some measurements
+   */
+  
+  std::thread computation_area ( &surface_projection::compute_surface_area, sp );
+  std::thread progress_status_area ( &sp_gui_imp::update_status_bar, this );
+  //wait for the threads to join
+  computation_area.join();
+  progress_status_area.join();
+  
+  std::cout << "Surface area:\n";
+  for( auto it : sp->get_membrane_surface_area() ){
+    std::cout << it << " ";
+  }
+  std::cout << std::endl;
+  
+  //compute volumes
+  std::thread computation_vol ( &surface_projection::compute_volume, sp );
+  std::thread progress_status_vol ( &sp_gui_imp::update_status_bar, this );  
+  //wait for the threads to join
+  computation_vol.join();
+  progress_status_vol.join();
+
+
+  std::cout << "Volumes:\n";
+  for( auto it : sp->get_channel_volumes() ){
+    std::cout << it << " ";
+  }
+  std::cout << std::endl;
+
+
+  std::cout << "dmap\n";
   
   distance_transform<int> dt ( sp->get_grid(), sp->get_width(), sp->get_height(), sp->get_depth(), sp->get_dx(), sp->get_dy(), sp->get_dz() );  
   dt.compute_distance_map();
   std::vector<double> dmap = dt.get_distance_map();  
+
+
+  std::cout << "printing grid\n";
+  sp->print_grid("grid.dat");
+  
   
 
+  std::cout << "Setting up homotopic thinning\n";
+  
   homotopic_thinning compute_network ( sp->get_width(), sp->get_height(), sp->get_depth(), sp->get_channel(), dmap );
 
+
+  std::cout << "Computing inner network\n";
+
+  // get the inner channel network
   auto network = compute_network.find_channel_skeleton( 1 );
 
+  // output and min channel width
   auto coords = sp->get_points();
-  
-  std::ofstream out ("network_1.dat");
+
+  double min_width = std::numeric_limits<double>::max();
+  std::ofstream out ("inner_network.dat");
   for( auto it : network ){
+    if( sqrt( dmap[it] ) < min_width ){
+      min_width = sqrt( dmap[it] );
+    }
     out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
   }
   out.close();
 
-  network = compute_network.find_channel_skeleton( 2 );
+  std::cout << "Min channel width inner: " << min_width << std::endl;
   
-  out.open("network_2.dat");
+  std::cout << "Computing outer network\n";
+
+  std::cout << sp->get_membranes().size() + 1 << std::endl;
+  
+  network = compute_network.find_channel_skeleton( sp->get_membranes().size() + 1 );  
+  out.open("outer_network.dat");
+  min_width = std::numeric_limits<double>::max();
   for( auto it : network ){
+    if( sqrt( dmap[it] ) < min_width ){
+      min_width = sqrt( dmap[it] );
+    }    
     out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
   }
   out.close();  
 
-
-  network = compute_network.find_channel_skeleton( 3 );
+  std::cout << "Min channel width outer: " << min_width << std::endl;
   
-  out.open("network_3.dat");
-  for( auto it : network ){
-    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
-  }
-  out.close();  
-
-
-  auto sur = sp->get_surface_points( 1 );
-  out.open("interface_1.dat");
-  for( auto it : sur ){
-    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
-  }
-  out.close();
-
-  sur = sp->get_surface_points( 2 );
-  out.open("interface_2.dat");
-  for( auto it : sur ){
-    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
-  }
-  out.close();  
-
-  sur = sp->get_surface_points( 3 );
-  out.open("interface_3.dat");
-  for( auto it : sur ){
-    out << coords[3*it] << " " << coords[3*it+1] << " " << coords[3*it+2] << std::endl;
-  }
-  out.close();  
+  std::cout << "==========================================\n\n\n";
   
+  /*
   
   //std::string fn (m_filePicker2->GetPath().c_str());
 
