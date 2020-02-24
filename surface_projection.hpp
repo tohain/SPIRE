@@ -105,6 +105,10 @@ public:
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
 
+  /// Converts the \ref projection array in a rescaled image array and
+  /// adds a scale
+  unsigned char* get_image_with_scale(std::string loc = "bl" , bool invert = false );
+  
   /// Outputs the grid
   void print_grid( std::string fn );
   

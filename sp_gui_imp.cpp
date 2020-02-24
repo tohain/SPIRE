@@ -1,5 +1,23 @@
 ﻿#include "sp_gui_imp.h"
 
+
+sp_thread::sp_thread( surface_projection *_sp, void (surface_projection::*_func)() ) : sp(_sp), func( _func ), wxThread( wxTHREAD_JOINABLE ) {}
+
+wxThread::ExitCode sp_thread::Entry() {
+  (sp->*func)();  
+  return (wxThread::ExitCode)0;
+}
+
+
+gui_thread::gui_thread( sp_gui_imp *_sp_gui, void (sp_gui_imp::*_func)() ) : sp_gui_thread(_sp_gui), func( _func ), wxThread( wxTHREAD_JOINABLE ) {}
+
+wxThread::ExitCode gui_thread::Entry() {
+  (sp_gui_thread->*func)();  
+  return (wxThread::ExitCode)0;
+}
+
+
+
 /** \brief Default constructor
  *
  * Sets a few element properties which are read from the \ref
@@ -731,12 +749,13 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
   /*
    * Perform some measurements
    */
-  
-  std::thread computation_area ( &surface_projection::compute_surface_area, sp );
-  std::thread progress_status_area ( &sp_gui_imp::update_status_bar, this );
+
+  sp_thread *computation_area = new sp_thread ( sp, &surface_projection::compute_surface_area );
+  gui_thread *progress_status_area = new gui_thread( this, &sp_gui_imp::update_status_bar );
   //wait for the threads to join
-  computation_area.join();
-  progress_status_area.join();
+  computation_area->Run(); //progress_status_area->Run();
+  computation_area->Wait(); //progress_status_area->Wait();
+  delete( computation_area ); delete( progress_status_area );
   
   std::cout << "Surface area:\n";
   for( auto it : sp->get_membrane_surface_area() ){
@@ -745,11 +764,12 @@ void sp_gui_imp::button_save( wxCommandEvent& event )
   std::cout << std::endl;
   
   //compute volumes
-  std::thread computation_vol ( &surface_projection::compute_volume, sp );
-  std::thread progress_status_vol ( &sp_gui_imp::update_status_bar, this );  
-  //wait for the threads to join
-  computation_vol.join();
-  progress_status_vol.join();
+  sp_thread *computation_vol = new sp_thread ( sp, &surface_projection::compute_volume );
+  gui_thread *progress_status_vol = new gui_thread ( this, &sp_gui_imp::update_status_bar );  
+  computation_vol->Run(); //progress_status_vol->Run();
+  computation_vol->Wait(); //progress_status_vol->Wait();
+  delete( computation_vol ); delete( progress_status_vol );
+  
 
 
   std::cout << "Volumes:\n";
@@ -908,7 +928,7 @@ void sp_gui_imp::update_status_bar(){
     ps.str("");
     ps << std::setprecision(4) << progress * 100 << "%";
     status->SetStatusText( ps.str(), 1 );
-    if( progress == 1 && tmp_string == "Ready"){
+    if( tmp_string == "Ready"){
       return;
     }
   }
@@ -923,44 +943,17 @@ void sp_gui_imp::update_status_bar(){
  */
 void sp_gui_imp::compute_and_draw(){
 
+  sp_thread *comp = new sp_thread( sp, &surface_projection::compute_projection );
+  gui_thread *prog_stat = new gui_thread( this, &sp_gui_imp::update_status_bar );
+  prog_stat->Run();
+  comp->Run();
+
+  comp->Wait();
+  prog_stat->Wait();
   
+  delete( comp ); delete( prog_stat );  
   
-  //compute the projection in a separate thread
-  std::thread computation ( &surface_projection::compute_projection, sp );
-  //keep the interface up to date in a separate thread
-  std::thread progress_status ( &sp_gui_imp::update_status_bar, this );
-
-  //wait for the threads to join
-  computation.join();
-  progress_status.join();
-
-  //m_progressbar->SetValue(0);
-  
-  /*
-  sp->compute_volume();
-
-  try {
-    sp->compute_surface_area();
-  } catch(std::out_of_range e){
-    std::cout << e.what() << std::endl;
-  }
-
-  
-  std::cout << "volumes: ";
-  for( auto it : sp->get_channel_volumes() ){
-    std::cout << it << " ";
-  }
-  std::cout << std::endl;
-
-  std::cout << "surface_areas: ";
-  for( auto it : sp->get_membrane_surface_area() ){
-    std::cout << it << " ";
-  }
-  std::cout << std::endl;
-  
-  */
-
-  unsigned char *proj = sp->get_image( invert_ctl->GetValue() );
+  unsigned char *proj = sp->get_image_with_scale( "br", invert_ctl->GetValue() );
 
   //width and height of image
   int w = sp->get_width();

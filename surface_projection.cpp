@@ -755,7 +755,7 @@ unsigned char* surface_projection::get_image(bool invert){
   //new image array
   unsigned char* img = (unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
   
-  //find max value
+  //find min and max value
   double max= *std::max_element( projection.begin(), projection.end() );
   double min= *std::min_element( projection.begin(), projection.end() );
 
@@ -772,6 +772,62 @@ unsigned char* surface_projection::get_image(bool invert){
   }  
 
   return img;  
+}
+
+
+/**
+ * This function calls \ref get_image to generate an image from the
+ * \ref projection array, but additionally adds a scale
+ */
+unsigned char* surface_projection::get_image_with_scale(std::string loc, bool invert ){
+
+  // the scale bar should have a constant length in terms of the
+  // picture size. NOT PIXELS, meaning not matter how many pixels
+  // there are, the scale is always, say 10% of the edge length of the
+  // picture and oriented towards the x direction (horizontal)
+
+  double bar_length = 0.2;
+
+  //compute the pixel size
+  int bar_pix_l = bar_length * get_width();
+  int bar_pix_w = 0.1 * bar_length * get_height();
+
+  //find the positions
+  int margin_x, margin_y;
+  if( loc[0] == 't' ){
+    margin_y = 0.1 * get_height();
+  } else {
+    margin_y = get_height() - (0.1 * get_height()) - bar_pix_w;
+  }
+
+  if( loc[1] == 'l' ){
+    margin_x = 0.1 * get_width();
+  } else {
+    margin_x = get_width() - (0.1 * get_width()) - bar_pix_l;
+  }
+  
+
+
+  //get the image
+  unsigned char* img = get_image( invert );
+
+  //make the bar white or black
+  for( unsigned int yy=margin_y; yy < margin_y + bar_pix_w; yy++ ){
+    for( unsigned int xx=margin_x; xx < margin_x + bar_pix_l; xx++ ){
+      if( invert )
+	img[ get_width()*yy + xx ] = 0;
+      else
+	img[ get_width()*yy + xx ] = 255;
+    }
+  }
+
+
+  // now the important part: compute the actual length of the bar. We
+  // should take the orientation of the slice into account
+  
+
+  
+  return img;
 }
 
 /** 
@@ -979,7 +1035,7 @@ void surface_projection::compute_surface_area(){
 
 
   status = "Ready";
-
+  progress = 1;
 
 #endif
   
