@@ -136,7 +136,6 @@ int main(int argc, char* argv[])
 
 
   //compute surface area
-
   double total_area = 0;
   
   for( auto it : facets ){
