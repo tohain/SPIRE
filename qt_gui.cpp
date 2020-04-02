@@ -2,6 +2,7 @@
 
 void GUI::set_up_ui(){
 
+  // the widgets for the tabs
   controls = new QTabWidget( this );
   controls_basic = new QWidget();
   controls_advanced = new QWidget();
@@ -13,10 +14,13 @@ void GUI::set_up_ui(){
 
   // buttons for controls_basic
   button_quit = new QPushButton("Quit", controls_basic);
-  button_save = new QPushButton("Compute", controls_basic);
-  button_render = new QPushButton("Show", controls_basic);
+  button_save = new QPushButton("Save", controls_basic);
+  button_render = new QPushButton("Compute", controls_basic);
+  button_update_view = new QPushButton("Update", controls_basic);  
 
-
+  /*
+   * structure control
+   */ 
   ntucs_control = new QT_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
   ntucs_control->object()->setRange(0, 50);
   
@@ -29,8 +33,14 @@ void GUI::set_up_ui(){
   channel_prop_control->object()->setSingleStep(0.01);  
   
   surface_type_control = new QT_labeled_obj<QComboBox> ( "Surface type", controls_basic );
+  std::vector<std::string> sfc_types = sp->get_surface_choices();
+  for(unsigned int ii=0; ii<sfc_types.size(); ii++){
+    surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
+  }
 
-
+  /*
+   * Resolution control
+   */
   xy_points_control = new QT_labeled_obj<QSpinBox> ( "XY resolution", controls_basic );
   xy_points_control->object()->setRange(1, 3000);
  
@@ -41,13 +51,10 @@ void GUI::set_up_ui(){
   pix_size_indicator->setWordWrap( true );
   pix_size_indicator->setAlignment(Qt::AlignCenter);
   pix_size_indicator->setTextFormat(Qt::PlainText);
-  
-  // set up the combo box
-  std::vector<std::string> sfc_types = sp->get_surface_choices();
-  for(unsigned int ii=0; ii<sfc_types.size(); ii++){
-    surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
-  }
 
+  invert_control = new QCheckBox( controls_basic );
+  invert_control->setText( "Invert colors" );
+  
   
   //Set up the draw area
   draw_area = new QLabel();
@@ -57,8 +64,36 @@ void GUI::set_up_ui(){
                      QSizePolicy::MinimumExpanding);
 
 
+
+  /*
+   * Slice control 
+   */
+
+  slice_width_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);
+  slice_width_control->object()->setRange(0, 1);
+  slice_width_control->object()->setSingleStep(0.01);
+  
+  slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);    
+  slice_position_control->object()->setRange(0, 1);
+  slice_position_control->object()->setSingleStep(0.01);  
+  
+  miller_h_control = new QT_labeled_obj<QSpinBox> ("h", controls_basic );
+  miller_h_control->object()->setRange(-100, 100);
+  
+  miller_k_control = new QT_labeled_obj<QSpinBox> ("k", controls_basic );
+  miller_k_control->object()->setRange(-100, 100);
+  
+  miller_l_control = new QT_labeled_obj<QSpinBox> ("l", controls_basic );  
+  miller_l_control->object()->setRange(-100, 100);
+
+
+  /*
+   * Layout
+   */
+  
   //set up spacers
-  spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);  
+  v_spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  h_spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   
   //the main layout of the form
@@ -75,7 +110,8 @@ void GUI::set_up_ui(){
 
   structure_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();
-
+  slice_settings = new QHBoxLayout();
+  
   structure_settings->addLayout( ntucs_control->layout() );
   structure_settings->addLayout( uc_size_control->layout() );
   structure_settings->addLayout( channel_prop_control->layout() );
@@ -84,17 +120,29 @@ void GUI::set_up_ui(){
   resolution_settings->addLayout( xy_points_control->layout() );
   resolution_settings->addLayout( z_points_control->layout() );
   resolution_settings->addWidget( pix_size_indicator );
+  resolution_settings->addWidget( invert_control );
+
+  slice_settings->addLayout( slice_width_control->layout() );
+  slice_settings->addLayout( slice_position_control->layout() );
+  slice_settings->addItem( h_spacer );
+  slice_settings->addLayout( miller_h_control->layout() );
+  slice_settings->addLayout( miller_k_control->layout() );
+  slice_settings->addLayout( miller_l_control->layout() );    
   
   controls_basic_layout->addLayout( structure_settings );
-  controls_basic_layout->addItem( spacer );
+  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addLayout( slice_settings );
+  controls_basic_layout->addItem( v_spacer );
   controls_basic_layout->addLayout( resolution_settings );
-  controls_basic_layout->addItem( spacer );  
+  controls_basic_layout->addItem( v_spacer );
   controls_basic_layout->addLayout( buttons_layout );
     
-  
-  buttons_layout->addWidget( button_quit );
-  buttons_layout->addWidget( button_save );
   buttons_layout->addWidget( button_render );
+  buttons_layout->addWidget( button_update_view );
+  buttons_layout->addWidget( button_save );
+  buttons_layout->addWidget( button_quit );
+
+
 
 
 
@@ -125,8 +173,21 @@ void GUI::set_up_signals_and_slots(){
 	   sp, &sp_qt::change_uc_size );
   // channel proportion
   connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_vol_prop );  
+	   sp, &sp_qt::change_vol_prop );
 
+  // slice width
+  connect( slice_width_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_slice_width );
+  // slice position
+  connect( slice_position_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_slice_position );
+  // miller hkl
+  connect( miller_h_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   sp, &sp_qt::change_h );
+  connect( miller_k_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   sp, &sp_qt::change_k );
+  connect( miller_l_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   sp, &sp_qt::change_l );  
 
 
 
@@ -135,9 +196,10 @@ void GUI::set_up_signals_and_slots(){
    */
 
   //buttons
-  connect( button_render, SIGNAL( clicked() ), this, SLOT( update_view() ) );
-  connect( button_save, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
-  connect( button_quit, SIGNAL( clicked() ), this, SLOT( pushed_button_3() ) );    
+  connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
+  connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
+  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
+  connect( button_update_view, SIGNAL( clicked() ), this, SLOT( update_view() ) );
 
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
@@ -183,19 +245,15 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
 
 
-void GUI::pushed_button_3(){
+void GUI::quit_app(){
   app->quit();
-
 }
 
-void GUI::pushed_button_2(){
-  
-}
 
 void GUI::update_view(){
   
 
-  unsigned char* img_data = sp->get_image();
+  unsigned char* img_data = sp->get_image( invert_control->isChecked() );
 
   image = new QImage( img_data, sp->get_width(), sp->get_height(), sp->get_width(), QImage::Format_Grayscale8 );
 
@@ -247,6 +305,13 @@ void GUI::update_gui_from_sp(){
   z_points_control->object()->setValue( sp->get_depth() );
   xy_points_control->object()->setValue( sp->get_width() );
 
+  slice_width_control->object()->setValue( sp->get_slice_width() );
+  slice_position_control->object()->setValue( sp->get_slice_height() );  
+  
+  miller_h_control->object()->setValue( sp->get_h() );
+  miller_k_control->object()->setValue( sp->get_k() );
+  miller_l_control->object()->setValue( sp->get_l() );  
+  
   std::stringstream pix_size;
   pix_size << "XY Pixel size: " << std::setprecision(3) << sp->get_dx() << std::endl
 	   << "Z Pixel size: " << std::setprecision(3) << sp->get_dz();
@@ -256,3 +321,9 @@ void GUI::update_gui_from_sp(){
 
 
 
+void GUI::save_image_to_file(){
+
+
+  image->save("image.png");
+
+}

@@ -17,6 +17,8 @@ sp_qt::~sp_qt(){
 
 
 void sp_qt::update_geometry_(){
+  set_orientation_from_hkl();
+  update_periodicity_length();  
   update_geometry();
   update_containers();
 }
@@ -58,6 +60,39 @@ void sp_qt::change_vol_prop( double val ){
   emit parameter_changed();
 }
 
+
+
+void sp_qt::change_h( int val ){
+  set_h( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+
+void sp_qt::change_k( int val ){
+  set_k( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+
+void sp_qt::change_l( int val ){
+  set_l( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+void sp_qt::change_slice_width( double val ){
+  set_slice_width( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+void sp_qt::change_slice_position( double val ){
+  set_slice_height( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
 
 
 void sp_qt::compute_projection(){

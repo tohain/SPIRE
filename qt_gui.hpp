@@ -20,6 +20,8 @@
 #include <QDoubleSpinBox>
 #include <QComboBox>
 #include <QSpacerItem>
+#include <QCheckBox>
+#include <QFileDialog>
 
 #include <QThread>
 #include <QMutex>
@@ -97,34 +99,50 @@ private:
   QWidget *controls_advanced;
   QWidget *controls_all;
 
-
+  // structure control
   QT_labeled_obj<QSpinBox> *ntucs_control;
   QT_labeled_obj<QDoubleSpinBox> *uc_size_control;
   QT_labeled_obj<QDoubleSpinBox> *channel_prop_control;
   QT_labeled_obj<QComboBox> *surface_type_control;
   
 
+  // resolution control
   QT_labeled_obj<QSpinBox> *z_points_control;
   QT_labeled_obj<QSpinBox> *xy_points_control;
   QLabel *pix_size_indicator;
+  QCheckBox *invert_control;
+
+
+  // slice parameters control
+  QT_labeled_obj<QDoubleSpinBox> *slice_width_control;
+  QT_labeled_obj<QDoubleSpinBox> *slice_position_control;
+
+  QT_labeled_obj<QSpinBox> *miller_h_control;
+  QT_labeled_obj<QSpinBox> *miller_k_control;
+  QT_labeled_obj<QSpinBox> *miller_l_control;  
   
   QPushButton *button_quit;
   QPushButton *button_save;
   QPushButton *button_render;
+  QPushButton *button_update_view;  
+
+
+
 
   QHBoxLayout *main_layout;
   QHBoxLayout *buttons_layout;
   
   QHBoxLayout *structure_settings;
-
   QHBoxLayout *resolution_settings;
+  QHBoxLayout *slice_settings;
   
   QVBoxLayout *controls_basic_layout;
   QVBoxLayout *controls_advanced_layout;
   QVBoxLayout *controls_all_layout;    
 
 
-  QSpacerItem *spacer;
+  QSpacerItem *v_spacer;
+  QSpacerItem *h_spacer;  
   
 
   //
@@ -153,7 +171,7 @@ public slots:
   void update_status( QString s);
   
   void update_view();
-  void pushed_button_2();
-  void pushed_button_3();    
+  void quit_app();
+  void save_image_to_file();
   
 };

@@ -43,7 +43,11 @@ public slots:
   void change_vol_prop( double val );
   void change_xy_points( int val );
   void change_z_points( int val );
-  
+  void change_h( int val );
+  void change_k( int val );
+  void change_l( int val );
+  void change_slice_width( double val );
+  void change_slice_position( double val );  
   
 };
 
