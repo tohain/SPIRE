@@ -211,7 +211,7 @@ public:
 
 
   
-private:
+protected:
 
   /// Numerical tolerance when two floating point numbers are considered equal
   double tolerance = 1e-5;

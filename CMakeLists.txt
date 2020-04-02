@@ -20,7 +20,7 @@ SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic
 SET(SRC_WX_GUI sp_app.cpp sp_gui.cpp sp_gui_imp.cpp)
 
 #the source files for the QT gui
-SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp)
+SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp)
 
 #source files for terminal interface
 SET(SRC_TER minimal_terminal.cpp)

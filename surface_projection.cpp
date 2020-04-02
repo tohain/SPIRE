@@ -578,6 +578,7 @@ void surface_projection::update_containers(){
  * depending on the unit cell size and number of unit cells.
  */
 void surface_projection::update_geometry(){
+
   //update box
   L = ntucs * a;
 

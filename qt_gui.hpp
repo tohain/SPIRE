@@ -1,7 +1,9 @@
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include <QWidget>
 #include <QPushButton>
@@ -12,38 +14,56 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QApplication>
+#include <QTabWidget>
 
+#include <QSpinBox>
+#include <QDoubleSpinBox>
+#include <QComboBox>
+#include <QSpacerItem>
 
 #include <QThread>
 #include <QMutex>
 
-#include "surface_projection.hpp"
+#include "qt_sp.hpp"
 
+template <class QT_O>
+class QT_labeled_obj {
 
-class worker : public QObject, public surface_projection {
-
-  Q_OBJECT;
-  
 public:
-  worker (double &p, std::string &s) : surface_projection(p, s){
-  }
-  ~worker(){
-    std::cout << "destructor called" << std::endl;
-  }
-  void requestWork();
-  void abort();
+  QT_labeled_obj( std::string label_str, QWidget *parent = NULL ){
+    obj = new QT_O ( parent );
+    lbl = new QLabel( QString(label_str.c_str()), parent );
+    lyt = new QVBoxLayout();
 
+    lyt->addWidget( lbl );
+    lyt->addWidget( obj );
+  }
+  
+  ~QT_labeled_obj(){
+    delete( obj );
+    delete( lbl );
+    delete( lyt );
+  }
+
+  QVBoxLayout* layout(){
+    return lyt;
+  }
+  QT_O* object(){
+    return obj;
+  }
+  QLabel* label(){
+    return lbl;
+  }  
+  
 private:
+  QT_O *obj;
+  QLabel *lbl;
 
-
-signals:
-  void workRequested();
-  void finished();
-
-public slots:
-  void doWork();  
-
+  QVBoxLayout *lyt;
+  
 };
+
+
 
 
 
@@ -64,31 +84,63 @@ protected:
   
 private:
 
-  void setup_sp_object();
 
+  // functions
+  void set_up_ui();
+  void set_up_signals_and_slots();
   
-  const QImage *image;
-  QPixmap *img_pix;
-  
+  // ui elements
   QLabel *draw_area;
+
+  QTabWidget *controls;
+  QWidget *controls_basic;
+  QWidget *controls_advanced;
+  QWidget *controls_all;
+
+
+  QT_labeled_obj<QSpinBox> *ntucs_control;
+  QT_labeled_obj<QDoubleSpinBox> *uc_size_control;
+  QT_labeled_obj<QDoubleSpinBox> *channel_prop_control;
+  QT_labeled_obj<QComboBox> *surface_type_control;
+  
+
+  QT_labeled_obj<QSpinBox> *z_points_control;
+  QT_labeled_obj<QSpinBox> *xy_points_control;
+  QLabel *pix_size_indicator;
   
   QPushButton *button_quit;
   QPushButton *button_save;
   QPushButton *button_render;
 
-  QPushButton *tmp;
-  
   QHBoxLayout *main_layout;
+  QHBoxLayout *buttons_layout;
+  
+  QHBoxLayout *structure_settings;
 
-  QVBoxLayout *buttons_layout;
+  QHBoxLayout *resolution_settings;
+  
+  QVBoxLayout *controls_basic_layout;
+  QVBoxLayout *controls_advanced_layout;
+  QVBoxLayout *controls_all_layout;    
 
 
+  QSpacerItem *spacer;
+  
+
+  //
+  // background members
+  //
+  
+  const QImage *image;
+  QPixmap *img_pix;
+  
+  // the thread holding the projection class
   QThread *thread;
 
+  // the surface projection class
+  sp_qt *sp;
 
-  worker *sp;
-
-
+  // a pointer to the application executing this form
   QApplication *app;
   
 signals:
@@ -96,8 +148,11 @@ signals:
     
 public slots:
 
-
-  void pushed_button();
+  void update_gui_from_sp();
+  
+  void update_status( QString s);
+  
+  void update_view();
   void pushed_button_2();
   void pushed_button_3();    
   
