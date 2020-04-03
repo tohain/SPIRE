@@ -142,7 +142,7 @@ public:
   double get_a() const;
   /// Returns the surface level
   double get_surface_level() const;
-  /// Returns the surface level
+  /// Returns the ratio of the volumes of the two channels
   double get_channel_prop() const;
   /// Returns the membranes
   std::vector<double> get_membranes() const;

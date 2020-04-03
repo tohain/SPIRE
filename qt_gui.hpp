@@ -122,6 +122,7 @@ private:
   QT_labeled_obj<QSpinBox> *miller_l_control;  
   
   //membranes
+  QLabel *membranes_label;
   QTableWidget *membranes_control;
   QPushButton *add_membrane_control;
   QPushButton *rm_membrane_control;

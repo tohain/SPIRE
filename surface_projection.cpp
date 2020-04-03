@@ -124,6 +124,9 @@ void surface_projection::print_grid( std::string fn ){
 surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(1), inv_a(2*M_PI), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
 
+  //set the channel proportion to 0.5
+  set_channel_vol_prop( 0.5 );
+  
   //update orientation from hkl
   //sets theta,phi
   set_orientation_from_hkl();

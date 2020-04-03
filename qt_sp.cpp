@@ -4,7 +4,7 @@
 sp_qt::sp_qt( double &p, std::string &s) : surface_projection(p, s){
 
 
-  connect( this, SIGNAL( parameter_changed() ), this, SLOT( compute_projection() ) );
+  //connect( this, SIGNAL( parameter_changed() ), this, SLOT( compute_projection() ) );
 
   connect( this, SIGNAL( geometry_changed() ), this, SLOT( update_geometry_() ) );
   
@@ -24,7 +24,13 @@ void sp_qt::update_geometry_(){
 }
 
 void sp_qt::change_surface_type( int ind ){
+
+  //backup channel proportion
+  double vol_prop = get_channel_prop();
+  
   set_type( ind );
+
+  set_channel_vol_prop( vol_prop );
   emit parameter_changed();
 }
 

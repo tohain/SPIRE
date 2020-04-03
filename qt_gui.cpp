@@ -93,9 +93,15 @@ void GUI::set_up_ui(){
   membranes_control = new QTableWidget( controls_basic );
   membranes_control->insertColumn( 0 );
   membranes_control->insertColumn( 0 );
+
+  QStringList table_header;
+  table_header << "Distance" << "Width";
+  membranes_control->setHorizontalHeaderLabels( table_header );
   
   add_membrane_control = new QPushButton ( "Add" );
   rm_membrane_control = new QPushButton( "Remove" );
+
+  membranes_label = new QLabel( "Membranes", controls_basic );
   
   
   /*
@@ -143,10 +149,11 @@ void GUI::set_up_ui(){
   slice_settings->addLayout( miller_k_control->layout() );
   slice_settings->addLayout( miller_l_control->layout() );    
 
+  membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
   membrane_buttons_layout->addWidget( rm_membrane_control );
-  membrane_settings->addWidget( membranes_control );
   membrane_settings->addLayout( membrane_buttons_layout );
+  membrane_settings->addWidget( membranes_control );
   
   controls_basic_layout->addLayout( structure_settings );
   controls_basic_layout->addItem( v_spacer );
@@ -243,6 +250,9 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
   //initialize surface projection
   sp = new sp_qt( progress, status );
+  sp->set_n_points_x( 200 );
+  sp->set_n_points_y( 200 );
+  sp->set_n_points_z( 150 );  
   sp->update_geometry();
   sp->update_containers();
   
@@ -265,6 +275,10 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   thread->start();
   
   set_up_signals_and_slots();
+
+
+  sp->compute_projection();
+  update_view();
   
 }
 
@@ -345,6 +359,8 @@ void GUI::update_gui_from_sp(){
 	   << "Z Pixel size: " << std::setprecision(3) << sp->get_dz();
   pix_size_indicator->setText( QString( pix_size.str().c_str() ) );
 
+  read_membranes();
+  
 }
 
 
@@ -357,10 +373,25 @@ void GUI::write_membranes(int row, int col){
   std::vector<double> new_membranes( rows*2, 0 );
 
   for(unsigned int rr=0; rr<rows; rr++){
-    auto tmp1 = membranes_control->item( rr, 0 )->text().toStdString();
-    auto tmp2 = membranes_control->item( rr, 1 )->text().toStdString();    
-    double dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
-    double width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
+
+    double dist, width;
+    try {
+      dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
+      width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
+    } catch ( std::invalid_argument e ) {
+      std::cout << "invalid argument, resetting" << std::endl;
+      read_membranes();
+      return;
+    }
+
+    if( rr== 0 ){
+      if( dist != 0 || width < 0.02 ){
+	dist = 0;
+	width = 0.02;
+	std::cout << "Innermost membrane must be at d=0 and a minimum width of 0.02" << std::endl;
+      }  
+    }
+
     new_membranes[2*rr] = dist;
     new_membranes[2*rr+1] = width;
   }
@@ -397,7 +428,7 @@ void GUI::add_membrane( double first, double second ){
   membranes_control->item( curRow, 1)->setText( QString::number( second ) );
 
   //reconnect them
-  connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );  
+  connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
 }
 
 
@@ -405,6 +436,8 @@ void GUI::rm_membrane(){
   int ind = membranes_control->currentRow();
   if( ind > 0 )
     membranes_control->removeRow( ind );
+  else
+    std::cout << "Innermost membrane can't be removed" << std::endl;
 }
 
 void GUI::save_image_to_file(){
