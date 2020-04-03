@@ -14,7 +14,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QApplication>
-#include <QTabWidget>
+#include <QTableWidget>
 
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -121,6 +121,13 @@ private:
   QT_labeled_obj<QSpinBox> *miller_k_control;
   QT_labeled_obj<QSpinBox> *miller_l_control;  
   
+  //membranes
+  QTableWidget *membranes_control;
+  QPushButton *add_membrane_control;
+  QPushButton *rm_membrane_control;
+
+  
+  //basic buttons
   QPushButton *button_quit;
   QPushButton *button_save;
   QPushButton *button_render;
@@ -135,10 +142,13 @@ private:
   QHBoxLayout *structure_settings;
   QHBoxLayout *resolution_settings;
   QHBoxLayout *slice_settings;
+  QHBoxLayout *membrane_settings;
+  QVBoxLayout *membrane_buttons_layout;
   
   QVBoxLayout *controls_basic_layout;
   QVBoxLayout *controls_advanced_layout;
-  QVBoxLayout *controls_all_layout;    
+  QVBoxLayout *controls_all_layout;
+
 
 
   QSpacerItem *v_spacer;
@@ -173,5 +183,11 @@ public slots:
   void update_view();
   void quit_app();
   void save_image_to_file();
+
+  void write_membranes(int row, int col);
+  void read_membranes();
+  void add_membrane( double first = 0, double second = 0);
+  void rm_membrane();
+
   
 };

@@ -1240,6 +1240,10 @@ void surface_projection::delete_membrane( int id ){
 
 }
 
+void surface_projection::set_membranes( std::vector<double> mems ){
+  membranes = mems;
+}
+
 void surface_projection::set_theta( double ang ){
   if( ang > M_PI ){
     theta  = M_PI - tolerance;

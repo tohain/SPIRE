@@ -86,7 +86,18 @@ void GUI::set_up_ui(){
   miller_l_control = new QT_labeled_obj<QSpinBox> ("l", controls_basic );  
   miller_l_control->object()->setRange(-100, 100);
 
+  /*
+   * membrane control
+   */
 
+  membranes_control = new QTableWidget( controls_basic );
+  membranes_control->insertColumn( 0 );
+  membranes_control->insertColumn( 0 );
+  
+  add_membrane_control = new QPushButton ( "Add" );
+  rm_membrane_control = new QPushButton( "Remove" );
+  
+  
   /*
    * Layout
    */
@@ -107,10 +118,13 @@ void GUI::set_up_ui(){
   controls_basic_layout = new QVBoxLayout( controls_basic );
   controls_advanced_layout = new QVBoxLayout( controls_advanced );
   controls_all_layout = new QVBoxLayout( controls_all );  
-
+  
+  
   structure_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();
   slice_settings = new QHBoxLayout();
+  membrane_settings = new QHBoxLayout();
+  membrane_buttons_layout = new QVBoxLayout();
   
   structure_settings->addLayout( ntucs_control->layout() );
   structure_settings->addLayout( uc_size_control->layout() );
@@ -128,11 +142,18 @@ void GUI::set_up_ui(){
   slice_settings->addLayout( miller_h_control->layout() );
   slice_settings->addLayout( miller_k_control->layout() );
   slice_settings->addLayout( miller_l_control->layout() );    
+
+  membrane_buttons_layout->addWidget( add_membrane_control );
+  membrane_buttons_layout->addWidget( rm_membrane_control );
+  membrane_settings->addWidget( membranes_control );
+  membrane_settings->addLayout( membrane_buttons_layout );
   
   controls_basic_layout->addLayout( structure_settings );
   controls_basic_layout->addItem( v_spacer );
   controls_basic_layout->addLayout( slice_settings );
   controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addLayout( membrane_settings );
+  controls_basic_layout->addItem( v_spacer );  
   controls_basic_layout->addLayout( resolution_settings );
   controls_basic_layout->addItem( v_spacer );
   controls_basic_layout->addLayout( buttons_layout );
@@ -198,9 +219,15 @@ void GUI::set_up_signals_and_slots(){
   //buttons
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
-  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
-  connect( button_update_view, SIGNAL( clicked() ), this, SLOT( update_view() ) );
+  connect( button_update_view, SIGNAL( clicked() ), this, SLOT( update_view() ) );  
+  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );  
 
+  connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
+  connect( rm_membrane_control, SIGNAL( clicked() ), this, SLOT( rm_membrane() ) );  
+
+  connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
+  //connect( sp, &sp_qt::parameter_changed, this, &GUI::read_membranes );
+  
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
   // update the gui if surface_projection updated its status
@@ -223,6 +250,7 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
 
   update_gui_from_sp();
+  read_membranes();
   
   //set a black background iamge
   uchar *blank_bckgrnd = new uchar[10000]();
@@ -320,10 +348,65 @@ void GUI::update_gui_from_sp(){
 }
 
 
+void GUI::write_membranes(int row, int col){
+  
+  //get the data from the table
+  int rows = membranes_control->rowCount();
+  int cols = membranes_control->columnCount();
+
+  std::vector<double> new_membranes( rows*2, 0 );
+
+  for(unsigned int rr=0; rr<rows; rr++){
+    auto tmp1 = membranes_control->item( rr, 0 )->text().toStdString();
+    auto tmp2 = membranes_control->item( rr, 1 )->text().toStdString();    
+    double dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
+    double width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
+    new_membranes[2*rr] = dist;
+    new_membranes[2*rr+1] = width;
+  }
+
+  sp->change_membranes( new_membranes );
+  
+}
+
+void GUI::read_membranes(){
+
+  membranes_control->setRowCount( 0 );
+  
+  std::vector<double> membranes = sp->get_membranes();
+  for(unsigned int ii=0; ii<membranes.size(); ii+=2){
+    add_membrane( membranes[ii], membranes[ii+1] );
+  }
+  
+
+}
+
+
+void GUI::add_membrane( double first, double second ){
+
+  //temporarliry disconnect signals
+  disconnect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
+  
+  int curRow = membranes_control->rowCount();
+  membranes_control->insertRow( curRow  );
+
+  membranes_control->setItem( curRow, 0, new QTableWidgetItem() );
+  membranes_control->setItem( curRow, 1, new QTableWidgetItem() );  
+
+  membranes_control->item( curRow, 0)->setText( QString::number( first ) );
+  membranes_control->item( curRow, 1)->setText( QString::number( second ) );
+
+  //reconnect them
+  connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );  
+}
+
+
+void GUI::rm_membrane(){
+  int ind = membranes_control->currentRow();
+  if( ind > 0 )
+    membranes_control->removeRow( ind );
+}
 
 void GUI::save_image_to_file(){
-
-
   image->save("image.png");
-
 }

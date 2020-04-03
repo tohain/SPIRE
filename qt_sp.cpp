@@ -94,6 +94,10 @@ void sp_qt::change_slice_position( double val ){
   emit parameter_changed();
 }
 
+void sp_qt::change_membranes( std::vector<double> val ){
+  set_membranes( val );
+  emit parameter_changed();
+}
 
 void sp_qt::compute_projection(){
     

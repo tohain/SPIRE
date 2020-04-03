@@ -187,6 +187,8 @@ public:
   void edit_membrane( int id, double dist, double width );
   /// deletes a meberane
   void delete_membrane( int id );
+  /// set membranes
+  void set_membranes( std::vector<double> mems );
   
   /// Sets the surface_level
   void set_surface_level( double val );

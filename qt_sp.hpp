@@ -48,6 +48,7 @@ public slots:
   void change_l( int val );
   void change_slice_width( double val );
   void change_slice_position( double val );  
+  void change_membranes( std::vector<double> val );
   
 };
 
