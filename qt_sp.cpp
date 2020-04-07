@@ -3,9 +3,6 @@
 
 sp_qt::sp_qt( double &p, std::string &s) : surface_projection(p, s){
 
-
-  //connect( this, SIGNAL( parameter_changed() ), this, SLOT( compute_projection() ) );
-
   connect( this, SIGNAL( geometry_changed() ), this, SLOT( update_geometry_() ) );
   
 }
@@ -68,25 +65,18 @@ void sp_qt::change_vol_prop( double val ){
 
 
 
-void sp_qt::change_h( int val ){
-  set_h( val );
-  emit geometry_changed();
-  emit parameter_changed();
+void sp_qt::change_hkl( int _h, int _k, int _l ){
+
+  if( !(_h == 0 && _k == 0 && _l == 0 ) ){
+    set_h( _h ); set_k( _k ); set_l( _l );
+    emit geometry_changed();
+    emit parameter_changed();
+  } else {
+    emit send_message( "At least one parameter of hkl must be non-zero", 1 );
+    emit parameter_changed();
+  } 
 }
 
-
-void sp_qt::change_k( int val ){
-  set_k( val );
-  emit geometry_changed();
-  emit parameter_changed();
-}
-
-
-void sp_qt::change_l( int val ){
-  set_l( val );
-  emit geometry_changed();
-  emit parameter_changed();
-}
 
 void sp_qt::change_slice_width( double val ){
   set_slice_width( val );
@@ -108,21 +98,48 @@ void sp_qt::change_membranes( std::vector<double> val ){
 void sp_qt::compute_projection(){
     
   //get the points in the slice  
-  emit status_updated( "Computing the points" );
+  emit send_message( "Busy", 0 );
   set_up_points();
   
   //reset grid
   memset( grid.data(), 0, sizeof(int) * grid.size() );
   
   //get grid
-  emit status_updated( "Setting up the grid" );
   set_grid();
   
   //get projection
-  emit status_updated( "Computing Projection" );
+  //emit send_message( "Computing Projection", 0 );
   memset( projection.data(), 0, sizeof(double) * projection.size() );
   project_grid();
 
   emit projection_changed();
-  emit status_updated( "Ready" );
+  emit send_message( "Ready", 0 );
 }
+
+
+void sp_qt::do_something(){
+  std::cout << "Doing something" << std::endl;
+}
+
+
+void sp_qt::copy_parameters( sp_qt *source ){
+
+
+  set_h( source->get_h() );
+  set_k( source->get_k() );
+  set_l( source->get_l() );  
+
+  set_ntucs( source->get_ntucs() );
+  set_a( source->get_a() );
+  set_membranes( source->get_membranes() );
+  set_channel_vol_prop( source->get_channel_prop() );
+
+  set_slice_width( source->get_slice_width() );
+  set_slice_height( source->get_slice_height() );
+
+  set_type( source->get_type() );
+
+  emit geometry_changed();
+  emit parameter_changed();
+}
+

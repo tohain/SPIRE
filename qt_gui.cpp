@@ -22,10 +22,10 @@ void GUI::set_up_ui(){
    * structure control
    */ 
   ntucs_control = new QT_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
-  ntucs_control->object()->setRange(0, 50);
+  ntucs_control->object()->setRange(1, 50);
   
   uc_size_control = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size", controls_basic );
-  uc_size_control->object()->setRange(0, 100);
+  uc_size_control->object()->setRange(0.01, 100);
   uc_size_control->object()->setSingleStep(0.01);    
   
   channel_prop_control = new QT_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
@@ -54,6 +54,9 @@ void GUI::set_up_ui(){
 
   invert_control = new QCheckBox( controls_basic );
   invert_control->setText( "Invert colors" );
+
+  autoupdate_control = new QCheckBox( controls_basic );
+  autoupdate_control->setText( "Autoupdate" );  
   
   
   //Set up the draw area
@@ -73,7 +76,7 @@ void GUI::set_up_ui(){
   slice_width_control->object()->setRange(0, 1);
   slice_width_control->object()->setSingleStep(0.01);
   
-  slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);    
+  slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice height", controls_basic);    
   slice_position_control->object()->setRange(0, 1);
   slice_position_control->object()->setSingleStep(0.01);  
   
@@ -112,11 +115,31 @@ void GUI::set_up_ui(){
   v_spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   h_spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
+
+  // status bar
+  status_bar = new QStatusBar();
+  status_bar_status = new QLabel();
+  status_bar_vols = new QLabel();
+  status_bar_areas = new QLabel();  
+  status_bar_pixs = new QLabel();
+  status_bar->addPermanentWidget( status_bar_vols );
+  status_bar->addPermanentWidget( status_bar_areas );  
+  status_bar->addPermanentWidget( status_bar_pixs );  
+  status_bar->addPermanentWidget( status_bar_status );
+
   
   //the main layout of the form
-  main_layout = new QHBoxLayout( this );
-  main_layout->addWidget( controls);
-  main_layout->addWidget( draw_area );
+  main_layout = new QVBoxLayout( this );
+  
+  sub_main_layout = new QHBoxLayout();
+  sub_main_layout->addWidget( controls);
+  sub_main_layout->addWidget( draw_area );
+
+  status_bar_layout = new QHBoxLayout();
+  status_bar_layout->addWidget( status_bar );
+  
+  main_layout->addLayout( sub_main_layout );
+  main_layout->addLayout( status_bar_layout );
   
   // the layout of the buttons
   buttons_layout = new QHBoxLayout();
@@ -141,6 +164,7 @@ void GUI::set_up_ui(){
   resolution_settings->addLayout( z_points_control->layout() );
   resolution_settings->addWidget( pix_size_indicator );
   resolution_settings->addWidget( invert_control );
+  resolution_settings->addWidget( autoupdate_control );
 
   slice_settings->addLayout( slice_width_control->layout() );
   slice_settings->addLayout( slice_position_control->layout() );
@@ -210,12 +234,13 @@ void GUI::set_up_signals_and_slots(){
   connect( slice_position_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_slice_position );
   // miller hkl
+
   connect( miller_h_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	   sp, &sp_qt::change_h );
+	   this, &GUI::change_orientation );
   connect( miller_k_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	   sp, &sp_qt::change_k );
+  	   this, &GUI::change_orientation );
   connect( miller_l_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	   sp, &sp_qt::change_l );  
+	   this, &GUI::change_orientation );
 
 
 
@@ -225,7 +250,10 @@ void GUI::set_up_signals_and_slots(){
 
   //buttons
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
+
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
+  connect( button_save, SIGNAL( clicked() ), this, SLOT( compute_stats() ) );
+
   connect( button_update_view, SIGNAL( clicked() ), this, SLOT( update_view() ) );  
   connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );  
 
@@ -238,10 +266,16 @@ void GUI::set_up_signals_and_slots(){
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
   // update the gui if surface_projection updated its status
-  connect( sp, &sp_qt::status_updated , this, &GUI::update_status  );
+  //connect( sp, &sp_qt::status_updated , this, &GUI::update_status  );
   // read the updated parameters
   connect( sp, &sp_qt::parameter_changed, this, &GUI::update_gui_from_sp );
 
+  // actiave autoupdate
+  connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
+
+  // get messages from subclass
+  connect( sp, &sp_qt::send_message, this, &GUI::output_message );
+  
 }
 
 
@@ -255,6 +289,16 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   sp->set_n_points_z( 150 );  
   sp->update_geometry();
   sp->update_containers();
+
+  //initialize surface projection
+  sp_stats = new sp_qt( progress, status );
+  sp_stats->set_n_points_x( 150 );
+  sp_stats->set_n_points_y( 150 );
+  sp_stats->set_n_points_z( 150 );  
+  sp_stats->update_geometry();
+  sp_stats->update_containers();
+
+
   
   set_up_ui();
 
@@ -273,7 +317,12 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   thread = new QThread();
   sp->moveToThread(thread);
   thread->start();
+
+  t_stats = new QThread();
+  sp_stats->moveToThread( t_stats );
+  t_stats->start();
   
+
   set_up_signals_and_slots();
 
 
@@ -288,6 +337,7 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
 
 void GUI::quit_app(){
+  thread->quit();
   app->quit();
 }
 
@@ -304,7 +354,6 @@ void GUI::update_view(){
 
   img_pix->convertFromImage( *image );
   draw_area->setPixmap( *img_pix);
-  
   
 }
 
@@ -329,7 +378,7 @@ void GUI::paintEvent( QPaintEvent * event ){
 
 
 void GUI::update_status( QString s ){
-  std::cout << s.toStdString() << std::endl;
+  output_message( s, 0 );
 }
 
 
@@ -354,10 +403,7 @@ void GUI::update_gui_from_sp(){
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
   
-  std::stringstream pix_size;
-  pix_size << "XY Pixel size: " << std::setprecision(3) << sp->get_dx() << std::endl
-	   << "Z Pixel size: " << std::setprecision(3) << sp->get_dz();
-  pix_size_indicator->setText( QString( pix_size.str().c_str() ) );
+  update_stats( );
 
   read_membranes();
   
@@ -379,7 +425,7 @@ void GUI::write_membranes(int row, int col){
       dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
       width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
     } catch ( std::invalid_argument e ) {
-      std::cout << "invalid argument, resetting" << std::endl;
+      output_message( "Invalid argument, resetting to last good configuration" );
       read_membranes();
       return;
     }
@@ -388,7 +434,7 @@ void GUI::write_membranes(int row, int col){
       if( dist != 0 || width < 0.02 ){
 	dist = 0;
 	width = 0.02;
-	std::cout << "Innermost membrane must be at d=0 and a minimum width of 0.02" << std::endl;
+	output_message( "Innermost membrane must be at d=0 and a minimum width of 0.02" );
       }  
     }
 
@@ -434,12 +480,115 @@ void GUI::add_membrane( double first, double second ){
 
 void GUI::rm_membrane(){
   int ind = membranes_control->currentRow();
-  if( ind > 0 )
+  if( ind > 0 ){
     membranes_control->removeRow( ind );
+    write_membranes(0, 0);
+  }
   else
-    std::cout << "Innermost membrane can't be removed" << std::endl;
+    output_message( "Innermost membrane can't be removed" );
 }
 
 void GUI::save_image_to_file(){
   image->save("image.png");
+}
+
+
+/*
+ * types:
+ * 0 = status
+ * 1 = message
+ * 2 = stats
+ */
+void GUI::output_message( QString msg, int type ){
+
+  if( type == 0 ){  
+    status_bar_status->setText( msg  );
+  } else if ( type == 1 ){
+    status_bar->showMessage( msg );
+  } 
+
+}
+
+
+void GUI::change_orientation( int val ){
+
+  int h = miller_h_control->object()->value();
+  int k = miller_k_control->object()->value();
+  int l = miller_l_control->object()->value();  
+
+  sp->change_hkl( h, k, l );
+  
+}
+
+void GUI::update_stats(){
+
+  std::stringstream pix_size;  
+  pix_size << "  XY Pixel size: " << std::setprecision(3) << sp->get_dx() << std::endl
+	   << "  Z Pixel size: " << std::setprecision(3) << sp->get_dz()
+	   << "          ";
+  //pix_size_indicator->setText( QString( pix_size.str().c_str() ) );
+  
+  status_bar_pixs->setText( QString( pix_size.str().c_str() ) );
+
+
+  std::stringstream vols, areas;
+  vols << "Volumes" << std::endl;
+  std::vector<double> vol_data = sp_stats->get_channel_volumes();
+  double tmp1 = (vol_data.size()>0) ? vol_data[0] : -1;
+  double tmp2 = (vol_data.size()>0) ? vol_data[vol_data.size() - 1] : -1;
+  vols << "Inner channel: " << tmp1 << std::endl;
+  vols << "Outer channel: " << tmp2;
+
+
+
+  areas << "Areas" << std::endl;
+  std::vector<double> area_data = sp_stats->get_membrane_surface_area();
+  tmp1 = (area_data.size()>0) ? area_data[0] : -1;
+  tmp2 = (area_data.size()>0) ? area_data[area_data.size() - 1] : -1;
+  areas << "Inner membrane: " <<  tmp1 << std::endl;
+  areas << "Outer membrane: " << tmp2;  
+  
+
+  status_bar_vols->setText( QString( vols.str().c_str() ) );
+  status_bar_areas->setText( QString( areas.str().c_str() ) );  
+  
+}
+
+
+void GUI::change_autoupdate( int state ){
+  
+  if( state ){
+    connect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    output_message( "Actiavted autoupdate" );
+  } else {
+    disconnect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    output_message( "Deactiavted autoupdate" );    
+  }
+
+}
+
+
+void GUI::compute_stats(){
+
+  std::cout << "computing stats... ";
+  
+  sp_stats->copy_parameters( sp );
+  sp_stats->set_n_points_x( 150 );
+  sp_stats->set_n_points_y( 150 );
+  sp_stats->set_n_points_z( 150 );  
+
+  sp_stats->set_orientation_from_hkl();
+  sp_stats->update_periodicity_length();
+  sp_stats->update_geometry();
+  sp_stats->update_containers();
+
+  sp_stats->compute_projection();
+  
+  sp_stats->compute_volume();
+  sp_stats->compute_surface_area();
+
+  emit update_stats();
+  
+  std::cout << "done\n";
+  
 }

@@ -15,7 +15,7 @@
 #include <QPixmap>
 #include <QApplication>
 #include <QTableWidget>
-
+#include <QStatusBar>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QComboBox>
@@ -111,6 +111,7 @@ private:
   QT_labeled_obj<QSpinBox> *xy_points_control;
   QLabel *pix_size_indicator;
   QCheckBox *invert_control;
+  QCheckBox *autoupdate_control;  
 
 
   // slice parameters control
@@ -135,9 +136,20 @@ private:
   QPushButton *button_update_view;  
 
 
+  //status bar
+  QStatusBar *status_bar;
+  QLabel *status_bar_status;
+  QLabel *status_bar_pixs;
+  QLabel *status_bar_vols;
+  QLabel *status_bar_areas;  
 
+  // layouts
 
-  QHBoxLayout *main_layout;
+  QVBoxLayout *main_layout;
+
+  QHBoxLayout *sub_main_layout;
+  QHBoxLayout *status_bar_layout;
+  
   QHBoxLayout *buttons_layout;
   
   QHBoxLayout *structure_settings;
@@ -166,8 +178,14 @@ private:
   // the thread holding the projection class
   QThread *thread;
 
+  //
+  QThread *t_stats;
+
+  
   // the surface projection class
   sp_qt *sp;
+
+  sp_qt *sp_stats;
 
   // a pointer to the application executing this form
   QApplication *app;
@@ -190,5 +208,15 @@ public slots:
   void add_membrane( double first = 0, double second = 0);
   void rm_membrane();
 
+  // argument needed to match signal of QSpinBox
+  void change_orientation( int val );
+
+  void output_message( QString msg, int type = 1);
+
+  void update_stats();
+
+  void change_autoupdate( int state );
+
+  void compute_stats();
   
 };
