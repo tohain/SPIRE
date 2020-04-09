@@ -24,7 +24,7 @@ void sp_qt::change_surface_type( int ind ){
 
   //backup channel proportion
   double vol_prop = get_channel_prop();
-  
+
   set_type( ind );
 
   set_channel_vol_prop( vol_prop );
@@ -96,7 +96,7 @@ void sp_qt::change_membranes( std::vector<double> val ){
 }
 
 void sp_qt::compute_projection(){
-    
+  
   //get the points in the slice  
   emit send_message( "Busy", 0 );
   set_up_points();
@@ -114,6 +114,7 @@ void sp_qt::compute_projection(){
 
   emit projection_changed();
   emit send_message( "Ready", 0 );
+  
 }
 
 
@@ -143,3 +144,54 @@ void sp_qt::copy_parameters( sp_qt *source ){
   emit parameter_changed();
 }
 
+
+
+
+void sp_qt::update_measurements(){
+
+  emit send_message( "Busy", 3 );
+  
+  update_geometry();
+
+  emit send_message( "Computing projection", 1 );
+  
+  compute_projection();
+
+  emit send_message( "Computing volumes", 1 );
+  
+  compute_volume();
+
+  emit send_message( "Computing areas", 1 );
+  
+  compute_surface_area();
+
+  emit send_message( "Computing networks", 1 );
+  
+  compute_channel_network();
+  
+  emit send_message( "Finished computing measurements", 1 );
+
+  emit send_message( "Ready", 3 );
+
+  emit measurements_updated();
+}
+
+
+
+void sp_qt::save_grid( QString fn ){
+
+  print_grid( fn.toStdString() );
+  
+}
+
+void sp_qt::save_topological_network( int id, QString fn ){
+
+  print_topological_network( id, fn.toStdString() );
+  
+}
+
+void sp_qt::save_surface_points( int id, QString fn ){
+
+  print_channel_surface_points( id, fn.toStdString() );
+  
+}

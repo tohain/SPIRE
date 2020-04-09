@@ -33,6 +33,8 @@ signals:
   
   void status_updated( QString st );
 
+  void measurements_updated();
+  
   void send_message( QString msg, int type = 1 ); 
 				   
 public slots:
@@ -40,6 +42,7 @@ public slots:
   void update_geometry_();  
   void compute_projection();
 
+  void update_measurements();
   
   void change_surface_type( int ind );
   void change_ntucs( int ind );
@@ -55,6 +58,10 @@ public slots:
   void do_something();
 
   void copy_parameters( sp_qt *source );
+
+  void save_grid( QString fn );
+  void save_topological_network( int id, QString fn_prefix );
+  void save_surface_points( int id, QString fn_prefix );
   
   
 };

@@ -22,6 +22,7 @@
 #include <QSpacerItem>
 #include <QCheckBox>
 #include <QFileDialog>
+#include <QLineEdit>
 
 #include <QThread>
 #include <QMutex>
@@ -77,8 +78,8 @@ public:
   explicit GUI( QApplication *app, QWidget *parent = 0 );
 
 
-  double progress;
-  std::string status;
+  double progress, progress_stats;
+  std::string status, status_stats;
   
 protected:
   
@@ -96,9 +97,20 @@ private:
 
   QTabWidget *controls;
   QWidget *controls_basic;
-  QWidget *controls_advanced;
-  QWidget *controls_all;
+  QWidget *controls_measurement;
+  QWidget *controls_save;
 
+
+  // stats tab
+  QLabel *detailled_stats;
+
+  // save tab
+  QPushButton *save_grid_control;
+  QPushButton *save_surface_points_control;
+  QPushButton *save_topological_network_control;
+
+  QLineEdit *path_prefix_control;
+  
   // structure control
   QT_labeled_obj<QSpinBox> *ntucs_control;
   QT_labeled_obj<QDoubleSpinBox> *uc_size_control;
@@ -131,20 +143,24 @@ private:
   
   //basic buttons
   QPushButton *button_quit;
-  QPushButton *button_save;
+  QPushButton *button_measure;
   QPushButton *button_render;
-  QPushButton *button_update_view;  
+  QPushButton *button_save;
 
 
   //status bar
   QStatusBar *status_bar;
-  QLabel *status_bar_status;
+  QLabel *status_bar_status_m;
+  QLabel *status_bar_status_p;  
   QLabel *status_bar_pixs;
   QLabel *status_bar_vols;
-  QLabel *status_bar_areas;  
+  QLabel *status_bar_areas;
+  QLabel *status_bar_mins;
 
   // layouts
 
+
+  
   QVBoxLayout *main_layout;
 
   QHBoxLayout *sub_main_layout;
@@ -159,8 +175,8 @@ private:
   QVBoxLayout *membrane_buttons_layout;
   
   QVBoxLayout *controls_basic_layout;
-  QVBoxLayout *controls_advanced_layout;
-  QVBoxLayout *controls_all_layout;
+  QVBoxLayout *controls_measurement_layout;
+  QVBoxLayout *controls_save_layout;
 
 
 
@@ -192,9 +208,19 @@ private:
   
 signals:
 
-    
+  void call_compute_projection();
+  void call_update_stats();
+
+
+  void call_save_grid( QString fn );
+  void call_save_surface( int id, QString fn );
+  void call_save_network( int id, QString fn );
+			  
 public slots:
 
+
+
+  
   void update_gui_from_sp();
   
   void update_status( QString s);
@@ -214,9 +240,15 @@ public slots:
   void output_message( QString msg, int type = 1);
 
   void update_stats();
+  void update_detailled_stats();
 
   void change_autoupdate( int state );
 
-  void compute_stats();
+  void measure();
+
+  std::string get_prefix();
+  void save_grid();
+  void save_network();
+  void save_surface_points();
   
 };

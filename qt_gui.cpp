@@ -5,18 +5,27 @@ void GUI::set_up_ui(){
   // the widgets for the tabs
   controls = new QTabWidget( this );
   controls_basic = new QWidget();
-  controls_advanced = new QWidget();
-  controls_all = new QWidget();
+  controls_save = new QWidget();
+  controls_measurement = new QWidget();
 
   controls->addTab( controls_basic, "Basic" );
-  controls->addTab( controls_advanced, "Advanced" );
-  controls->addTab( controls_all, "All" );  
+  controls->addTab( controls_measurement, "Measurements" );
+  controls->addTab( controls_save, "Save Image" );
 
+  // stats tab
+  detailled_stats = new QLabel( controls_save );
+
+  // save tab
+  save_grid_control = new QPushButton( "Save grid", controls_save );
+  save_surface_points_control = new QPushButton( "Save membrane points", controls_save );
+  save_topological_network_control = new QPushButton( "Save network", controls_save );
+  path_prefix_control = new QLineEdit( controls_save );
+  
   // buttons for controls_basic
   button_quit = new QPushButton("Quit", controls_basic);
   button_save = new QPushButton("Save", controls_basic);
   button_render = new QPushButton("Compute", controls_basic);
-  button_update_view = new QPushButton("Update", controls_basic);  
+  button_measure = new QPushButton("Measure", controls_basic);  
 
   /*
    * structure control
@@ -118,14 +127,21 @@ void GUI::set_up_ui(){
 
   // status bar
   status_bar = new QStatusBar();
-  status_bar_status = new QLabel();
+  status_bar_status_m = new QLabel();
+  status_bar_status_m->setAlignment(Qt::AlignCenter);
+  status_bar_status_p = new QLabel();
+  status_bar_status_p->setAlignment(Qt::AlignCenter);  
+  
   status_bar_vols = new QLabel();
   status_bar_areas = new QLabel();  
   status_bar_pixs = new QLabel();
+  status_bar_mins = new QLabel();
+  status_bar->addPermanentWidget( status_bar_mins );  
   status_bar->addPermanentWidget( status_bar_vols );
   status_bar->addPermanentWidget( status_bar_areas );  
   status_bar->addPermanentWidget( status_bar_pixs );  
-  status_bar->addPermanentWidget( status_bar_status );
+  status_bar->addPermanentWidget( status_bar_status_m );
+  status_bar->addPermanentWidget( status_bar_status_p );  
 
   
   //the main layout of the form
@@ -145,8 +161,19 @@ void GUI::set_up_ui(){
   buttons_layout = new QHBoxLayout();
   // the layout of the tabs
   controls_basic_layout = new QVBoxLayout( controls_basic );
-  controls_advanced_layout = new QVBoxLayout( controls_advanced );
-  controls_all_layout = new QVBoxLayout( controls_all );  
+  controls_save_layout = new QVBoxLayout( controls_save );
+  controls_measurement_layout = new QVBoxLayout( controls_measurement );  
+
+
+
+  controls_measurement_layout->addWidget( detailled_stats );
+
+  controls_save_layout->addWidget( path_prefix_control );
+  controls_save_layout->addWidget( save_grid_control );
+  controls_save_layout->addWidget( save_surface_points_control );
+  controls_save_layout->addWidget( save_topological_network_control );
+    
+
   
   
   structure_settings = new QHBoxLayout();
@@ -190,7 +217,7 @@ void GUI::set_up_ui(){
   controls_basic_layout->addLayout( buttons_layout );
     
   buttons_layout->addWidget( button_render );
-  buttons_layout->addWidget( button_update_view );
+  buttons_layout->addWidget( button_measure );
   buttons_layout->addWidget( button_save );
   buttons_layout->addWidget( button_quit );
 
@@ -250,11 +277,11 @@ void GUI::set_up_signals_and_slots(){
 
   //buttons
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
-
+  //connect( button_render, SIGNAL( clicked() ), this, SLOT( compute_stats() ) );
+  
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
-  connect( button_save, SIGNAL( clicked() ), this, SLOT( compute_stats() ) );
 
-  connect( button_update_view, SIGNAL( clicked() ), this, SLOT( update_view() ) );  
+  connect( button_measure, SIGNAL( clicked() ), this, SLOT( measure() ) );  
   connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );  
 
   connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
@@ -273,8 +300,33 @@ void GUI::set_up_signals_and_slots(){
   // actiave autoupdate
   connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
 
+  //invert or not
+  connect( invert_control, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );  
+  
   // get messages from subclass
   connect( sp, &sp_qt::send_message, this, &GUI::output_message );
+  connect( sp_stats, &sp_qt::send_message, this, &GUI::output_message );  
+
+  //projection
+  connect( this, &GUI::call_compute_projection, sp, &sp_qt::compute_projection );
+
+
+
+  // measurements
+  connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
+  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_stats );
+  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_detailled_stats );  
+
+
+  // saving
+  connect( save_grid_control, &QPushButton::clicked, this, &GUI::save_grid );
+  connect( save_surface_points_control, &QPushButton::clicked, this, &GUI::save_surface_points );
+  connect( save_topological_network_control, &QPushButton::clicked, this, &GUI::save_network );
+
+  connect( this, &GUI::call_save_grid, sp, &sp_qt::save_grid );
+  connect( this, &GUI::call_save_surface, sp, &sp_qt::save_surface_points );
+  connect( this, &GUI::call_save_network, sp_stats, &sp_qt::save_topological_network );    
+  
   
 }
 
@@ -291,10 +343,11 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   sp->update_containers();
 
   //initialize surface projection
-  sp_stats = new sp_qt( progress, status );
-  sp_stats->set_n_points_x( 150 );
-  sp_stats->set_n_points_y( 150 );
-  sp_stats->set_n_points_z( 150 );  
+  
+  sp_stats = new sp_qt( progress_stats, status_stats );
+  sp_stats->set_n_points_x( 50 );
+  sp_stats->set_n_points_y( 50 );
+  sp_stats->set_n_points_z( 50 );  
   sp_stats->update_geometry();
   sp_stats->update_containers();
 
@@ -313,6 +366,8 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   img_pix->convertFromImage( *image );
   
 
+  set_up_signals_and_slots();
+  
  
   thread = new QThread();
   sp->moveToThread(thread);
@@ -321,23 +376,17 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   t_stats = new QThread();
   sp_stats->moveToThread( t_stats );
   t_stats->start();
-  
 
-  set_up_signals_and_slots();
-
-
-  sp->compute_projection();
-  update_view();
-  
+  measure();
+  emit call_compute_projection();  
 }
-
-
 
 
 
 
 void GUI::quit_app(){
   thread->quit();
+  t_stats->quit();
   app->quit();
 }
 
@@ -354,6 +403,8 @@ void GUI::update_view(){
 
   img_pix->convertFromImage( *image );
   draw_area->setPixmap( *img_pix);
+
+  delete( img_data );
   
 }
 
@@ -495,17 +546,26 @@ void GUI::save_image_to_file(){
 
 /*
  * types:
- * 0 = status
+ * 0 = status_p
  * 1 = message
  * 2 = stats
+ * 3 = status_m
  */
 void GUI::output_message( QString msg, int type ){
 
-  if( type == 0 ){  
-    status_bar_status->setText( msg  );
+  std::stringstream text;
+  
+  if( type == 0 ){
+    text.str("");
+    text << "Projection" << std::endl << msg.toStdString() << std::endl;
+    status_bar_status_p->setText( QString( text.str().c_str() )  );
   } else if ( type == 1 ){
     status_bar->showMessage( msg );
-  } 
+  } else if( type == 3 ){
+    text.str("");
+    text << "Measurement:" << std::endl << msg.toStdString() << std::endl;
+    status_bar_status_m->setText( text.str().c_str() );
+  }
 
 }
 
@@ -531,13 +591,13 @@ void GUI::update_stats(){
   status_bar_pixs->setText( QString( pix_size.str().c_str() ) );
 
 
-  std::stringstream vols, areas;
+  std::stringstream vols, areas, mins;
   vols << "Volumes" << std::endl;
   std::vector<double> vol_data = sp_stats->get_channel_volumes();
   double tmp1 = (vol_data.size()>0) ? vol_data[0] : -1;
   double tmp2 = (vol_data.size()>0) ? vol_data[vol_data.size() - 1] : -1;
-  vols << "Inner channel: " << tmp1 << std::endl;
-  vols << "Outer channel: " << tmp2;
+  vols << tmp1 << std::endl;
+  vols << tmp2;
 
 
 
@@ -545,12 +605,59 @@ void GUI::update_stats(){
   std::vector<double> area_data = sp_stats->get_membrane_surface_area();
   tmp1 = (area_data.size()>0) ? area_data[0] : -1;
   tmp2 = (area_data.size()>0) ? area_data[area_data.size() - 1] : -1;
-  areas << "Inner membrane: " <<  tmp1 << std::endl;
-  areas << "Outer membrane: " << tmp2;  
-  
+  areas << tmp1 << std::endl;
+  areas << tmp2;  
+
+
+  // channel diameters
+  double inner_min = sp_stats->get_minimal_channel_diameter( 0 );
+  double outer_min = sp_stats->get_minimal_channel_diameter( 1 );  
+  mins << "Min. channel diameter" << std::endl;
+  mins << "Inner membrane: " << inner_min << std::endl;
+  mins << "Outer membrane: " << outer_min;
+
 
   status_bar_vols->setText( QString( vols.str().c_str() ) );
-  status_bar_areas->setText( QString( areas.str().c_str() ) );  
+  status_bar_areas->setText( QString( areas.str().c_str() ) );
+  status_bar_mins->setText( QString( mins.str().c_str() ) );
+  
+}
+
+
+
+void GUI::update_detailled_stats(){
+
+  std::stringstream out;
+
+
+  out << "Volumes:" << std::endl << std::endl;
+  std::vector<double> vol_data = sp_stats->get_channel_volumes();
+  for( unsigned int ii=0; ii<vol_data.size(); ii+=2){
+    out << "Channel " << (ii+2)/2 << ": " << vol_data.at(ii) << std::endl;
+  }
+  out << std::endl;
+  for( unsigned int ii=1; ii<vol_data.size(); ii+=2){
+    out << "Membrane " << (ii+1)/2 << ": " << vol_data.at(ii) << std::endl;
+  }  
+  
+
+  out << std::endl << std::endl << "Areas:" << std::endl << std::endl;
+  std::vector<double> area_data = sp_stats->get_membrane_surface_area();
+  for( unsigned int ii=0; ii < area_data.size(); ii++){
+    out << "Membrane " << ii+1 << ": " << area_data.at(ii) << std::endl;
+  }
+
+
+  // channel diameters
+  double inner_min = sp_stats->get_minimal_channel_diameter( 0 );
+  double outer_min = sp_stats->get_minimal_channel_diameter( 1 );  
+  out << std::endl << std::endl;
+  out << "Min. channel diameter" << std::endl << std::endl;
+  out << "Inner membrane: " << inner_min << std::endl;
+  out << "Outer membrane: " << outer_min;
+  
+
+  detailled_stats->setText( out.str().c_str() );
   
 }
 
@@ -568,27 +675,57 @@ void GUI::change_autoupdate( int state ){
 }
 
 
-void GUI::compute_stats(){
+void GUI::measure(){
+    sp_stats->copy_parameters( sp );
+  sp_stats->set_n_points_x( 76 );
+  sp_stats->set_n_points_y( 76 );
+  sp_stats->set_n_points_z( 76 );  
 
-  std::cout << "computing stats... ";
+  emit call_update_stats();   
+}
+
+
+std::string GUI::get_prefix(){
+
+  std::string tmp = path_prefix_control->text().toStdString();
+  if( tmp == "" ){
+    tmp += "structure";
+  }
+  return tmp;
+
+}
+
+void GUI::save_grid(){
+
+  std::string fn = get_prefix();
+  fn += "_grid.dat";
+  emit call_save_grid( QString( fn.c_str() ) );
   
-  sp_stats->copy_parameters( sp );
-  sp_stats->set_n_points_x( 150 );
-  sp_stats->set_n_points_y( 150 );
-  sp_stats->set_n_points_z( 150 );  
+}
 
-  sp_stats->set_orientation_from_hkl();
-  sp_stats->update_periodicity_length();
-  sp_stats->update_geometry();
-  sp_stats->update_containers();
+void GUI::save_network(){
 
-  sp_stats->compute_projection();
+  std::string fn = get_prefix();
+  fn += "_network_inner.dat";
+  emit call_save_network( 0, QString( fn.c_str() ) );
+
+  fn = get_prefix();
+  fn += "_network_outer.dat";
+  emit call_save_network( 1, QString( fn.c_str() ) );
   
-  sp_stats->compute_volume();
-  sp_stats->compute_surface_area();
+}
 
-  emit update_stats();
-  
-  std::cout << "done\n";
+void GUI::save_surface_points(){
+
+  int nr_membranes = membranes_control->rowCount();
+
+  std::cout << nr_membranes << std::endl;
+  for( unsigned int i=0; i < nr_membranes; i++){
+    std::string fn = get_prefix();
+    fn+= "_membrane_" + std::to_string( i ) + ".dat";
+    //remember that channel counts are started at 1 not 0
+    emit call_save_surface( i+1, QString( fn.c_str() ) );
+  }
+
   
 }
