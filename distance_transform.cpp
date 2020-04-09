@@ -11,6 +11,23 @@
 #include "distance_transform.hpp"
 
 /**
+ * Initializes an empty object. Needs a call of \ref set_parameters()
+ * before being able to do stuff!
+ */
+template <class T>
+distance_transform<T>::distance_transform(){
+
+  img = std::vector<T> (0, 0);
+  dim = 1;
+  size[0]=1; size[1]=1; size[2];
+  pix_size[0]=1; pix_size[1]=1; pix_size[2]=1;
+
+  map = std::vector<double> (0, 0);
+}
+
+
+
+/**
  * Allocates necessary memory for the transformed map and initializes
  * class parameters
  *
@@ -80,6 +97,54 @@ distance_transform<T>::distance_transform( std::vector<T> data, int n, int k, in
 
   //allocate memory
   map = std::vector<double> (n*k*l, 0);
+}
+
+
+
+/**
+ * Updates the object with a new grid, dimension and pixsize. The
+ * function ref compute_distance_map() needs to be called again of
+ * course to update the distance map returned by ref
+ * get_distance_map();
+ * \param[in] data The array holding the image data 
+ * \param[in] dim The dimension of the image: [0] the width (=nr of
+ * cols); [1] the height (=nr of rows); [3] the depth (=height of
+ * "stacks"). The size of the vector determines the dimension of the
+ * distance map
+ * \param[in] pixsize The size of a pixel in its respective direction
+ * in length units
+ */
+template<class T>
+void distance_transform<T>::set_parameters( std::vector<T> data,
+					 std::vector<unsigned int> _dim,
+					 std::vector<double> pixsize ){
+  
+  img = data;
+  dim = _dim.size();
+
+  if( _dim.size() == 1 ){
+
+    size[0]=_dim[0]; size[1]=1; size[2]=1;
+    pix_size[0]=pixsize[0]; pix_size[1]=1; pix_size[2]=1;
+
+    map = std::vector<double> ( _dim[0], 0);
+    
+  } else if( _dim.size() == 2 ){
+
+    size[0]=_dim[0]; size[1]=_dim[1]; size[2]=1;
+    pix_size[0]=pixsize[0]; pix_size[1]=pixsize[1]; pix_size[2]=1;
+
+    map = std::vector<double> ( _dim[0]*_dim[1], 0 );
+    
+  } else if( _dim.size() == 3 ){
+
+    size[0]=_dim[0]; size[1]=_dim[1]; size[2]=_dim[2];
+    pix_size[0]=pixsize[0]; pix_size[1]=pixsize[1]; pix_size[2]=pixsize[2];
+
+    map = std::vector<double> ( _dim[0]*_dim[1]*_dim[2], 0 );
+    
+  }
+  
 }
 
 

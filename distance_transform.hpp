@@ -22,7 +22,7 @@
  *
  * This class computes the distance transformation of a picture. It is
  * based on an algorithm published by Pedro F. Felzenszwalb and Daniel
- * P. Huttenlocher, T HEORY OF C OMPUTING , Volume 8 (2012), pp. 415–428.
+ * P. Huttenlocher, THEORY OF COMPUTING , Volume 8 (2012), pp. 415–428.
  * 10.4086/toc.2012.v008a019
  *
  * It is based on a one-dimensional distance transform. For higher
@@ -30,15 +30,20 @@
  * publication for more details.
  *
  * This class comes as a template, so distance maps of ints, floats,
- * doubles,... can be computed without first converting the
+ * doubles,[...] can be computed without first converting the
  * vector. Internally it will be converted to a double in the \ref
  * eval_grid_function function. So make sure it can be converted to a
  * floating point number
+ * 
  */
 template <class T>
 class distance_transform {
 
 public:
+
+  /// Constructor doing nothing. This is very dangerous to use I
+  /// think, please use \ref set_parameters immediately after!
+  distance_transform();
   
   /// Constructor for a 1D transform
   distance_transform( std::vector<T> data, int n, double pixsize = 1);
@@ -58,6 +63,11 @@ public:
   /// get distance map
   std::vector<double> get_distance_map() const ;
 
+  /// Update the parameters
+  void set_parameters( std::vector<T> data,
+		       std::vector<unsigned int> dim,
+		       std::vector<double> pixsize );
+  
   /// outputs the map to console
   void print_map() const;
   
