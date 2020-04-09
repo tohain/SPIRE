@@ -99,8 +99,19 @@ public:
   /// Computes the surface area of the membranes
   void compute_surface_area();
 
+
+  /// Computes the minimal channel diameter of the given channel
+  void compute_channel_network();
+
+  /// computes the minimal diamter of a channel.
+  double get_minimal_channel_diameter( int channel_id );
+  
   /// Returns all the points which are on the surface of the channel
   std::vector<int> get_surface_points( int ch_id, int n = 26 );
+
+  /// Returns the distance map. Be careful if it is up to date. If in
+  /// doubt, call \ref set_grid() to update it
+  std::vector<double> get_distance_map() const;
   
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
@@ -111,6 +122,12 @@ public:
   
   /// Outputs the grid
   void print_grid( std::string fn );
+
+  /// Outputs surface points of the given membrane
+  void print_channel_surface_points( int mem_id, std::string fn );
+
+  /// Output the points making up the minimal topological network
+  void print_topological_network( int which, std::string fn );
   
   /// Returns the number of points in the slice in x direction
   int get_width() const;
@@ -148,6 +165,8 @@ public:
   std::vector<double> get_membranes() const;
   /// Return channel volumes
   std::vector<double> get_channel_volumes() const;
+  /// Return the topological network of the channels
+  std::vector< std::unordered_set<int> > get_channel_network() const;
   /// Return surface areas of the membranes
   std::vector<double> get_membrane_surface_area() const;
   /// Returns the width of the slice
@@ -269,10 +288,12 @@ protected:
   inline int p_for( int val );
   inline int p_back( int val );  
 
+
+  
   
   /////////////////////////////////////////////
-  // parameter
-  //////////////////////////////////
+  // parameters                           ////
+  ////////////////////////////////////////////
 
   /*
    * box parameters
@@ -353,6 +374,11 @@ protected:
   int type;
 
 
+
+  /// the distance transform of the grid. This is updated in the \ref
+  /// set_grid() function and then can be accessed using the getter
+  distance_transform<int> dt;
+
   /// The volumes of the channels
   std::vector<double> volumes;
 
@@ -362,9 +388,10 @@ protected:
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
-						    "Primitive",
-						    "Layer",
-						    "Sphere"};
+						    "Primitive"
+						    //"Layer",
+						    //"Sphere"
+  };
 
 
   /// Lookup tables for surface properties
@@ -379,7 +406,7 @@ protected:
   /// Array holding the color (electron density) of the voxels
   std::vector<int> grid;
   /// Array denoting the channel a voxel is in. Membranes are
-  /// considered channels. 1 is the innermoste channel, 2 the
+  /// considered channels. 1 is the innermost channel, 2 the
   /// innermoste membrane, ... (except for the sphere surface, in this
   /// case the order is inverted for whatever reason - I guess wierd
   /// level set values.
@@ -388,7 +415,10 @@ protected:
   /// by the level set constraint)
   std::vector<int> channel;
 
-
+  /// This vector holds the minimal topological networks of the
+  /// channels
+  std::vector< std::unordered_set<int> > topological_network;
+  
   /// A variable where the progress of the computations are stored in
   double &progress;
   /// A string the current status of the code is written into. Max len=200

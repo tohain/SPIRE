@@ -118,6 +118,44 @@ void surface_projection::print_grid( std::string fn ){
 }
 
 
+/** This function prints all points on the surface of the given cahnnel to a
+ * gnuplottable file
+ */
+void surface_projection::print_channel_surface_points( int mem_id, std::string fn ){
+
+  std::vector<int> ch_s_points = get_surface_points( mem_id );
+  
+  std::ofstream out ( fn );
+  out << " # x y z" << std::endl;
+
+  for( auto it : ch_s_points ){
+    out << points[3*it] << " " << points[3*it+1]
+	<< " " << points[3*it+2] << std::endl;
+  }
+
+
+  out.close();
+}
+
+/** This function saves all points making up the topological network
+ * of the inner or outer channel of the structure
+ */
+void surface_projection::print_topological_network( int which, std::string fn ){
+
+  std::vector< std::unordered_set<int> > net_points = get_channel_network();
+
+  std::ofstream out ( fn );
+  out << " # x y z " << std::endl;
+
+  for( auto it : net_points.at( which ) ){
+    out << points[3*it] << " " << points[3*it+1]
+	<< " " << points[3*it+2] << std::endl;
+  }
+
+  out.close();  
+}
+
+
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
@@ -435,7 +473,8 @@ void surface_projection::set_grid(){
   status = "Computing distance map";
   progress = 0;
   // compute the distance transform of the grid
-  distance_transform<int> dt ( grid, n_points_x, n_points_y, n_points_z, dx, dy, dz);  
+  dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
+		     std::vector<double> {dx, dy, dz});  
   dt.compute_distance_map();
   std::vector<double> dmap = dt.get_distance_map();  
 
@@ -634,6 +673,66 @@ void surface_projection::compute_projection( ){
 }
 
 
+
+
+/**
+ * This function computes the topological network of a channel by
+ * using homotopic thinning.
+ *
+ * Though in theory you could compute the network of the channels
+ * inbetween the membranes, in most cases that would not make too much
+ * sense, so so far only the innermost and outermost channels are
+ * computed
+ *
+ * IMORTANT: make sure \ref set_grid() has been called after any
+ * parameter change affecting the grid before calling this function to
+ * make sure the distance map is up to date!
+ */
+void surface_projection::compute_channel_network(){
+
+  
+  
+  // bring in the homotpoic thinning code
+  homotopic_thinning ht ( n_points_x, n_points_y, n_points_z, channel, dt.get_distance_map() );
+  
+  // resize container
+  topological_network.resize( 2 );
+
+  // do the work
+  topological_network.at(0) = ht.find_channel_skeleton( 1 );
+  topological_network.at(1) = ht.find_channel_skeleton( membranes.size()+1 );
+}
+
+
+
+/**
+ * Computes the minimal diameter of the provided channel. Make sure
+ * the distance map is up to date!
+ *
+ * \param[in] channel_id Choices: 0->inner channel, 1->outer channel
+ */
+double surface_projection::get_minimal_channel_diameter( int channel_id ){
+  
+  if( channel_id >= topological_network.size() ){
+    return -1;
+  } else {
+    
+    auto dmap = dt.get_distance_map();
+    
+    double min = std::numeric_limits<double>::max();
+    for( auto it : topological_network.at( channel_id ) ) {
+      
+      if( sqrt( dmap[it] ) < min ){
+	min = sqrt( dmap[it] );
+      }
+      
+    }
+    return min;
+  }
+}
+
+
+
 /** 
  * Computes the normal vector of the given orientation. In principle
  * this is equivalent to computing hkl, except we're not making even
@@ -757,7 +856,8 @@ void surface_projection::update_periodicity_length(){
 unsigned char* surface_projection::get_image(bool invert){
 
   //new image array
-  unsigned char* img = (unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
+  unsigned char* img = new unsigned char[ projection.size() ]();
+  //(unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
   
   //find min and max value
   double max= *std::max_element( projection.begin(), projection.end() );
@@ -1042,6 +1142,7 @@ void surface_projection::compute_surface_area(){
   progress = 1;
 
 #endif
+
   
 }
 
@@ -1107,8 +1208,16 @@ std::vector<double> surface_projection::get_channel_volumes() const {
   return volumes;
 }
 
+std::vector< std::unordered_set<int> > surface_projection::get_channel_network() const {
+  return topological_network;
+}
+
 std::vector<double> surface_projection::get_membrane_surface_area() const {
   return surface_area;
+}
+
+std::vector<double> surface_projection::get_distance_map() const {
+  return dt.get_distance_map();
 }
 
 std::vector<double> surface_projection::get_membranes() const {
@@ -1164,7 +1273,8 @@ double surface_projection::get_surface_level() const {
 }
 
 double surface_projection::get_channel_prop() const {
-  return s_tables.get_prop( surface_choices[type], surface_level );
+  double val =  s_tables.get_prop( surface_choices[type], surface_level );
+  return val;
 }
 
 double surface_projection::get_slice_width() const {
@@ -1274,7 +1384,6 @@ void surface_projection::set_phi( double ang ){
 void surface_projection::set_type(int val ){
   if( val < 0 || val >= surface_choices.size() ){
     val = 0;
-    throw invalid_parameter_exception( "Surface not available" );
   } else {
     type = val;
   }
@@ -1321,7 +1430,7 @@ void surface_projection::set_slice_height ( double val ){
  * up/interpolates the appropriate surface_level value in a table
  */
 void surface_projection::set_channel_vol_prop( double vol ){
-  surface_level = s_tables.get_level( surface_choices[ type ], vol );
+    surface_level = s_tables.get_level( surface_choices[ type ], vol );    
 }
 
 
