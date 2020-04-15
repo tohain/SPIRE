@@ -60,7 +60,7 @@ if(BUILD_QT_GUI)
 
   find_package(Qt5 COMPONENTS Widgets Gui REQUIRED)
   
-  add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI})
+  add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI} resources.qrc)
 
   if( USE_CGAL )
     find_package(CGAL)

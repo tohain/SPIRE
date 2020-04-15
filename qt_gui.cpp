@@ -557,13 +557,13 @@ void GUI::output_message( QString msg, int type ){
   
   if( type == 0 ){
     text.str("");
-    text << "Projection" << std::endl << msg.toStdString() << std::endl;
+    text << "Projection" << std::endl << std::endl << msg.toStdString();
     status_bar_status_p->setText( QString( text.str().c_str() )  );
   } else if ( type == 1 ){
     status_bar->showMessage( msg );
   } else if( type == 3 ){
     text.str("");
-    text << "Measurement:" << std::endl << msg.toStdString() << std::endl;
+    text << "Measurement:" << std::endl << std::endl << msg.toStdString();
     status_bar_status_m->setText( text.str().c_str() );
   }
 
