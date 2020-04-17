@@ -7,7 +7,8 @@
  * \param[in] ny size of the image in y direction
  * \param[in] nz size of the image in z direction
  */
-homotopic_thinning::homotopic_thinning ( int nx, int ny, int nz, std::vector<int> image_, std::vector<double> dmap_ )  : n_points_x (nx), n_points_y (ny), n_points_z (nz), image( image_ ), dmap( dmap_ ) {
+template <class T>
+homotopic_thinning<T>::homotopic_thinning ( int nx, int ny, int nz, std::vector<T> image_, std::vector<float> dmap_ )  : n_points_x (nx), n_points_y (ny), n_points_z (nz), image( image_ ), dmap( dmap_ ) {
   
 }
 
@@ -43,13 +44,14 @@ std::unordered_set<int> intersection( std::unordered_set<int> a, std::unordered_
  * param[in] channel_id Id of the channel to get the exterior points for
  * param[in] n background adjacency
  */
-std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id, int n ){
+template <class T>
+std::unordered_set<int> homotopic_thinning<T>::get_exterior_points( T channel_id, int n ){
 
   std::unordered_set<int> exterior_points;
 
   for( unsigned int ii=0; ii< image.size(); ii++){
 
-    if( std::abs(image[ii]) == std::abs( channel_id ) ){
+    if( std::fabs(image[ii]) == std::fabs( channel_id ) ){
     
       iterable_voxel point ( ii, n_points_x, n_points_y, n_points_z );
       
@@ -66,7 +68,7 @@ std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id,
 
       bool found_background = false;
       for( auto it : nbs ){
-	if( std::abs( image[it] ) != std::abs( channel_id ) ){
+	if( std::fabs( image[it] ) != std::fabs( channel_id ) ){
 	  found_background = true;
 	  break;
 	}
@@ -94,7 +96,8 @@ std::unordered_set<int> homotopic_thinning::get_exterior_points( int channel_id,
  * \param[in] m The connectivity of the image
  * \param[in] n The connectivity of the background
  */
-bool homotopic_thinning::point_deletable( int id, int m, int n ){
+template <class T>
+bool homotopic_thinning<T>::point_deletable( int id, int m, int n ){
 
   auto components_image = get_connected_components( id, m, true );
   auto components_background = get_connected_components( id, n, false );  
@@ -157,7 +160,8 @@ bool homotopic_thinning::point_deletable( int id, int m, int n ){
  *
  * \return A set of points making up the skeleton
  */
-std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
+template <class T>
+std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
 
 
 
@@ -175,7 +179,7 @@ std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
   std::vector<int> queued (image.size(), 0);
 
   // add all skeleton points to the queue
-  std::multimap<double, int> to_process;
+  std::multimap<float, int> to_process;
   for( auto it : ext_points ){
     to_process.emplace( dmap[it], it );
     queued[it] = 1;
@@ -203,7 +207,7 @@ std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
       std::unordered_set<int> nbs = point.get_26_neighbors();
       
       for( auto it : nbs ){
-	if( std::abs( image[it] ) == std::abs(ch_id)   &&
+	if( std::fabs( image[it] ) == std::fabs(ch_id)   &&
 	    queued[it] == 0 ){
 	  
 	  to_process.emplace( dmap[it], it );
@@ -237,7 +241,8 @@ std::unordered_set<int> homotopic_thinning::find_channel_skeleton( int ch_id ){
  *
  * \return A vector of unordered sets containing the points of the connected components
  */
-std::vector< std::unordered_set<int> >  homotopic_thinning::get_connected_components( int center, int m, bool img ){
+template <class T>
+std::vector< std::unordered_set<int> >  homotopic_thinning<T>::get_connected_components( int center, int m, bool img ){
 
 
   // at first, lets find the suitable neighborhood of center
@@ -351,3 +356,8 @@ std::vector< std::unordered_set<int> >  homotopic_thinning::get_connected_compon
 
   return components;  
 }
+
+template class homotopic_thinning<short>;
+template class homotopic_thinning<unsigned short>;
+template class homotopic_thinning<unsigned int>;
+template class homotopic_thinning<int>;

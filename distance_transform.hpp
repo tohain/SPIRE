@@ -36,7 +36,7 @@
  * floating point number
  * 
  */
-template <class T>
+template <class T, class M = float>
 class distance_transform {
 
 public:
@@ -61,7 +61,7 @@ public:
   void compute_distance_map();
 
   /// get distance map
-  std::vector<double> get_distance_map() const ;
+  std::vector<M> get_distance_map() const ;
 
   /// Update the parameters
   void set_parameters( std::vector<T> data,
@@ -74,17 +74,17 @@ public:
 private:
 
   /// 1D distance transform
-  std::vector<double> do_distance_transform( std::vector<double> &grid, double pixsize = 1 );
+  std::vector<M> do_distance_transform( std::vector<M> &grid, double pixsize = 1 );
 
   /// evaluates the function on the given data
   template <class U>
-  std::vector<double> eval_grid_function( std::vector<U> &data, double max );
+  std::vector<M> eval_grid_function( std::vector<U> &data, double max );
     
   /// The image to transform
   std::vector<T> img;
   
   /// The array holding the distance map
-  std::vector<double> map;
+  std::vector<M> map;
 
   /// The dimension of the object to transform
   unsigned int dim;

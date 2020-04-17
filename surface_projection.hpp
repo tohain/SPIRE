@@ -111,7 +111,7 @@ public:
 
   /// Returns the distance map. Be careful if it is up to date. If in
   /// doubt, call \ref set_grid() to update it
-  std::vector<double> get_distance_map() const;
+  std::vector<float> get_distance_map() const;
   
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false);
@@ -147,13 +147,13 @@ public:
   /// Returns the currently set type of the surface
   int get_type() const;
   /// Returns the projection array
-  std::vector<double> get_projection() const;
+  std::vector<float> get_projection() const;
   /// Returns the grid
-  std::vector<int> get_grid() const;
+  std::vector<short> get_grid() const;
   /// returns a copy of the channel array
-  std::vector<int> get_channel() const;  
+  std::vector<short> get_channel() const;  
   /// Returns the points (=positions) of the points
-  std::vector<double> get_points() const;  
+  std::vector<float> get_points() const;  
   
   /// Returns the periodicity (unit cell size) of the surface
   double get_a() const;
@@ -379,7 +379,7 @@ protected:
 
   /// the distance transform of the grid. This is updated in the \ref
   /// set_grid() function and then can be accessed using the getter
-  distance_transform<int> dt;
+  distance_transform<short> dt;
 
   /// The volumes of the channels
   std::vector<double> volumes;
@@ -404,9 +404,9 @@ protected:
    ******************************************************************/
 
   /// Array holding coordinates of the voxels
-  std::vector<double> points;
+  std::vector<float> points;
   /// Array holding the color (electron density) of the voxels
-  std::vector<int> grid;
+  std::vector<short> grid;
   /// Array denoting the channel a voxel is in. Membranes are
   /// considered channels. 1 is the innermost channel, 2 the
   /// innermoste membrane, ... (except for the sphere surface, in this
@@ -415,7 +415,7 @@ protected:
   /// negative/positive values denotes if the channel
   /// is inside or outside of the main "membrane" (=the membrane set
   /// by the level set constraint)
-  std::vector<int> channel;
+  std::vector<short> channel;
 
   /// This vector holds the minimal topological networks of the
   /// channels
@@ -427,7 +427,7 @@ protected:
   std::string &status;
   
   /// The 2D projection
-  std::vector<double> projection;
+  std::vector<float> projection;
 };
 
 

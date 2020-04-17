@@ -476,7 +476,7 @@ void surface_projection::set_grid(){
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
 		     std::vector<double> {dx, dy, dz});  
   dt.compute_distance_map();
-  std::vector<double> dmap = dt.get_distance_map();  
+  std::vector<float> dmap = dt.get_distance_map();  
 
   // now assign channel number
 
@@ -612,7 +612,7 @@ void surface_projection::update_containers(){
   
   /// The 2D projection
   projection.resize( n_points_x * n_points_y, 0 );
-  memset( projection.data(), 0, sizeof(double) * projection.size());
+  memset( projection.data(), 0, sizeof(float) * projection.size());
 }
 
 /**
@@ -665,7 +665,7 @@ void surface_projection::compute_projection( ){
   
   //get projection
   status = "Computing Projection";
-  memset( projection.data(), 0, sizeof(double) * projection.size() );
+  memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
   progress = 1.0;
   status = "Ready";
@@ -693,7 +693,7 @@ void surface_projection::compute_channel_network(){
   
   
   // bring in the homotpoic thinning code
-  homotopic_thinning ht ( n_points_x, n_points_y, n_points_z, channel, dt.get_distance_map() );
+  homotopic_thinning<short> ht ( n_points_x, n_points_y, n_points_z, channel, dt.get_distance_map() );
   
   // resize container
   topological_network.resize( 2 );
@@ -867,7 +867,7 @@ unsigned char* surface_projection::get_image(bool invert){
   //write image data
   for(unsigned int ii=0; ii<projection.size(); ii++){
       //scale
-      int u_scaled = static_cast<int>((projection[ii] - min)/(max - min)*255);
+    short u_scaled = static_cast<short>((projection[ii] - min)/(max - min)*255);
       //invert
       if(invert)
 	u_scaled = 255 - u_scaled;
@@ -1200,7 +1200,7 @@ std::vector<int> surface_projection::get_surface_points( int ch_id, int n ){
  *  Getters
  *************************/
 
-std::vector<int> surface_projection::get_channel() const {
+std::vector<short> surface_projection::get_channel() const {
   return channel;
 }
 
@@ -1216,7 +1216,7 @@ std::vector<double> surface_projection::get_membrane_surface_area() const {
   return surface_area;
 }
 
-std::vector<double> surface_projection::get_distance_map() const {
+std::vector<float> surface_projection::get_distance_map() const {
   return dt.get_distance_map();
 }
 
@@ -1224,7 +1224,7 @@ std::vector<double> surface_projection::get_membranes() const {
   return membranes;
 }
 
-std::vector<double> surface_projection::get_projection() const {
+std::vector<float> surface_projection::get_projection() const {
   return projection;
 }
 
@@ -1313,11 +1313,11 @@ double surface_projection::get_periodicity_length() const{
   return periodicity_length;
 }
 
-std::vector<int> surface_projection::get_grid() const {
+std::vector<short> surface_projection::get_grid() const {
   return grid;
 }
 
-std::vector<double> surface_projection::get_points() const {
+std::vector<float> surface_projection::get_points() const {
   return points;
 }
 

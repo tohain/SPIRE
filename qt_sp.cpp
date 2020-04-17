@@ -102,14 +102,14 @@ void sp_qt::compute_projection(){
   set_up_points();
   
   //reset grid
-  memset( grid.data(), 0, sizeof(int) * grid.size() );
+  memset( grid.data(), 0, sizeof(short) * grid.size() );
   
   //get grid
   set_grid();
   
   //get projection
   //emit send_message( "Computing Projection", 0 );
-  memset( projection.data(), 0, sizeof(double) * projection.size() );
+  memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
 
   emit projection_changed();
