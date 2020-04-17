@@ -121,8 +121,9 @@ private:
   // resolution control
   QT_labeled_obj<QSpinBox> *z_points_control;
   QT_labeled_obj<QSpinBox> *xy_points_control;
+  QT_labeled_obj<QComboBox> *image_scaling_control;  
   QLabel *pix_size_indicator;
-  QCheckBox *invert_control;
+  QCheckBox *invert_control;  
   QCheckBox *autoupdate_control;  
 
 
@@ -216,7 +217,9 @@ signals:
   void call_save_grid( QString fn );
   void call_save_surface( int id, QString fn );
   void call_save_network( int id, QString fn );
-			  
+
+  void call_set_measurement_status( int state );
+  					      
 public slots:
 
 
@@ -251,5 +254,9 @@ public slots:
   void save_grid();
   void save_network();
   void save_surface_points();
+
+  void set_state( int what, int state );
+
+  void set_measurements_status( int state );
   
 };

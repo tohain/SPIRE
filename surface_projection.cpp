@@ -853,7 +853,7 @@ void surface_projection::update_periodicity_length(){
  * to 255. Also inverts if necessary. Memory management could be
  * imporved I guess
  */
-unsigned char* surface_projection::get_image(bool invert){
+unsigned char* surface_projection::get_image(bool invert, std::string scaling){
 
   //new image array
   unsigned char* img = new unsigned char[ projection.size() ]();
@@ -863,16 +863,29 @@ unsigned char* surface_projection::get_image(bool invert){
   double max= *std::max_element( projection.begin(), projection.end() );
   double min= *std::min_element( projection.begin(), projection.end() );
 
-  
+  if( scaling == "LOG" ){
+    max = log( max + 1 );
+    min = log( min + 1 );    
+  }
+
   //write image data
   for(unsigned int ii=0; ii<projection.size(); ii++){
-      //scale
-    short u_scaled = static_cast<short>((projection[ii] - min)/(max - min)*255);
+    //scale
+    float pixel_val;
+    short u_scaled;
+
+    if( scaling == "LIN" ){
+      pixel_val = ((projection[ii] - min)/(max - min)*255);
+    } else if( scaling == "LOG" ){
+      pixel_val = log(projection[ii]+1);
+      pixel_val = ((pixel_val - min)/(max - min))*255;
+    }
+    u_scaled = static_cast<short>( pixel_val );
       //invert
-      if(invert)
-	u_scaled = 255 - u_scaled;
-      //write in array
-      img[ii] = u_scaled;
+    if(invert)
+      u_scaled = 255 - u_scaled;
+    //write in array
+    img[ii] = u_scaled;
   }  
 
   return img;  

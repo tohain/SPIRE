@@ -36,7 +36,9 @@ signals:
   void measurements_updated();
   
   void send_message( QString msg, int type = 1 ); 
-				   
+
+  void set_status( int what, int state );					       
+						
 public slots:
 
   void update_geometry_();  

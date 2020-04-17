@@ -114,7 +114,7 @@ public:
   std::vector<float> get_distance_map() const;
   
   /// Converts the \ref projection array in a rescaled image array
-  unsigned char* get_image(bool invert = false);
+  unsigned char* get_image(bool invert = false, std::string scaling = "lin");
 
   /// Converts the \ref projection array in a rescaled image array and
   /// adds a scale

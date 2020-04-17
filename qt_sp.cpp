@@ -97,8 +97,9 @@ void sp_qt::change_membranes( std::vector<double> val ){
 
 void sp_qt::compute_projection(){
   
-  //get the points in the slice  
-  emit send_message( "Busy", 0 );
+  //get the points in the slice
+  emit set_status( 0, 1 );
+  //emit send_message( "Busy", 0 );
   set_up_points();
   
   //reset grid
@@ -113,7 +114,8 @@ void sp_qt::compute_projection(){
   project_grid();
 
   emit projection_changed();
-  emit send_message( "Ready", 0 );
+  emit set_status( 0, 0 );
+  //emit send_message( "Ready", 0 );
   
 }
 
@@ -148,8 +150,8 @@ void sp_qt::copy_parameters( sp_qt *source ){
 
 
 void sp_qt::update_measurements(){
-
-  emit send_message( "Busy", 3 );
+  
+  emit set_status( 1, 1 );
   
   update_geometry();
 
@@ -171,7 +173,7 @@ void sp_qt::update_measurements(){
   
   emit send_message( "Finished computing measurements", 1 );
 
-  emit send_message( "Ready", 3 );
+  emit set_status( 1, 0 );
 
   emit measurements_updated();
 }

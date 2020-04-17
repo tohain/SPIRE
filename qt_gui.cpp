@@ -66,7 +66,10 @@ void GUI::set_up_ui(){
 
   autoupdate_control = new QCheckBox( controls_basic );
   autoupdate_control->setText( "Autoupdate" );  
-  
+
+  image_scaling_control = new QT_labeled_obj<QComboBox>( "Scaling", controls_basic );
+  image_scaling_control->object()->insertItem( 0, "LIN" );
+  image_scaling_control->object()->insertItem( 1, "LOG" );    
   
   //Set up the draw area
   draw_area = new QLabel();
@@ -189,7 +192,7 @@ void GUI::set_up_ui(){
 
   resolution_settings->addLayout( xy_points_control->layout() );
   resolution_settings->addLayout( z_points_control->layout() );
-  resolution_settings->addWidget( pix_size_indicator );
+  resolution_settings->addLayout( image_scaling_control->layout() );
   resolution_settings->addWidget( invert_control );
   resolution_settings->addWidget( autoupdate_control );
 
@@ -277,7 +280,7 @@ void GUI::set_up_signals_and_slots(){
 
   //buttons
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
-  //connect( button_render, SIGNAL( clicked() ), this, SLOT( compute_stats() ) );
+
   
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
 
@@ -302,11 +305,17 @@ void GUI::set_up_signals_and_slots(){
 
   //invert or not
   connect( invert_control, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );  
+
+  // scaling
+  connect(image_scaling_control->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
+	  this, &GUI::update_view);  
   
   // get messages from subclass
   connect( sp, &sp_qt::send_message, this, &GUI::output_message );
+  connect( sp, &sp_qt::set_status, this, &GUI::set_state );
   connect( sp_stats, &sp_qt::send_message, this, &GUI::output_message );  
-
+  connect( sp_stats, &sp_qt::set_status, this, &GUI::set_state );
+  
   //projection
   connect( this, &GUI::call_compute_projection, sp, &sp_qt::compute_projection );
 
@@ -317,6 +326,7 @@ void GUI::set_up_signals_and_slots(){
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_stats );
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_detailled_stats );  
 
+  connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
 
   // saving
   connect( save_grid_control, &QPushButton::clicked, this, &GUI::save_grid );
@@ -397,7 +407,7 @@ void GUI::update_view(){
   if( img_data != NULL ){
     delete( img_data );
   }
-  img_data = sp->get_image( invert_control->isChecked() );
+  img_data = sp->get_image( invert_control->isChecked(), image_scaling_control->object()->currentText().toStdString() );
 
   // this does *NOT* seem to copy the img_data into its own object, so
   // keep that img_data array around!
@@ -583,22 +593,16 @@ void GUI::update_stats(){
 
   std::stringstream pix_size;  
 
-  pix_size << " box size XY: "  << sp->get_L() << std::endl;
+  pix_size << " box size XY:  "  << sp->get_L() << "    " << std::endl;
   pix_size << " box heigth :  ";
   if( sp->get_periodicity_length() == -1 ){
-    pix_size << sp->get_slice_width() << std::endl;
+    pix_size << sp->get_slice_width() << "    " << std::endl;
     pix_size << "Aperiodic";
   } else {
-    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << std::endl;
+    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << "    " << std::endl;
     pix_size << "Periodic";
   }
   
-  /*
-  pix_size << "  XY Pixel size: " << std::setprecision(3) << sp->get_dx() << std::endl
-	   << "  Z Pixel size: " << std::setprecision(3) << sp->get_dz()
-	   << "          ";
-  */
-  //pix_size_indicator->setText( QString( pix_size.str().c_str() ) );
   
   status_bar_pixs->setText( QString( pix_size.str().c_str() ) );
 
@@ -740,4 +744,64 @@ void GUI::save_surface_points(){
   }
 
   
+}
+
+
+/**
+ * switches the state indicator of the GUI
+ *
+ *  \param[in] what 0: projection, 1: measurement
+ * \param[in] state 0: ready, 1: busy
+ */ 
+void GUI::set_state( int what, int state ){
+
+  std::stringstream text;
+  text.str("");
+  QLabel *display;
+
+  if( what == 0 ){
+    text << "Projection" << std::endl << std::endl;
+    display = status_bar_status_p;
+  } else if ( what == 1 ){
+    text << "Measurement:" << std::endl << std::endl;
+    display = status_bar_status_m;    
+  } 
+
+
+  std::string style;
+  
+  if( state == 0 ){    
+    text << "Ready";
+    style = "QLabel { background-color : green; color : black; }";
+  } else if ( state == 1){
+    text << "Busy";
+    style = "QLabel { background-color : red; color : black; }";
+  }
+  display->setStyleSheet( QString( style.c_str() ) );
+  display->setText( text.str().c_str() );
+
+}
+
+
+/**
+ * Changes the background color of the measurement labels, depending
+ * if they are up to date
+ *
+ * \param[in] state 0: up to date, 1: outdated
+ */
+void GUI::set_measurements_status( int state ){
+
+  std::string style;
+  
+  if( state == 0 ){
+    style = "QLabel { background-color : red; color : black; }";
+  } else if ( state == 1 ){
+    style = "QLabel { background-color : green; color : black; }";
+  }
+  
+  status_bar_pixs->setStyleSheet( QString( style.c_str() ) );
+  status_bar_vols->setStyleSheet( QString( style.c_str() ) );
+  status_bar_areas->setStyleSheet( QString( style.c_str() ) );
+  status_bar_mins->setStyleSheet( QString( style.c_str() ) );
+
 }
