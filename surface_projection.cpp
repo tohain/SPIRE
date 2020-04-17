@@ -1257,6 +1257,10 @@ const std::vector<std::string> surface_projection::get_surface_choices(){
   return surface_choices;
 }
 
+const std::vector<std::string> surface_projection::get_img_scaling_choices(){
+  return img_scaling_choices;
+}
+
 int surface_projection::get_h() const{
   return h;
 }

@@ -68,8 +68,10 @@ void GUI::set_up_ui(){
   autoupdate_control->setText( "Autoupdate" );  
 
   image_scaling_control = new QT_labeled_obj<QComboBox>( "Scaling", controls_basic );
-  image_scaling_control->object()->insertItem( 0, "LIN" );
-  image_scaling_control->object()->insertItem( 1, "LOG" );    
+  std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
+  for(unsigned int ii=0; ii<imgs_types.size(); ii++){
+    image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
+  }
   
   //Set up the draw area
   draw_area = new QLabel();

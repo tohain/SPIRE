@@ -189,7 +189,8 @@ public:
   double get_L() const;
   /// Returns the available surfaces
   const std::vector<std::string> get_surface_choices();
-
+  /// Returns the available image scaling methods
+  const std::vector<std::string> get_img_scaling_choices();
 
   /// Sets the theta angle of the orientation of the slice
   void set_theta( double ang );
@@ -395,6 +396,9 @@ protected:
 						    //"Sphere"
   };
 
+  /// Available image scalings
+  const std::vector<std::string> img_scaling_choices = {"LIN",
+							"LOG"};
 
   /// Lookup tables for surface properties
   SURFACE_TABLES s_tables;
