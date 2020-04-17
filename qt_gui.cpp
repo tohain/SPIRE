@@ -360,8 +360,8 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   read_membranes();
   
   //set a black background iamge
-  uchar *blank_bckgrnd = new uchar[10000]();
-  image = new QImage( blank_bckgrnd, 100, 100, 100, QImage::Format_Grayscale8 );
+  img_data = new uchar[10000]();
+  image = new QImage( img_data, 100, 100, 100, QImage::Format_Grayscale8 );
   img_pix = new QPixmap();
   img_pix->convertFromImage( *image );
   
@@ -392,20 +392,19 @@ void GUI::quit_app(){
 
 
 void GUI::update_view(){
-  
 
-  unsigned char* img_data = sp->get_image( invert_control->isChecked() );
+  // delete old img_data if existant.
+  if( img_data != NULL ){
+    delete( img_data );
+  }
+  img_data = sp->get_image( invert_control->isChecked() );
 
+  // this does *NOT* seem to copy the img_data into its own object, so
+  // keep that img_data array around!
   image = new QImage( img_data, sp->get_width(), sp->get_height(), sp->get_width(), QImage::Format_Grayscale8 );
 
-  image->save( "img.jpg" );
-
-
   img_pix->convertFromImage( *image );
-  draw_area->setPixmap( *img_pix);
-
-  delete( img_data );
-  
+  draw_area->setPixmap( *img_pix);  
 }
 
 
@@ -583,9 +582,22 @@ void GUI::change_orientation( int val ){
 void GUI::update_stats(){
 
   std::stringstream pix_size;  
+
+  pix_size << " box size XY: "  << sp->get_L() << std::endl;
+  pix_size << " box heigth :  ";
+  if( sp->get_periodicity_length() == -1 ){
+    pix_size << sp->get_slice_width() << std::endl;
+    pix_size << "Aperiodic";
+  } else {
+    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << std::endl;
+    pix_size << "Periodic";
+  }
+  
+  /*
   pix_size << "  XY Pixel size: " << std::setprecision(3) << sp->get_dx() << std::endl
 	   << "  Z Pixel size: " << std::setprecision(3) << sp->get_dz()
 	   << "          ";
+  */
   //pix_size_indicator->setText( QString( pix_size.str().c_str() ) );
   
   status_bar_pixs->setText( QString( pix_size.str().c_str() ) );

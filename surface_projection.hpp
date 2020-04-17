@@ -184,7 +184,9 @@ public:
   /// Returns the distance between two points in z direction  
   double get_dz() const;
   /// Returns the unit cell size (periodicity length) in the current orientation
-  double get_periodicity_length() const;  
+  double get_periodicity_length() const;
+  /// Returns the box size in XY direction
+  double get_L() const;
   /// Returns the available surfaces
   const std::vector<std::string> get_surface_choices();
 

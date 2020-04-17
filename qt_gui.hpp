@@ -190,6 +190,7 @@ private:
   
   const QImage *image;
   QPixmap *img_pix;
+  unsigned char* img_data;
   
   // the thread holding the projection class
   QThread *thread;

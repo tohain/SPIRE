@@ -1285,6 +1285,10 @@ double surface_projection::get_slice_height() const {
   return slice_height;
 }
 
+double surface_projection::get_L() const {
+  return L;
+}
+
 double surface_projection::get_theta() const{
   return theta;
 }
