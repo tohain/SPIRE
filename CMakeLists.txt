@@ -5,7 +5,7 @@ set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
 #add an option to build the gui or only terminal appliaction
 option(BUILD_WX_GUI "Builds the GUI (wxWidgets) instead of terminal interface" OFF)
-option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" OFF)
+option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
 
 #add an option to build the gui or only terminal appliaction
 option(USE_CGAL "Includes CGAL to compute the surface area of the membranes" OFF)
