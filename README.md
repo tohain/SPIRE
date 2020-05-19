@@ -15,17 +15,19 @@ This software uses CMake as build system. To build from the sources, following p
 
 To build, navigate in the source directory (containing qt_main.cpp) and execute the commands:
 
+```
 mkdir build && cd build
-cmake -CMAKE_BUILD_TYPE=Release ../
+cmake -DCMAKE_BUILD_TYPE=Release ../
 make
+```
 
 If successfull, the compiled binary ( projection_tool_qt ) should be in the directory <sources>/build/projection_tool_qt.
 
 There are some options to be used with the cmake command to be considered:
 
--BUILD_QT_GUI=ON(OFF): uses QT as GUI library
--BUILD_WX_GUI=ON(OFF): uses wxWidgets as GUI library (deprecated and will be removed in future versions)
--USE_CGAL=ON(OFF): use CGAL libraries
+- -DBUILD_QT_GUI=ON(OFF): uses QT as GUI library (ON is pre-configured)
+- -DBUILD_WX_GUI=ON(OFF): uses wxWidgets as GUI library (deprecated and will be removed in future versions)
+- -DUSE_CGAL=ON(OFF): use CGAL libraries
 
 If no GUI option is chosen, a minimial CLI interface will be used. However, for now, it is just a dummy code and does nothing.
 
