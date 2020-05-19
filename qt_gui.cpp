@@ -7,26 +7,34 @@ void GUI::set_up_ui(){
   controls_basic = new QWidget();
   controls_save = new QWidget();
   controls_measurement = new QWidget();
+  manual_widget = new QWidget();
 
-  controls->addTab( controls_basic, "Basic" );
+  controls->addTab( controls_basic, "Parameters" );
   controls->addTab( controls_measurement, "Measurements" );
-  controls->addTab( controls_save, "Save Image" );
+  controls->addTab( controls_save, "Export" );
+  controls->addTab( manual_widget, "Manual" );
 
+
+  //manual tab
+  manual = new QPlainTextEdit( manual_widget );
+  manual->setPlainText( QString( ttips.manual.c_str() ) );
+  
   // stats tab
   detailled_stats = new QLabel( controls_save );
 
   // save tab
+  choose_path_prefix = new QPushButton( "Choose location and prefix", controls_save );
   save_grid_control = new QPushButton( "Save grid", controls_save );
   save_surface_points_control = new QPushButton( "Save membrane points", controls_save );
   save_topological_network_control = new QPushButton( "Save network", controls_save );
-  path_prefix_control = new QLineEdit( controls_save );
+  path_prefix_control = new QT_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
   
   // buttons for controls_basic
   button_quit = new QPushButton("Quit", controls_basic);
-  button_save = new QPushButton("Save", controls_basic);
-  button_render = new QPushButton("Compute", controls_basic);
+  button_save = new QPushButton("Save Image", controls_basic);
+  button_render = new QPushButton("Compute Projection", controls_basic);
   button_measure = new QPushButton("Measure", controls_basic);  
-
+  
   /*
    * structure control
    */ 
@@ -168,18 +176,20 @@ void GUI::set_up_ui(){
   controls_basic_layout = new QVBoxLayout( controls_basic );
   controls_save_layout = new QVBoxLayout( controls_save );
   controls_measurement_layout = new QVBoxLayout( controls_measurement );  
-
+  manual_widget_layout = new QVBoxLayout( manual_widget );
 
 
   controls_measurement_layout->addWidget( detailled_stats );
-
-  controls_save_layout->addWidget( path_prefix_control );
+  
+  controls_save_layout->addLayout( path_prefix_control->layout() );
+  controls_save_layout->addWidget( choose_path_prefix );
+  controls_save_layout->addItem( v_spacer );  
   controls_save_layout->addWidget( save_grid_control );
   controls_save_layout->addWidget( save_surface_points_control );
   controls_save_layout->addWidget( save_topological_network_control );
     
 
-  
+  manual_widget_layout->addWidget( manual );
   
   structure_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();
@@ -226,12 +236,51 @@ void GUI::set_up_ui(){
   buttons_layout->addWidget( button_save );
   buttons_layout->addWidget( button_quit );
 
-
-
-
-
-  
 }
+
+
+
+void GUI::set_up_tooltips(){
+
+   ntucs_control->object()->setToolTip( QString( ttips.ntucs_tooltip.c_str() ) );
+   uc_size_control->object()->setToolTip( QString( ttips.a_tooltip.c_str() ) );
+   channel_prop_control->object()->setToolTip( QString( ttips.level_set_tooltip.c_str() ) );
+   surface_type_control->object()->setToolTip( QString( ttips.type_tooltip.c_str() ) );
+
+   slice_width_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
+   slice_position_control->object()->setToolTip( QString( ttips.sliceheight_tooltip.c_str() ) );
+
+   miller_h_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
+   miller_k_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
+   miller_l_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
+
+   xy_points_control->object()->setToolTip( QString( ttips.nr_points_xy_tooltip.c_str() ) );
+   z_points_control->object()->setToolTip( QString( ttips.nr_points_z_tooltip.c_str() ) );
+
+   invert_control->setToolTip( QString( ttips.invert_tooltip.c_str() ) );
+   autoupdate_control->setToolTip( QString( ttips.autoupdate_tooltip.c_str() ) );
+   image_scaling_control->object()->setToolTip( QString( ttips.image_scaling_tooltip.c_str() ) );
+
+   membranes_control->setToolTip ( QString( ttips.membranes_settings_tooltip.c_str() ) );
+   add_membrane_control->setToolTip ( QString( ttips.membranes_add_tooltip.c_str() ) );
+   rm_membrane_control->setToolTip ( QString( ttips.membranes_remove_tooltip.c_str() ) );   
+
+
+   button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
+   button_measure->setToolTip( QString( ttips.button_measure.c_str() ) );
+   button_render->setToolTip( QString( ttips.button_render.c_str() ) );
+   button_save->setToolTip( QString( ttips.button_save.c_str() ) );   
+
+   save_grid_control->setToolTip( QString( ttips.button_save_grid.c_str() ) );
+   save_grid_control->setToolTip( QString( ttips.button_save_membranes.c_str() ) );
+   save_grid_control->setToolTip( QString( ttips.button_save_network.c_str() ) );   
+
+   path_prefix_control->object()->setToolTip( QString( ttips.save_prefix_tooltip.c_str() ) );
+   
+   choose_path_prefix->setToolTip( QString( ttips.choose_prefix_path.c_str() ) );
+}
+
+
 
 void GUI::set_up_signals_and_slots(){
 
@@ -281,13 +330,13 @@ void GUI::set_up_signals_and_slots(){
    */
 
   //buttons
-  connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );
+  connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );  
+  connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
+  connect( button_measure, SIGNAL( clicked() ), this, SLOT( measure() ) );  
 
   
-  connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
+  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
 
-  connect( button_measure, SIGNAL( clicked() ), this, SLOT( measure() ) );  
-  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );  
 
   connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
   connect( rm_membrane_control, SIGNAL( clicked() ), this, SLOT( rm_membrane() ) );  
@@ -331,6 +380,7 @@ void GUI::set_up_signals_and_slots(){
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
 
   // saving
+  connect( choose_path_prefix, &QPushButton::clicked, this, &GUI::choose_export_prefix );
   connect( save_grid_control, &QPushButton::clicked, this, &GUI::save_grid );
   connect( save_surface_points_control, &QPushButton::clicked, this, &GUI::save_surface_points );
   connect( save_topological_network_control, &QPushButton::clicked, this, &GUI::save_network );
@@ -366,7 +416,7 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
   
   set_up_ui();
-
+  set_up_tooltips();
 
   update_gui_from_sp();
   read_membranes();
@@ -378,9 +428,7 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   img_pix->convertFromImage( *image );
   
 
-  set_up_signals_and_slots();
-  
- 
+
   thread = new QThread();
   sp->moveToThread(thread);
   thread->start();
@@ -389,7 +437,10 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
   sp_stats->moveToThread( t_stats );
   t_stats->start();
 
-  measure();
+  
+  set_up_signals_and_slots();
+  
+  //measure();
   emit call_compute_projection();  
 }
 
@@ -397,9 +448,17 @@ GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
 
 
 void GUI::quit_app(){
-  thread->quit();
-  t_stats->quit();
-  app->quit();
+
+  auto reply = QMessageBox::question( this, "Really quit?", "Are you sure you want to quit?", QMessageBox::Yes|QMessageBox::No );
+  
+  if( reply == QMessageBox::Yes ){
+    thread->quit();
+    t_stats->quit();
+    app->quit();
+  } else {
+    // do nothing, just close dialog box
+  }
+  
 }
 
 
@@ -551,7 +610,14 @@ void GUI::rm_membrane(){
 }
 
 void GUI::save_image_to_file(){
-  image->save("image.png");
+
+  QString filename = QFileDialog::getSaveFileName( this, "Select File", "./", tr("*.png"), NULL, QFileDialog::DontUseNativeDialog );
+  
+  if( !filename.endsWith( ".png", Qt::CaseInsensitive ) ){
+    filename.append(".png");
+  } 
+  
+  image->save( filename );
 }
 
 
@@ -601,7 +667,7 @@ void GUI::update_stats(){
     pix_size << sp->get_slice_width() << "    " << std::endl;
     pix_size << "Aperiodic";
   } else {
-    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << "    " << std::endl;
+    pix_size << sp->get_periodicity_length() * sp->get_slice_width() * sp->get_a() << "    " << std::endl;
     pix_size << "Periodic";
   }
   
@@ -694,7 +760,7 @@ void GUI::change_autoupdate( int state ){
 
 
 void GUI::measure(){
-    sp_stats->copy_parameters( sp );
+  sp_stats->copy_parameters( sp );
   sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y( 76 );
   sp_stats->set_n_points_z( 76 );  
@@ -703,9 +769,16 @@ void GUI::measure(){
 }
 
 
-std::string GUI::get_prefix(){
+void GUI::choose_export_prefix(){
+  QString prefix = QFileDialog::getSaveFileName( this, "Select Prefix", "./", tr("*"), NULL, QFileDialog::DontUseNativeDialog );
 
-  std::string tmp = path_prefix_control->text().toStdString();
+  path_prefix_control->object()->setText( prefix );
+}
+
+
+std::string GUI::get_prefix(){
+  
+  std::string tmp = path_prefix_control->object()->text().toStdString();
   if( tmp == "" ){
     tmp += "structure";
   }
@@ -737,7 +810,6 @@ void GUI::save_surface_points(){
 
   int nr_membranes = membranes_control->rowCount();
 
-  std::cout << nr_membranes << std::endl;
   for( unsigned int i=0; i < nr_membranes; i++){
     std::string fn = get_prefix();
     fn+= "_membrane_" + std::to_string( i ) + ".dat";
@@ -806,4 +878,11 @@ void GUI::set_measurements_status( int state ){
   status_bar_areas->setStyleSheet( QString( style.c_str() ) );
   status_bar_mins->setStyleSheet( QString( style.c_str() ) );
 
+}
+
+
+
+void GUI::do_something(){  
+  std::cout << "done something\n"; 
+  
 }

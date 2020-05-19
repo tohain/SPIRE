@@ -22,12 +22,17 @@
 #include <QSpacerItem>
 #include <QCheckBox>
 #include <QFileDialog>
+#include <QInputDialog>
+#include <QMessageBox>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 
 #include <QThread>
 #include <QMutex>
 
 #include "qt_sp.hpp"
+#include "sp_gui_tooltips.h"
+
 
 template <class QT_O>
 class QT_labeled_obj {
@@ -87,10 +92,13 @@ protected:
   
 private:
 
+  //tooltips
+  tooltips ttips;
 
   // functions
   void set_up_ui();
   void set_up_signals_and_slots();
+  void set_up_tooltips();
   
   // ui elements
   QLabel *draw_area;
@@ -99,17 +107,21 @@ private:
   QWidget *controls_basic;
   QWidget *controls_measurement;
   QWidget *controls_save;
+  QWidget *manual_widget;
 
+  // manual tab
+  QPlainTextEdit *manual;
 
   // stats tab
   QLabel *detailled_stats;
 
   // save tab
+  QPushButton *choose_path_prefix;
   QPushButton *save_grid_control;
   QPushButton *save_surface_points_control;
   QPushButton *save_topological_network_control;
 
-  QLineEdit *path_prefix_control;
+  QT_labeled_obj<QLineEdit> *path_prefix_control;
   
   // structure control
   QT_labeled_obj<QSpinBox> *ntucs_control;
@@ -179,11 +191,11 @@ private:
   QVBoxLayout *controls_measurement_layout;
   QVBoxLayout *controls_save_layout;
 
-
+  QVBoxLayout *manual_widget_layout;
 
   QSpacerItem *v_spacer;
   QSpacerItem *h_spacer;  
-  
+
 
   //
   // background members
@@ -196,7 +208,7 @@ private:
   // the thread holding the projection class
   QThread *thread;
 
-  //
+  // another copy of the projection class, but used for measurements
   QThread *t_stats;
 
   
@@ -219,7 +231,10 @@ signals:
   void call_save_network( int id, QString fn );
 
   void call_set_measurement_status( int state );
-  					      
+
+
+  void call_show_dialog_box();
+					       
 public slots:
 
 
@@ -250,6 +265,7 @@ public slots:
 
   void measure();
 
+  void choose_export_prefix();
   std::string get_prefix();
   void save_grid();
   void save_network();
@@ -258,5 +274,11 @@ public slots:
   void set_state( int what, int state );
 
   void set_measurements_status( int state );
+
+  
+  void do_something();
   
 };
+
+
+

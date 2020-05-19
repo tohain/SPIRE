@@ -183,17 +183,20 @@ void sp_qt::update_measurements(){
 void sp_qt::save_grid( QString fn ){
 
   print_grid( fn.toStdString() );
-  
+
+  emit send_message( "Saved grid!", 1);
 }
 
 void sp_qt::save_topological_network( int id, QString fn ){
 
   print_topological_network( id, fn.toStdString() );
-  
+
+  emit send_message( "Saved network!", 1);
 }
 
 void sp_qt::save_surface_points( int id, QString fn ){
 
   print_channel_surface_points( id, fn.toStdString() );
-  
+
+  emit send_message( "Saved membrane!", 1);
 }
