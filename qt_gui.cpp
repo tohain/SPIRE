@@ -41,9 +41,12 @@ void GUI::set_up_ui(){
   ntucs_control = new QT_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
   ntucs_control->object()->setRange(1, 50);
   
-  uc_size_control = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size", controls_basic );
-  uc_size_control->object()->setRange(0.01, 100);
-  uc_size_control->object()->setSingleStep(0.01);    
+  uc_size_control_a = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size (a)", controls_basic );
+  uc_size_control_a->object()->setRange(0.01, 999);
+  uc_size_control_a->object()->setSingleStep(0.01);
+  uc_size_control_c = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size (c)", controls_basic );
+  uc_size_control_c->object()->setRange(0.01, 999);
+  uc_size_control_c->object()->setSingleStep(0.01); 
   
   channel_prop_control = new QT_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
   channel_prop_control->object()->setRange(0, 1);
@@ -198,7 +201,8 @@ void GUI::set_up_ui(){
   membrane_buttons_layout = new QVBoxLayout();
   
   structure_settings->addLayout( ntucs_control->layout() );
-  structure_settings->addLayout( uc_size_control->layout() );
+  structure_settings->addLayout( uc_size_control_a->layout() );
+  structure_settings->addLayout( uc_size_control_c->layout() );  
   structure_settings->addLayout( channel_prop_control->layout() );
   structure_settings->addLayout( surface_type_control->layout() );  
 
@@ -243,7 +247,8 @@ void GUI::set_up_ui(){
 void GUI::set_up_tooltips(){
 
    ntucs_control->object()->setToolTip( QString( ttips.ntucs_tooltip.c_str() ) );
-   uc_size_control->object()->setToolTip( QString( ttips.a_tooltip.c_str() ) );
+   uc_size_control_a->object()->setToolTip( QString( ttips.aa_tooltip.c_str() ) );
+   uc_size_control_c->object()->setToolTip( QString( ttips.ac_tooltip.c_str() ) );
    channel_prop_control->object()->setToolTip( QString( ttips.level_set_tooltip.c_str() ) );
    surface_type_control->object()->setToolTip( QString( ttips.type_tooltip.c_str() ) );
 
@@ -272,8 +277,8 @@ void GUI::set_up_tooltips(){
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );   
 
    save_grid_control->setToolTip( QString( ttips.button_save_grid.c_str() ) );
-   save_grid_control->setToolTip( QString( ttips.button_save_membranes.c_str() ) );
-   save_grid_control->setToolTip( QString( ttips.button_save_network.c_str() ) );   
+   save_surface_points_control->setToolTip( QString( ttips.button_save_membranes.c_str() ) );
+   save_topological_network_control->setToolTip( QString( ttips.button_save_network.c_str() ) );   
 
    path_prefix_control->object()->setToolTip( QString( ttips.save_prefix_tooltip.c_str() ) );
    
@@ -302,8 +307,10 @@ void GUI::set_up_signals_and_slots(){
   connect( ntucs_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	   sp, &sp_qt::change_ntucs );
   // unit cell size
-  connect( uc_size_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_uc_size );
+  connect( uc_size_control_a->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_uc_size_a );
+  connect( uc_size_control_c->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_uc_size_c );  
   // channel proportion
   connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_vol_prop );
@@ -509,7 +516,9 @@ void GUI::update_status( QString s ){
 void GUI::update_gui_from_sp(){
 
   ntucs_control->object()->setValue( sp->get_ntucs() );
-  uc_size_control->object()->setValue( sp->get_a() );
+  uc_size_control_a->object()->setValue( sp->get_a()[0] );
+  uc_size_control_c->object()->setValue( sp->get_a()[2] );  
+
   channel_prop_control->object()->setValue( sp->get_channel_prop() );
   surface_type_control->object()->setCurrentIndex( sp->get_type() );
 
@@ -523,6 +532,8 @@ void GUI::update_gui_from_sp(){
   miller_h_control->object()->setValue( sp->get_h() );
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
+
+  sp->update_periodicity_length();
   
   update_stats( );
 
@@ -661,13 +672,13 @@ void GUI::update_stats(){
 
   std::stringstream pix_size;  
 
-  pix_size << " box size XY:  "  << sp->get_L() << "    " << std::endl;
+  pix_size << " box size X/Y:  "  << sp->get_L()[0] << "/" << sp->get_L()[1]  << std::endl;
   pix_size << " box heigth :  ";
   if( sp->get_periodicity_length() == -1 ){
     pix_size << sp->get_slice_width() << "    " << std::endl;
     pix_size << "Aperiodic";
   } else {
-    pix_size << sp->get_periodicity_length() * sp->get_slice_width() * sp->get_a() << "    " << std::endl;
+    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << "    " << std::endl;
     pix_size << "Periodic";
   }
   

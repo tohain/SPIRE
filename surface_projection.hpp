@@ -156,7 +156,7 @@ public:
   std::vector<float> get_points() const;  
   
   /// Returns the periodicity (unit cell size) of the surface
-  double get_a() const;
+  std::vector<double> get_a() const;
   /// Returns the surface level
   double get_surface_level() const;
   /// Returns the ratio of the volumes of the two channels
@@ -185,8 +185,8 @@ public:
   double get_dz() const;
   /// Returns the unit cell size (periodicity length) in the current orientation
   double get_periodicity_length() const;
-  /// Returns the box size in XY direction
-  double get_L() const;
+  /// Returns the slice dimensions
+  std::vector<double> get_L() const;
   /// Returns the available surfaces
   const std::vector<std::string> get_surface_choices();
   /// Returns the available image scaling methods
@@ -216,8 +216,10 @@ public:
   void set_surface_level( double val );
   /// Sets the channel proportion
   void set_channel_vol_prop( double val );
-  /// Sets the unit cell size of the surface
+  /// Sets the unit cell size of the surface cubic
   void set_a( double val );
+  /// Sets the unit cell size of the surface
+  void set_a( double ax, double ay, double az);
   /// Sets the number of points in the slice in x direction
   void set_n_points_x( int val );
   /// Sets the number of points in the slice in y direction  
@@ -260,19 +262,19 @@ protected:
   Matrix get_z_rot_m( double ang ) const;   
   
   /// Nodal approximation of the level set function of a g surface
-  double level_set_gyroid( double x, double y, double z, double a);
+  double level_set_gyroid( double x, double y, double z, std::vector<double> a);
 
   /// Nodal approximation of the level set function of a d surface
-  double level_set_diamond( double x, double y, double z, double a);
+  double level_set_diamond( double x, double y, double z, std::vector<double> a);
 
   /// Nodal approximation of the level set function of a p surface
-  double level_set_primitive( double x, double y, double z, double a);
+  double level_set_primitive( double x, double y, double z, std::vector<double> a);
 
   /// for debugging: just a single layer
-  double level_set_layer( double x, double y, double z, double a);
+  double level_set_layer( double x, double y, double z, std::vector<double> a);
 
   /// for debugging: just a single sphere
-  double level_set_sphere( double x, double y, double z, double a);  
+  double level_set_sphere( double x, double y, double z, std::vector<double> a);  
   
   /// Computes the position of the voxels in the slice
   void set_up_points();
@@ -306,8 +308,8 @@ protected:
   int ntucs;
 
   /// Edge length of the slice
-  double L;
-  double L_2; // L_2 = L/2
+  std::vector<double> L;
+  std::vector<double> L_2; // L_2 = L/2
   
   /// Distance between to points in x direction and voxel size in x direction
   double dx;
@@ -333,10 +335,10 @@ protected:
    */
   double slice_height;
 
-  /// Unit cell size of the surface in {100},{010},{001} direciton
-  double a;
+  /// Rectangular unit cell size
+  std::vector<double> a;
   /// Surface period
-  double inv_a;
+  std::vector<double> inv_a;
 
   /// This parameter controlls the proportions of the two different
   /// channels. 0 means equal volume in both of them
@@ -359,7 +361,7 @@ protected:
   /// l Miller index  
   int l;
 
-  /** \brief The length of the unitbox in the current orientation.
+  /** \brief The length of the unitbox in the current orientation in absolute units (same as a[2]).
    *
    * -1 if there if the structure is aperiodic within reasonable
    * lengthscales

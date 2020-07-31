@@ -159,7 +159,7 @@ void surface_projection::print_topological_network( int which, std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(1), inv_a(2*M_PI), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
+surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(3,1), inv_a(3,2*M_PI), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
 
   //set the channel proportion to 0.5
@@ -243,8 +243,8 @@ Matrix surface_projection::get_z_rot_m (double ang) const {
  *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
  * (1991) 83: 407. https://doi.org/10.1007/BF01313411
  */
-double surface_projection::level_set_gyroid( double x, double y, double z, double inv_a) {
-  return sin(inv_a*x)*cos(inv_a*y) + sin(inv_a*y)*cos(inv_a*z) + cos(inv_a*x)*sin(inv_a*z);
+double surface_projection::level_set_gyroid( double x, double y, double z, std::vector<double> inv_a) {
+  return sin(inv_a[0]*x)*cos(inv_a[1]*y) + sin(inv_a[1]*y)*cos(inv_a[2]*z) + cos(inv_a[0]*x)*sin(inv_a[2]*z);
 }
 
 /**
@@ -252,8 +252,8 @@ double surface_projection::level_set_gyroid( double x, double y, double z, doubl
  *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
  * (1991) 83: 407. https://doi.org/10.1007/BF01313411
  */
-double surface_projection::level_set_diamond( double x, double y, double z, double inv_a) {
-  return cos(inv_a*x)*cos(inv_a*y)*cos(inv_a*z) - sin(inv_a*x)*sin(inv_a*y)*sin(inv_a*z);
+double surface_projection::level_set_diamond( double x, double y, double z, std::vector<double> inv_a) {
+  return cos(inv_a[0]*x)*cos(inv_a[1]*y)*cos(inv_a[2]*z) - sin(inv_a[0]*x)*sin(inv_a[1]*y)*sin(inv_a[2]*z);
 }
  
 /**
@@ -261,23 +261,23 @@ double surface_projection::level_set_diamond( double x, double y, double z, doub
  *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
  * (1991) 83: 407. https://doi.org/10.1007/BF01313411
  */
-double surface_projection::level_set_primitive( double x, double y, double z, double inv_a) {
-  return cos(inv_a*x)+cos(inv_a*y)+cos(inv_a*z);
+double surface_projection::level_set_primitive( double x, double y, double z, std::vector<double> inv_a) {
+  return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
 }
 
 /**
  * For debugging purposes: just a simple layer
  *
  */
-double surface_projection::level_set_layer( double x, double y, double z, double inv_a) {
-  return mod(z, 1./a);
+double surface_projection::level_set_layer( double x, double y, double z, std::vector<double> inv_a) {
+  return mod(z, 1./a[2]);
 }
 
 /**
  * For debugging purposes: just a simple sphere
  *
  */
-double surface_projection::level_set_sphere( double x, double y, double z, double inv_a) {
+double surface_projection::level_set_sphere( double x, double y, double z, std::vector<double> inv_a) {
   return (x*x+y*y+z*z);
 }
 
@@ -292,26 +292,32 @@ void surface_projection::set_orientation_from_hkl(){
 
   //make it unit length
   double norm_scale = sqrt( n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
-  n[0]/=norm_scale;n[1]/=norm_scale;n[2]/=norm_scale;
- 
+  n[0]/=norm_scale;n[1]/=norm_scale;n[2]/=norm_scale;  
+  
   //get angle for rotation in xy plane
   double _phi;
   if( k == 0 ){
     if( h < 0)
-        _phi = 3*M_PI/2.;
+        _phi = M_PI;
     else
-        _phi = M_PI/2.;
+        _phi = 0;
   } else {
-    if( h > 0){
-        if (k > 0)
-            _phi = atan2( n[0], n[1] ) ;
+    if( h == 0 ){
+      if( k >= 0 ){
+	_phi = 0.5*M_PI;
+      } else {
+	_phi = 1.5*M_PI;
+      }
+    } else if( h > 0){
+        if (k >= 0)
+            _phi = atan2( n[1], n[0] ) ;
         else 
-            _phi = 2*M_PI - atan2( n[0], -n[1] ) ;
+            _phi = 2*M_PI - atan2( -n[1], n[0] ) ;
     } else{
         if (k > 0)
-            _phi = M_PI - atan2( -n[0], n[1] ) ;
+            _phi = M_PI - atan2( n[1], -n[0] ) ;
         else 
-            _phi = M_PI + atan2( -n[0], -n[1] ) ;
+            _phi = M_PI + atan2( -n[1], -n[0] ) ;
     }
   }
 
@@ -342,7 +348,7 @@ void surface_projection::set_up_points(){
   std::vector<double> nx = {1, 0, 0};
   std::vector<double> ny = {0, 1, 0};
   std::vector<double> nz = {0, 0, 1};  
-
+  
   //rotation matrices
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
@@ -352,30 +358,31 @@ void surface_projection::set_up_points(){
   nx = dot_prod( Rz, dot_prod( Rx, nx));
   ny = dot_prod( Rz, dot_prod( Rx, ny));
   nz = dot_prod( Rz, dot_prod( Rx, nz));  
-  
-  long max_points = n_points_x*n_points_y*n_points_z;
 
+  long max_points = n_points_x*n_points_y*n_points_z;
+  
   //the total index of that particle in the array
   int ind = 0;
-  double iy = -L_2;
+  double iy = -L_2[1];
+  
   //a single loop would be nicer, but i find this less confusing  
   for(unsigned int ii=0; ii<n_points_y; ii++){ //height, the row index (vertical)
-    double jx = -L_2;
+    double jx = -L_2[0];
     for(unsigned int jj=0; jj<n_points_x; jj++){ //width, the column index! (horizontal)
 
       double kz;
 
       //check if we are periodic. If so, slice_height will be handeled differently
       if( periodicity_length == -1 ){
-	//aperiodic. slice_height is an absolute length
+	//aperiodic, slice_height is an absolute length
 
-	kz = a * ( slice_height - 0.5*slice_width );
+	kz = (slice_height - 0.5*slice_width );
 
       } else {
-	//periodic. slice_height is the fraction of the periodicity length
+	//periodic. slice_height is the fraction of the periodicity length 
 
 	//periodicity length is in fractions of a
-        kz = a * periodicity_length*(slice_height - 0.5*slice_width);
+        kz = periodicity_length*(slice_height - 0.5*slice_width);
 
       }
       
@@ -383,6 +390,7 @@ void surface_projection::set_up_points(){
 	
 	
 	//now compute the absolute position of all voxels
+	
 	  double x = jx*nx[0] + iy*ny[0] +kz*nz[0];
 	  
 	  double y = jx*nx[1] + iy*ny[1] +kz*nz[1];
@@ -485,8 +493,8 @@ void surface_projection::set_grid(){
   // get the boundaries of all the membranes
   std::vector<double> mem_pos ( membranes.size(), 0);
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
-    mem_pos[ii] = a * (membranes[ii] + membranes[ii+1]/2.);
-    mem_pos[ii+1] = a * (membranes[ii] - membranes[ii+1]/2.);
+    mem_pos[ii] = (membranes[ii] + membranes[ii+1]/2.);
+    mem_pos[ii+1] = (membranes[ii] - membranes[ii+1]/2.);
   }
   mem_pos.push_back( -std::numeric_limits<double>::max() );
   mem_pos.push_back( std::numeric_limits<double>::max() );  
@@ -527,7 +535,7 @@ void surface_projection::set_grid(){
     
     //check if this point is within the "main" membrane
     // this will extend symmetrically into both channels
-    if( real_distance < 0.5*a*membranes[1] ){
+    if( real_distance < 0.5*membranes[1] ){
       mark_point = true;
     }
 
@@ -537,8 +545,8 @@ void surface_projection::set_grid(){
       if( membranes[jj] >= 0 ){
 	//outside membrane
 	
-	if( real_distance > a * (membranes[jj] - membranes[jj+1]/2.) &&
-	    real_distance < a * (membranes[jj] + membranes[jj+1]/2.) &&
+	if( real_distance > (membranes[jj] - membranes[jj+1]/2.) &&
+	    real_distance < (membranes[jj] + membranes[jj+1]/2.) &&
 	    channel[ii] > 0 ){
 	  
 	  mark_point = true;
@@ -546,8 +554,8 @@ void surface_projection::set_grid(){
       } else {
 	//inside
 
-	if( real_distance > a * (-membranes[jj] - membranes[jj+1]/2.) &&
-	    real_distance < a * (-membranes[jj] + membranes[jj+1]/2.) &&
+	if( real_distance > (-membranes[jj] - membranes[jj+1]/2.) &&
+	    real_distance < (-membranes[jj] + membranes[jj+1]/2.) &&
 	    channel[ii] < 0 ){
 	  
 	  mark_point = true;
@@ -622,17 +630,19 @@ void surface_projection::update_containers(){
 void surface_projection::update_geometry(){
 
   //update box
-  L = ntucs * a;
+  L[0] = ntucs * a[0];
+  L[1] = ntucs * a[1];
 
-  L_2 = L/2.;
+  L_2[0] = L[0]/2.0;
+  L_2[1] = L[1]/2.0;
 
   //update points number
-  dx = L / n_points_x;
-  dy = L / n_points_y;
+  dx = L[0] / n_points_x;
+  dy = L[1] / n_points_y;
   if( periodicity_length == -1 ){
-    dz = (a*slice_width) / n_points_z;
+    dz = (slice_width) / n_points_z;
   } else {
-    dz = (a*periodicity_length*slice_width) / n_points_z;
+    dz = (periodicity_length*slice_width) / n_points_z;
   }
 
 }
@@ -795,11 +805,11 @@ void surface_projection::update_periodicity_length(){
   // between can't be periodic anyways
   double step_size;
   if( std::fabs( n[0] ) > tolerance ){
-    step_size = a / n[0];
+    step_size = a[0] / n[0];
   } else if ( std::fabs( n[1] ) > tolerance ){
-    step_size = a / n[1];
+    step_size = a[1] / n[1];
   } else {
-    step_size = a / n[2];
+    step_size = a[2] / n[2];
   }
 
   if (step_size < 0) step_size  = -step_size ;
@@ -821,9 +831,9 @@ void surface_projection::update_periodicity_length(){
     double yy = step_count * step_size * n[1];
     double zz = step_count * step_size * n[2];
 
-    double ddxx = mod(xx, a);
-    double ddyy = mod(yy, a);
-    double ddzz = mod(zz, a);
+    double ddxx = mod(xx, a[0]);
+    double ddyy = mod(yy, a[1]);
+    double ddzz = mod(zz, a[2]);
     
     if( std::fabs( ddxx ) < tolerance &&
 	std::fabs( ddyy ) < tolerance &&
@@ -842,7 +852,7 @@ void surface_projection::update_periodicity_length(){
     periodicity_length = -1;
   } else {
     //success
-    periodicity_length = (step_count * step_size) / a;
+    periodicity_length = (step_count * step_size);
   }
 }
 
@@ -1281,7 +1291,7 @@ int surface_projection::get_type() const {
   return type;
 }
 
-double surface_projection::get_a() const{
+std::vector<double> surface_projection::get_a() const{
   return a;
 }
 
@@ -1302,7 +1312,7 @@ double surface_projection::get_slice_height() const {
   return slice_height;
 }
 
-double surface_projection::get_L() const {
+std::vector<double> surface_projection::get_L() const {
   return L;
 }
 
@@ -1462,28 +1472,53 @@ void surface_projection::set_surface_level( double val ){
 
 void surface_projection::set_a ( double val ){
   if( val < tolerance ){
-    a = 1;
-    inv_a = 2*M_PI/(a); // period for nodal representations     
+    a[0] = 1;
+    a[1] = 1;
+    a[2] = 1;
+    inv_a[1] = 2*M_PI/(a[0]); // period for nodal representations
+    inv_a[2] = 2*M_PI/(a[1]);
+    inv_a[3] = 2*M_PI/(a[2]);
     throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
   } else {
-    a = val;
-    inv_a = 2*M_PI/(a); // period for nodal representations     
+    a[0] = val;
+    a[1] = val;
+    a[2] = val;
+    inv_a[0] = 2*M_PI/(a[0]); // period for nodal representations
+    inv_a[1] = 2*M_PI/(a[1]); // period for nodal representations        
+    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations
   }
-
-
 }
 
+
+void surface_projection::set_a ( double ax, double ay, double az ){
+  if( ax < tolerance || ay < tolerance || az < tolerance ){
+    a[0] = 1;
+    a[1] = 1;
+    a[2] = 1;
+    inv_a[0] = 2*M_PI/(a[0]); // period for nodal representations
+    inv_a[1] = 2*M_PI/(a[1]); // period for nodal representations
+    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations
+    throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
+  } else {
+    a[0] = ax;
+    a[1] = ay;
+    a[2] = az;
+    inv_a[0] = 2*M_PI/(ax); // period for nodal representations
+    inv_a[1] = 2*M_PI/(ay); // period for nodal representations        
+    inv_a[2] = 2*M_PI/(az); // period for nodal representations
+  }
+}
 
 void surface_projection::set_n_points_x( int val ){
   if( val <= 0){
     n_points_x = 50;
     //recompute the resolution
-    dx = L / n_points_x;
+    dx = L[0] / n_points_x;
     throw invalid_parameter_exception("Must have a minimum of 1 point");
   } else {
     n_points_x = val;
     //recompute the resolution
-    dx = L / n_points_x;
+    dx = L[0] / n_points_x;
   }
 }
 
@@ -1491,12 +1526,12 @@ void surface_projection::set_n_points_y( int val ){
   if( val <= 0){
     n_points_y = 50;
     //recompute the resolution
-    dy = L / n_points_y;      
+    dy = L[1] / n_points_y;      
     throw invalid_parameter_exception("Must have a minimum of 1 point");
   } else {    
     n_points_y = val;
     //recompute the resolution
-    dy = L / n_points_y;      
+    dy = L[1] / n_points_y;      
   }   
 }
 

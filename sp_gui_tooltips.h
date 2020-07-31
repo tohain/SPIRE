@@ -10,7 +10,8 @@ class tooltips {
 
   const std::string level_set_tooltip = "This parameter controls the volume fraction of the inner channel within the main membrane.";
 
-  const std::string a_tooltip = "The edge length of the projection box in xy direction in length units. All values in length units will have the same unit as this value.";
+  const std::string aa_tooltip = "The edge length of the projection box in xy direction in length units. All values in length units will have the same unit as this value.";
+  const std::string ac_tooltip = "The edge length of the projection box in z direction in length units. All values in length units will have the same unit as this value.";
 
   const std::string type_tooltip = "The type of surface to project.";
 

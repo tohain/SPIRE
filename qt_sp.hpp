@@ -48,7 +48,8 @@ public slots:
   
   void change_surface_type( int ind );
   void change_ntucs( int ind );
-  void change_uc_size( double a );
+  void change_uc_size_a( double a );
+  void change_uc_size_c( double a );  
   void change_vol_prop( double val );
   void change_xy_points( int val );
   void change_z_points( int val );

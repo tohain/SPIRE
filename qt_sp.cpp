@@ -52,8 +52,16 @@ void sp_qt::change_xy_points( int val ){
 }
 
 
-void sp_qt::change_uc_size( double val ){
-  set_a( val );
+void sp_qt::change_uc_size_a( double val ){
+  std::vector<double> tmp_size = get_a();
+  set_a( val, val, tmp_size[2] );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+void sp_qt::change_uc_size_c( double val ){
+  std::vector<double> tmp_size = get_a();
+  set_a( tmp_size[0], tmp_size[1], val );  
   emit geometry_changed();
   emit parameter_changed();
 }
@@ -112,7 +120,7 @@ void sp_qt::compute_projection(){
   //emit send_message( "Computing Projection", 0 );
   memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
-
+  
   emit projection_changed();
   emit set_status( 0, 0 );
   //emit send_message( "Ready", 0 );
@@ -133,7 +141,7 @@ void sp_qt::copy_parameters( sp_qt *source ){
   set_l( source->get_l() );  
 
   set_ntucs( source->get_ntucs() );
-  set_a( source->get_a() );
+  set_a( source->get_a()[0], source->get_a()[1], source->get_a()[2] );
   set_membranes( source->get_membranes() );
   set_channel_vol_prop( source->get_channel_prop() );
 
