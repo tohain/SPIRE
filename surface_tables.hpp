@@ -26,27 +26,39 @@ public:
 
 
     std::map<double, double>::const_iterator it;
+    std::map<double, double>::const_iterator it_begin;
+    std::map<double, double>::const_reverse_iterator it_rbegin;    
+    std::map<double, double>::const_iterator it_end;
 
     if( surface == "Primitive" ){
       it = P_SURFACE_VOL.begin();
+      it_begin = P_SURFACE_VOL.begin();
+      it_rbegin = P_SURFACE_VOL.rbegin();
+      it_end = P_SURFACE_VOL.end();
     } else if ( surface == "Diamond" ){
       it = D_SURFACE_VOL.begin();
+      it_begin = D_SURFACE_VOL.begin();
+      it_rbegin = D_SURFACE_VOL.rbegin();
+      it_end = D_SURFACE_VOL.end();            
     } else if ( surface == "Gyroid" ){
       it = G_SURFACE_VOL.begin();
+      it_begin = G_SURFACE_VOL.begin();
+      it_rbegin = G_SURFACE_VOL.rbegin();
+      it_end = G_SURFACE_VOL.end();      
     } else {
       throw invalid_parameter_exception( "Unkown surface type" );
     }
    
     
-    while( it->first < val && it != P_SURFACE_VOL.end() )
+    while( it->first < val && it != it_end )
       it++;
 
     //leaves the iterator at the upper border
 
-    if( it == P_SURFACE_VOL.begin() ){
+    if( it == it_begin ){
       return it->second;
-    } else if ( it == (--P_SURFACE_VOL.end()) ){
-      return (P_SURFACE_VOL.rbegin())->second;
+    } else if ( it == (--it_end) ){
+      return it_rbegin->second;
     } else {
 
       double hi_v = it->second, hi_p = it->first;
@@ -65,27 +77,39 @@ public:
   const double get_prop( std::string surface, double val ) const {
 
     std::map<double, double>::const_iterator it;
+    std::map<double, double>::const_iterator it_begin;
+    std::map<double, double>::const_reverse_iterator it_rbegin;    
+    std::map<double, double>::const_iterator it_end;    
 
     if( surface == "Primitive" ){
       it = P_SURFACE_VOL_INV.begin();
+      it_begin = P_SURFACE_VOL_INV.begin();
+      it_rbegin = P_SURFACE_VOL_INV.rbegin();
+      it_end = P_SURFACE_VOL_INV.end();
     } else if ( surface == "Diamond" ){
       it = D_SURFACE_VOL_INV.begin();
+      it_begin = D_SURFACE_VOL_INV.begin();
+      it_rbegin = D_SURFACE_VOL_INV.rbegin();
+      it_end = D_SURFACE_VOL_INV.end();      
     } else if ( surface == "Gyroid" ){
       it = G_SURFACE_VOL_INV.begin();
+      it_begin = G_SURFACE_VOL_INV.begin();
+      it_rbegin = G_SURFACE_VOL_INV.rbegin();
+      it_end = G_SURFACE_VOL_INV.end();      
     } else {
       throw invalid_parameter_exception( "Unkown surface type" );
     }
    
     
-    while( it->first < val && it != P_SURFACE_VOL.end() )
+    while( it->first < val && it != it_end )
       it++;
 
     //leaves the iterator at the upper border
 
-    if( it == P_SURFACE_VOL.begin() ){
+    if( it == it_begin ){
       return it->second;
-    } else if ( it == (--P_SURFACE_VOL.end()) ){
-      return (P_SURFACE_VOL.rbegin())->second;
+    } else if ( it == (--it_end) ){
+      return (it_rbegin)->second;
     } else {
 
       double hi_v = it->second, hi_p = it->first;
