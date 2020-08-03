@@ -46,7 +46,8 @@ void sp_qt::change_z_points( int val ){
 
 void sp_qt::change_xy_points( int val ){
   set_n_points_x( val );
-  set_n_points_y( val );  
+  set_n_points_y_to_unitcell( );
+  std::cout << "n_points=(" << n_points_x << "," << n_points_y <<","<< n_points_z << ")" << std::endl;
   emit geometry_changed();
   emit parameter_changed();
 }

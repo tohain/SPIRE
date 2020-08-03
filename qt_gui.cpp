@@ -49,7 +49,7 @@ void GUI::set_up_ui(){
   uc_size_control_c->object()->setSingleStep(0.01); 
   
   channel_prop_control = new QT_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
-  channel_prop_control->object()->setRange(0, 1);
+  //channel_prop_control->object()->setRange(0, 1);
   channel_prop_control->object()->setSingleStep(0.01);  
   
   surface_type_control = new QT_labeled_obj<QComboBox> ( "Surface type", controls_basic );

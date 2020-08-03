@@ -222,8 +222,11 @@ public:
   void set_a( double ax, double ay, double az);
   /// Sets the number of points in the slice in x direction
   void set_n_points_x( int val );
-  /// Sets the number of points in the slice in y direction  
+  /// Sets the number of points in the slice in y direction
   void set_n_points_y( int val );
+  /// Sets the number of points in the slice in y direction according
+  /// to the dimension of the unitcell
+  void set_n_points_y_to_unitcell();  
   /// Sets the number of points in the slice in z direction  
   void set_n_points_z( int val );
   /// Sets the \ref h Miller index
@@ -269,6 +272,9 @@ protected:
 
   /// Nodal approximation of the level set function of a p surface
   double level_set_primitive( double x, double y, double z, std::vector<double> a);
+
+  /// Nodal approximation of the level set function of a w surface
+  double level_set_wurtzite( double x, double y, double z, std::vector<double> a);  
 
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, std::vector<double> a);
@@ -393,9 +399,20 @@ protected:
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
-						    "Primitive"
+						    "Primitive",
+						    "Wurtzite",
 						    //"Layer",
 						    //"Sphere"
+  };
+
+  /// The dimension of the unitcell to keep the symmetry. Now the
+  /// unitcell dimension is set using the parameter a above, however,
+  /// some membranes are non-cubic with a fixed a/b a/c ratio. This
+  /// ratio needs to be supplied here so 
+  const std::vector< std::vector<double> > unitcell_dim = { {1.0,1.0,1.0},
+							    {1.0,1.0,1.0},
+							    {1.0,1.0,1.0},
+							    {2.0, sqrt(3.0), 1.732692}
   };
 
   /// Available image scalings

@@ -20,9 +20,11 @@ public:
 
   const double get_level( std::string surface, double val ) const {
 
+    /*
     if( val > 1 || val < 0 ){
       throw invalid_parameter_exception( "Invalid volume proportions, must be in [0,1]" );
     }
+    */
 
 
     std::map<double, double>::const_iterator it;
@@ -44,7 +46,12 @@ public:
       it = G_SURFACE_VOL.begin();
       it_begin = G_SURFACE_VOL.begin();
       it_rbegin = G_SURFACE_VOL.rbegin();
-      it_end = G_SURFACE_VOL.end();      
+      it_end = G_SURFACE_VOL.end();
+    } else if ( surface == "Wurtzite" ){
+      it = W_SURFACE_VOL.begin();
+      it_begin = W_SURFACE_VOL.begin();
+      it_rbegin = W_SURFACE_VOL.rbegin();
+      it_end = W_SURFACE_VOL.end();      
     } else {
       throw invalid_parameter_exception( "Unkown surface type" );
     }
@@ -95,7 +102,13 @@ public:
       it = G_SURFACE_VOL_INV.begin();
       it_begin = G_SURFACE_VOL_INV.begin();
       it_rbegin = G_SURFACE_VOL_INV.rbegin();
-      it_end = G_SURFACE_VOL_INV.end();      
+      it_end = G_SURFACE_VOL_INV.end();
+    } else if ( surface == "Wurtzite" ){
+      it = W_SURFACE_VOL_INV.begin();
+      it_begin = W_SURFACE_VOL_INV.begin();
+      it_rbegin = W_SURFACE_VOL_INV.rbegin();
+      it_end = W_SURFACE_VOL_INV.end();      
+      
     } else {
       throw invalid_parameter_exception( "Unkown surface type" );
     }
@@ -134,6 +147,10 @@ const std::map<double, double> D_SURFACE_VOL_INV = {{-1.10000e+00, 1.00000e+00},
   const std::map<double, double> G_SURFACE_VOL = {{1.00000e+00, -1.50000e+00}, {9.77529e-01, -1.40000e+00}, {9.38475e-01, -1.30000e+00}, {9.01056e-01, -1.20000e+00}, {8.64996e-01, -1.10000e+00}, {8.29777e-01, -1.00000e+00}, {7.95304e-01, -9.00000e-01}, {7.61223e-01, -8.00000e-01}, {7.27761e-01, -7.00000e-01}, {6.94590e-01, -6.00000e-01}, {6.61833e-01, -5.00000e-01}, {6.29167e-01, -4.00000e-01}, {5.96772e-01, -3.00000e-01}, {5.64520e-01, -2.00000e-01}, {5.32018e-01, -1.00000e-01}, {5.00000e-01, 1.52656e-15}, {4.67982e-01, 1.00000e-01}, {4.35480e-01, 2.00000e-01}, {4.03228e-01, 3.00000e-01}, {3.70833e-01, 4.00000e-01}, {3.38167e-01, 5.00000e-01}, {3.05410e-01, 6.00000e-01}, {2.72239e-01, 7.00000e-01}, {2.38777e-01, 8.00000e-01}, {2.04696e-01, 9.00000e-01}, {1.70223e-01, 1.00000e+00}, {1.35004e-01, 1.10000e+00}, {9.89440e-02, 1.20000e+00}, {6.15253e-02, 1.30000e+00}, {2.24711e-02, 1.40000e+00}, {0.00000e+00, 1.50000e+00}};
 
   const std::map<double, double> G_SURFACE_VOL_INV = {{-1.50000e+00, 1.00000e+00}, {-1.40000e+00, 9.77529e-01}, {-1.30000e+00, 9.38475e-01}, {-1.20000e+00, 9.01056e-01}, {-1.10000e+00, 8.64996e-01}, {-1.00000e+00, 8.29777e-01}, {-9.00000e-01, 7.95304e-01}, {-8.00000e-01, 7.61223e-01}, {-7.00000e-01, 7.27761e-01}, {-6.00000e-01, 6.94590e-01}, {-5.00000e-01, 6.61833e-01}, {-4.00000e-01, 6.29167e-01}, {-3.00000e-01, 5.96772e-01}, {-2.00000e-01, 5.64520e-01}, {-1.00000e-01, 5.32018e-01}, {1.52656e-15, 5.00000e-01}, {1.00000e-01, 4.67982e-01}, {2.00000e-01, 4.35480e-01}, {3.00000e-01, 4.03228e-01}, {4.00000e-01, 3.70833e-01}, {5.00000e-01, 3.38167e-01}, {6.00000e-01, 3.05410e-01}, {7.00000e-01, 2.72239e-01}, {8.00000e-01, 2.38777e-01}, {9.00000e-01, 2.04696e-01}, {1.00000e+00, 1.70223e-01}, {1.10000e+00, 1.35004e-01}, {1.20000e+00, 9.89440e-02}, {1.30000e+00, 6.15253e-02}, {1.40000e+00, 2.24711e-02}, {1.50000e+00, 0.00000e+00}};
+
+  const std::map<double, double> W_SURFACE_VOL = {{-10, -10}, {0, 0}, {10, 10}};
+
+  const std::map<double, double> W_SURFACE_VOL_INV = {{-10, -10}, {0, 0}, {10, 10}};  
   
 
 };

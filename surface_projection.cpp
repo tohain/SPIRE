@@ -84,7 +84,7 @@ invalid_parameter_exception::invalid_parameter_exception( std::string _msg ) : m
 }
 
 const char* invalid_parameter_exception::what() const throw() {
-    return "Invalid parameter choice!";
+  return msg.c_str();//"Invalid parameter choice!";
 }
 
 const std::string invalid_parameter_exception::details() const {
@@ -263,6 +263,15 @@ double surface_projection::level_set_diamond( double x, double y, double z, std:
  */
 double surface_projection::level_set_primitive( double x, double y, double z, std::vector<double> inv_a) {
   return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
+}
+
+double surface_projection::level_set_wurtzite( double x, double y, double z, std::vector<double> inv_a) {
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];  
+    
+  return + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.0532718*cos(6*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0526959*sin(2*+freq_y*y)*sin(3*+freq_z*z) - 0.0578834*sin(2*+freq_y*y)*sin(5*+freq_z*z) + 0.0688335*cos(4*+freq_y*y)*cos(4*+freq_z*z) - 0.0614875*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) - 0.065981*cos(2*freq_x*x)*cos(+freq_y*y)*cos(6*+freq_z*z) - 0.0589097*cos(2*freq_x*x)*sin(+freq_y*y)*sin(7*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0570703*cos(2*freq_x*x)*cos(5*+freq_y*y) - 0.0687129*cos(2*freq_x*x)*sin(5*+freq_y*y)*sin(+freq_z*z) - 0.0620785*cos(2*freq_x*x)*cos(7*+freq_y*y)*cos(4*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.0568124*cos(4*freq_x*x)*cos(4*+freq_y*y) + 0.0686862*cos(4*freq_x*x)*sin(4*+freq_y*y)*sin(+freq_z*z) - 0.0736126*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) - 0.0564133*cos(6*freq_x*x)*cos(+freq_y*y) + 0.067969*cos(6*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0627811*cos(6*freq_x*x)*cos(5*+freq_y*y)*cos(4*+freq_z*z) - 0.0620622*cos(8*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z);
 }
 
 /**
@@ -445,9 +454,11 @@ void surface_projection::set_grid(){
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 3 ){ //layer
+    } else if( type == 3 ){ //wurtzite
+      level = level_set_wurtzite( points[ii], points[ii+1], points[ii+2], inv_a );      
+    } else if( type == 4 ){ //layer
       level = level_set_layer( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 4 ){ //sphere
+    } else if( type == 5 ){ //sphere
       level = level_set_sphere( points[ii], points[ii+1], points[ii+2], inv_a );
     }
     else {
@@ -632,7 +643,7 @@ void surface_projection::update_geometry(){
   //update box
   L[0] = ntucs * a[0];
   L[1] = ntucs * a[1];
-
+  
   L_2[0] = L[0]/2.0;
   L_2[1] = L[1]/2.0;
 
@@ -645,6 +656,9 @@ void surface_projection::update_geometry(){
     dz = (periodicity_length*slice_width) / n_points_z;
   }
 
+  std::cout << "L=(" << L[0] << "," << L[1] << "," << L[2] << ")" << std::endl;
+  std::cout << "d=(" << dx << "," << dy << "," << dz << ")" << std::endl;  
+  
 }
 
 /**
@@ -1514,7 +1528,7 @@ void surface_projection::set_n_points_x( int val ){
     n_points_x = 50;
     //recompute the resolution
     dx = L[0] / n_points_x;
-    throw invalid_parameter_exception("Must have a minimum of 1 point");
+    throw invalid_parameter_exception("n_points_x: Must have a minimum of 1 point");
   } else {
     n_points_x = val;
     //recompute the resolution
@@ -1527,7 +1541,23 @@ void surface_projection::set_n_points_y( int val ){
     n_points_y = 50;
     //recompute the resolution
     dy = L[1] / n_points_y;      
-    throw invalid_parameter_exception("Must have a minimum of 1 point");
+    throw invalid_parameter_exception("n_points_y: Must have a minimum of 1 point");
+  } else {    
+    n_points_y = val;
+    //recompute the resolution
+    dy = L[1] / n_points_y;      
+  }   
+}
+
+void surface_projection::set_n_points_y_to_unitcell(){
+
+  int val = n_points_x * ( unitcell_dim[ type ][1] / unitcell_dim[ type ] [0] );
+
+  if( val <= 0){
+    n_points_y = 50;
+    //recompute the resolution
+    dy = L[1] / n_points_y;      
+    throw invalid_parameter_exception("n_points_y: Must have a minimum of 1 point");
   } else {    
     n_points_y = val;
     //recompute the resolution
@@ -1540,7 +1570,7 @@ void surface_projection::set_n_points_z( int val ){
     n_points_z = 50;
     //recompute the resolution
     dz = slice_width / n_points_z;      
-    throw invalid_parameter_exception("Must have a minimum of 1 point");
+    throw invalid_parameter_exception("n_points_z: Must have a minimum of 1 point");
   } else {
     n_points_z = val;
     //recompute the resolution
