@@ -23,8 +23,7 @@ public:
 private:
   
 signals:
-
-
+  
   void parameter_changed();
 
   void geometry_changed();
@@ -48,13 +47,20 @@ public slots:
   
   void change_surface_type( int ind );
   void change_ntucs( int ind );
-  void change_uc_size_a( double a );
-  void change_uc_size_c( double a );  
+
+  void change_uc_scale_ab( double ab );
+  void change_uc_scale_c( double c );
+
+
+  //void change_uc_size_c( double a );  
+
   void change_vol_prop( double val );
   void change_xy_points( int val );
   void change_z_points( int val );
   void change_hkl( int h, int k, int l );
   void change_slice_width( double val );
+  void change_slice_height( double val );
+  void change_slice_length( double val );  
   void change_slice_position( double val );  
   void change_membranes( std::vector<double> val );
 

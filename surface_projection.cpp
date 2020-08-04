@@ -159,7 +159,7 @@ void surface_projection::print_topological_network( int which, std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_height(0), a(3,1), inv_a(3,2*M_PI), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
+surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
 
   //set the channel proportion to 0.5
@@ -222,6 +222,19 @@ Matrix surface_projection::get_x_rot_m (double ang) const {
   R.v = { 1, 0,           0          };
   R.w = { 0, cos(ang), -sin(ang) };
   R.z = { 0, sin(ang),  cos(ang) };
+  return R;
+}
+
+
+/**
+ * Returns a rotation matrix. The rotation is by ang against the
+ * clock around the y-Axis
+ */
+Matrix surface_projection::get_y_rot_m (double ang) const {
+  Matrix R;
+  R.v = {  cos(ang), 0, sin(ang) };
+  R.w = {     0    , 1,    0     };
+  R.z = { -sin(ang), 0, cos(ang) };
   return R;
 }
 
@@ -361,13 +374,21 @@ void surface_projection::set_up_points(){
   //rotation matrices
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
-  Matrix Rx = get_x_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
+  //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
+  Matrix Ry = get_y_rot_m(theta), Rz = get_z_rot_m(2*M_PI - phi);
 
   //rotate
-  nx = dot_prod( Rz, dot_prod( Rx, nx));
-  ny = dot_prod( Rz, dot_prod( Rx, ny));
-  nz = dot_prod( Rz, dot_prod( Rx, nz));  
+  nx = dot_prod( Rz, dot_prod( Ry, nx));
+  ny = dot_prod( Rz, dot_prod( Ry, ny));
+  nz = dot_prod( Rz, dot_prod( Ry, nz));  
 
+
+  std::cout << "slice corodinate system:" << std::endl;
+  std::cout << "nx=(" << nx[0] << ", " << nx[1] << ", " << nx[2] << ")" << std::endl
+	    << "ny=(" << ny[0] << ", " << ny[1] << ", " << ny[2] << ")" << std::endl
+	    << "nz=(" << nz[0] << ", " << nz[1] << ", " << nz[2] << ")" << std::endl;
+    
+  
   long max_points = n_points_x*n_points_y*n_points_z;
   
   //the total index of that particle in the array
@@ -380,20 +401,9 @@ void surface_projection::set_up_points(){
     for(unsigned int jj=0; jj<n_points_x; jj++){ //width, the column index! (horizontal)
 
       double kz;
-
-      //check if we are periodic. If so, slice_height will be handeled differently
-      if( periodicity_length == -1 ){
-	//aperiodic, slice_height is an absolute length
-
-	kz = (slice_height - 0.5*slice_width );
-
-      } else {
-	//periodic. slice_height is the fraction of the periodicity length 
-
-	//periodicity length is in fractions of a
-        kz = periodicity_length*(slice_height - 0.5*slice_width);
-
-      }
+      
+      //periodicity length is in fractions of a
+      kz = slice_position - 0.5*slice_width;
       
       for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
 	
@@ -419,6 +429,47 @@ void surface_projection::set_up_points(){
     }
     iy += dy; // next y-pixel
   }
+  
+}
+
+
+/*
+ * This computes the "real" edge lengths of the slice. Since it is
+ * tilted it can has a very different dimension than the unit cell
+ *
+ */
+void surface_projection::compute_slice_size(){
+
+
+  // original base vectors
+  std::vector<double> nx = {1, 0, 0};
+  std::vector<double> ny = {0, 1, 0};
+  std::vector<double> nz = {0, 0, 1};
+
+  // rotated base vectors
+  std::vector<double> nx_rot = {1, 0, 0};
+  std::vector<double> ny_rot = {0, 1, 0};
+  std::vector<double> nz_rot = {0, 0, 1};    
+
+  std::vector<double> n = get_normal();
+  
+  // this is copy and paste from "set_up_points"
+
+  // rotate our slice coordinate system so its normal vector aligns with the wanted vector
+  Matrix Ry = get_y_rot_m(theta), Rz = get_z_rot_m(2*M_PI - phi);
+
+  //rotate
+  nx_rot = dot_prod( Rz, dot_prod( Ry, nx_rot));
+  ny_rot = dot_prod( Rz, dot_prod( Ry, ny_rot));
+
+  double xx = dot_prod( nx, nx_rot );
+  double xy = dot_prod( nx, ny_rot );
+
+  double yx = dot_prod( ny, nx_rot );
+  double yy = dot_prod( ny, ny_rot );  
+
+  //L[0] = 1.0 / sqrt( xx*xx + xy*xy );
+  //L[1] = 1.0 / sqrt( yx*yx + yy*yy );
   
 }
 
@@ -634,6 +685,7 @@ void surface_projection::update_containers(){
   memset( projection.data(), 0, sizeof(float) * projection.size());
 }
 
+
 /**
  * This function updates the geometry, i.e. recomputes all values
  * depending on the unit cell size and number of unit cells.
@@ -641,24 +693,18 @@ void surface_projection::update_containers(){
 void surface_projection::update_geometry(){
 
   //update box
-  L[0] = ntucs * a[0];
-  L[1] = ntucs * a[1];
+  //  L[0] = ntucs * a[0];
+  //L[1] = ntucs * a[1];
+  //L[2] = slice_width; //not really needed, just for completeness
   
   L_2[0] = L[0]/2.0;
   L_2[1] = L[1]/2.0;
-
+  L_2[2] = L[2]/2.0; //not really needed, just for completeness
+  
   //update points number
   dx = L[0] / n_points_x;
   dy = L[1] / n_points_y;
-  if( periodicity_length == -1 ){
-    dz = (slice_width) / n_points_z;
-  } else {
-    dz = (periodicity_length*slice_width) / n_points_z;
-  }
-
-  std::cout << "L=(" << L[0] << "," << L[1] << "," << L[2] << ")" << std::endl;
-  std::cout << "d=(" << dx << "," << dy << "," << dz << ")" << std::endl;  
-  
+  dz = (slice_width) / n_points_z;  
 }
 
 /**
@@ -669,12 +715,14 @@ void surface_projection::update_geometry(){
  * much of a difference
  */
 void surface_projection::compute_projection( ){
-
+  
   progress = 0;
   
   //get the points in the slice  
   status = "Computing the points";
   set_up_points();
+
+
 
   progress = 0.3;
   
@@ -1309,6 +1357,14 @@ std::vector<double> surface_projection::get_a() const{
   return a;
 }
 
+double surface_projection::get_uc_scale_ab() const {
+  return uc_scale_ab;
+}
+
+double surface_projection::get_uc_scale_c() const {
+  return uc_scale_c;
+}
+
 double surface_projection::get_surface_level() const {
   return surface_level;
 }
@@ -1322,8 +1378,8 @@ double surface_projection::get_slice_width() const {
   return slice_width;
 }
 
-double surface_projection::get_slice_height() const {
-  return slice_height;
+double surface_projection::get_slice_position() const {
+  return slice_position;
 }
 
 std::vector<double> surface_projection::get_L() const {
@@ -1455,16 +1511,26 @@ void surface_projection::set_slice_width ( double val ){
   }
 }
 
+
+void surface_projection::set_slice_length ( double val ){
+  L[0] = val;
+}
+
+
 void surface_projection::set_slice_height ( double val ){
+  L[1] = val;
+}
+
+void surface_projection::set_slice_position ( double val ){
   //check for invalid parameter
   if( periodicity_length > 0 &&
-      (slice_height < 0 || slice_height > 1 ) ){
+      (slice_position < 0 || slice_position > 1 ) ){
     //set valid value
-    slice_height = 0;
+    slice_position = 0;
     throw invalid_parameter_exception("periodic orientation, slice height must be in [0, 1]");
   }
   //set value
-  slice_height = val;
+  slice_position = val;
 }
 
 
@@ -1484,44 +1550,23 @@ void surface_projection::set_surface_level( double val ){
   surface_level = val;
 }
 
-void surface_projection::set_a ( double val ){
-  if( val < tolerance ){
-    a[0] = 1;
-    a[1] = 1;
-    a[2] = 1;
-    inv_a[1] = 2*M_PI/(a[0]); // period for nodal representations
-    inv_a[2] = 2*M_PI/(a[1]);
-    inv_a[3] = 2*M_PI/(a[2]);
-    throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
-  } else {
-    a[0] = val;
-    a[1] = val;
-    a[2] = val;
+void surface_projection::set_uc_scale_ab( double val ){
+  uc_scale_ab = val;
+}
+
+void surface_projection::set_uc_scale_c( double val ){
+  uc_scale_c = val;
+}
+
+void surface_projection::update_a(){
+    a[0] = uc_scale_ab * unitcell_dim[type][0];
+    a[1] = uc_scale_ab * unitcell_dim[type][1];
+    a[2] = uc_scale_c * unitcell_dim[type][2];
     inv_a[0] = 2*M_PI/(a[0]); // period for nodal representations
     inv_a[1] = 2*M_PI/(a[1]); // period for nodal representations        
-    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations
-  }
+    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations  
 }
 
-
-void surface_projection::set_a ( double ax, double ay, double az ){
-  if( ax < tolerance || ay < tolerance || az < tolerance ){
-    a[0] = 1;
-    a[1] = 1;
-    a[2] = 1;
-    inv_a[0] = 2*M_PI/(a[0]); // period for nodal representations
-    inv_a[1] = 2*M_PI/(a[1]); // period for nodal representations
-    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations
-    throw invalid_parameter_exception("Unit cell can't be smaller than 0!");
-  } else {
-    a[0] = ax;
-    a[1] = ay;
-    a[2] = az;
-    inv_a[0] = 2*M_PI/(ax); // period for nodal representations
-    inv_a[1] = 2*M_PI/(ay); // period for nodal representations        
-    inv_a[2] = 2*M_PI/(az); // period for nodal representations
-  }
-}
 
 void surface_projection::set_n_points_x( int val ){
   if( val <= 0){
@@ -1551,7 +1596,7 @@ void surface_projection::set_n_points_y( int val ){
 
 void surface_projection::set_n_points_y_to_unitcell(){
 
-  int val = n_points_x * ( unitcell_dim[ type ][1] / unitcell_dim[ type ] [0] );
+  int val = n_points_x * ( L[1] / L[0] );
 
   if( val <= 0){
     n_points_y = 50;

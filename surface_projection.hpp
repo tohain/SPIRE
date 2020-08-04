@@ -85,6 +85,9 @@ public:
 
   /// Computes the periodicity length of the given orientation
   void update_periodicity_length();
+
+  /// Computes the dimensions of the slice, so it has the right aspect ration
+  void compute_slice_size();
   
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
@@ -157,6 +160,10 @@ public:
   
   /// Returns the periodicity (unit cell size) of the surface
   std::vector<double> get_a() const;
+  /// returns unit cell scale in ab direction
+  double get_uc_scale_ab() const;
+  /// returns unit cell scale in c direction
+  double get_uc_scale_c() const;
   /// Returns the surface level
   double get_surface_level() const;
   /// Returns the ratio of the volumes of the two channels
@@ -172,7 +179,7 @@ public:
   /// Returns the width of the slice
   double get_slice_width() const;
   /// Returns the position of the slice along its normal vector
-  double get_slice_height() const;
+  double get_slice_position() const;
   /// Returns theta of the current orientation
   double get_theta() const;
   /// Returns phi of the current orientation  
@@ -200,11 +207,20 @@ public:
   void set_type( int val );
   /// Sets the number of unit cells of the slice
   void set_ntucs( int val );
-  /// Sets the slice width
+  /// Sets the slice width // z 
   void set_slice_width( double val );
-  /// Sets the position of the slice along ints normal vector
+  /// Sets the slice heigth // y
   void set_slice_height( double val );
+  /// Sets the slice length // x
+  void set_slice_length( double val );
 
+
+  /// Sets the position of the slice along ints normal vector
+  void set_slice_position( double val );
+
+
+
+  
   /// set membrane
   void edit_membrane( int id, double dist, double width );
   /// deletes a meberane
@@ -216,10 +232,12 @@ public:
   void set_surface_level( double val );
   /// Sets the channel proportion
   void set_channel_vol_prop( double val );
-  /// Sets the unit cell size of the surface cubic
-  void set_a( double val );
-  /// Sets the unit cell size of the surface
-  void set_a( double ax, double ay, double az);
+  /// recomputes the unitcell dimensions from \ref uc_scale_ab , \ref uc_scape_c and \ref unitcell_dim
+  void update_a( );
+  /// Sets the unit cell scaling in c direction
+  void set_uc_scale_ab ( double val );
+  /// Sets the unit cell scaling in c direction
+  void set_uc_scale_c ( double val );  
   /// Sets the number of points in the slice in x direction
   void set_n_points_x( int val );
   /// Sets the number of points in the slice in y direction
@@ -260,6 +278,9 @@ protected:
   
   /// Creates and returns a rotation matrix around x axis
   Matrix get_x_rot_m( double ang ) const;
+
+  /// Creates and returns a rotation matrix around y axis
+  Matrix get_y_rot_m( double ang ) const;  
 
   /// Creates and returns a rotation matrix around z axis
   Matrix get_z_rot_m( double ang ) const;   
@@ -332,19 +353,21 @@ protected:
    * is given in absolute length units
    */
   double slice_width;
-  /** \brief Slice position along its normal vector
+  /** \brief Slice position along its normal vector in length units
    *
-   * This parameter is within [0,1] if the current orientation is
-   * periodic (i.e. periodicity_length>0) and is then interpreted as a
-   * fraction of the periodicity_length. For aperiodic orientations it
-   * is given in absolute length units
+   * It has the same units as the unit cell dimension
    */
-  double slice_height;
+  double slice_position;
 
   /// Rectangular unit cell size
   std::vector<double> a;
   /// Surface period
   std::vector<double> inv_a;
+
+  /// Scaling of unit cell (ab)
+  double uc_scale_ab;
+  /// Scaling of unit cell (c) for rectangular/hexagonal symmetries (wurtzite so far)
+  double uc_scale_c;
 
   /// This parameter controlls the proportions of the two different
   /// channels. 0 means equal volume in both of them

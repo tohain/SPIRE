@@ -53,19 +53,46 @@ void sp_qt::change_xy_points( int val ){
 }
 
 
-void sp_qt::change_uc_size_a( double val ){
-  std::vector<double> tmp_size = get_a();
-  set_a( val, val, tmp_size[2] );
+void sp_qt::change_uc_scale_ab( double ab ){
+  
+  set_uc_scale_ab( ab );
+
+  // if we have membranes of cubic symmetries, change c scaling as
+  // well, since it needs to be cubic
+  if( surface_choices[type] != "Wurtzite" ){
+    set_uc_scale_c( ab );
+  }
+
+  update_a();  
+  
   emit geometry_changed();
   emit parameter_changed();
 }
 
+
+void sp_qt::change_uc_scale_c( double c ){
+
+  //only allow if we have other than cubic symmetries
+
+  if( surface_choices[type] == "Wurtzite" ){
+  
+    set_uc_scale_c( c );
+    update_a();
+  
+    emit geometry_changed();
+    emit parameter_changed();
+  }
+}
+
+
+  /*
 void sp_qt::change_uc_size_c( double val ){
   std::vector<double> tmp_size = get_a();
   set_a( tmp_size[0], tmp_size[1], val );  
   emit geometry_changed();
   emit parameter_changed();
 }
+  */
 
 void sp_qt::change_vol_prop( double val ){
   set_channel_vol_prop( val );
@@ -93,8 +120,20 @@ void sp_qt::change_slice_width( double val ){
   emit parameter_changed();
 }
 
-void sp_qt::change_slice_position( double val ){
+void sp_qt::change_slice_length( double val ){
+  set_slice_length( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+void sp_qt::change_slice_height( double val ){
   set_slice_height( val );
+  emit geometry_changed();
+  emit parameter_changed();
+}
+
+void sp_qt::change_slice_position( double val ){
+  set_slice_position( val );
   emit geometry_changed();
   emit parameter_changed();
 }
@@ -105,6 +144,8 @@ void sp_qt::change_membranes( std::vector<double> val ){
 }
 
 void sp_qt::compute_projection(){
+
+  compute_slice_size();
   
   //get the points in the slice
   emit set_status( 0, 1 );
@@ -142,12 +183,17 @@ void sp_qt::copy_parameters( sp_qt *source ){
   set_l( source->get_l() );  
 
   set_ntucs( source->get_ntucs() );
-  set_a( source->get_a()[0], source->get_a()[1], source->get_a()[2] );
+
+
+  set_uc_scale_ab( source->get_uc_scale_ab() );
+  set_uc_scale_c( source->get_uc_scale_c() );
+  update_a();
+  
   set_membranes( source->get_membranes() );
   set_channel_vol_prop( source->get_channel_prop() );
 
   set_slice_width( source->get_slice_width() );
-  set_slice_height( source->get_slice_height() );
+  set_slice_position( source->get_slice_position() );
 
   set_type( source->get_type() );
 

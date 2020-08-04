@@ -35,10 +35,10 @@
 
 
 template <class QT_O>
-class QT_labeled_obj {
+class QT_v_labeled_obj {
 
 public:
-  QT_labeled_obj( std::string label_str, QWidget *parent = NULL ){
+  QT_v_labeled_obj( std::string label_str, QWidget *parent = NULL ){
     obj = new QT_O ( parent );
     lbl = new QLabel( QString(label_str.c_str()), parent );
     lyt = new QVBoxLayout();
@@ -47,7 +47,7 @@ public:
     lyt->addWidget( obj );
   }
   
-  ~QT_labeled_obj(){
+  ~QT_v_labeled_obj(){
     delete( obj );
     delete( lbl );
     delete( lyt );
@@ -71,6 +71,50 @@ private:
   
 };
 
+template <class QT_O>
+class QT_h_labeled_obj {
+
+public:
+  QT_h_labeled_obj( std::string label_str, QWidget *parent = NULL, bool _left = true ){
+    obj = new QT_O ( parent );
+    lbl = new QLabel( QString(label_str.c_str()), parent );
+    lyt = new QHBoxLayout();
+    left = _left;
+
+    if( left ){
+      lyt->addWidget( lbl );
+      lyt->addWidget( obj );
+    } else {
+      lyt->addWidget( obj );
+      lyt->addWidget( lbl );
+    }
+  }
+  
+  ~QT_h_labeled_obj(){
+    delete( obj );
+    delete( lbl );
+    delete( lyt );
+  }
+
+  QHBoxLayout* layout(){
+    return lyt;
+  }
+  QT_O* object(){
+    return obj;
+  }
+  QLabel* label(){
+    return lbl;
+  }  
+  
+private:
+  QT_O *obj;
+  QLabel *lbl;
+
+  bool left; // is label left or right?
+  
+  QHBoxLayout *lyt;
+  
+};
 
 
 
@@ -121,32 +165,34 @@ private:
   QPushButton *save_surface_points_control;
   QPushButton *save_topological_network_control;
 
-  QT_labeled_obj<QLineEdit> *path_prefix_control;
+  QT_v_labeled_obj<QLineEdit> *path_prefix_control;
   
   // structure control
-  QT_labeled_obj<QSpinBox> *ntucs_control;
-  QT_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
-  QT_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
-  QT_labeled_obj<QDoubleSpinBox> *channel_prop_control;
-  QT_labeled_obj<QComboBox> *surface_type_control;
+  QT_v_labeled_obj<QSpinBox> *ntucs_control;
+  QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
+  QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
+  QT_v_labeled_obj<QDoubleSpinBox> *channel_prop_control;
+  QT_v_labeled_obj<QComboBox> *surface_type_control;
   
 
   // resolution control
-  QT_labeled_obj<QSpinBox> *z_points_control;
-  QT_labeled_obj<QSpinBox> *xy_points_control;
-  QT_labeled_obj<QComboBox> *image_scaling_control;  
+  QT_v_labeled_obj<QSpinBox> *z_points_control;
+  QT_v_labeled_obj<QSpinBox> *xy_points_control;
+  QT_v_labeled_obj<QComboBox> *image_scaling_control;  
   QLabel *pix_size_indicator;
   QCheckBox *invert_control;  
   QCheckBox *autoupdate_control;  
 
 
   // slice parameters control
-  QT_labeled_obj<QDoubleSpinBox> *slice_width_control;
-  QT_labeled_obj<QDoubleSpinBox> *slice_position_control;
+  QT_h_labeled_obj<QDoubleSpinBox> *slice_width_control;
+  QT_h_labeled_obj<QDoubleSpinBox> *slice_length_control;
+  QT_h_labeled_obj<QDoubleSpinBox> *slice_height_control;  
+  QT_h_labeled_obj<QDoubleSpinBox> *slice_position_control;
 
-  QT_labeled_obj<QSpinBox> *miller_h_control;
-  QT_labeled_obj<QSpinBox> *miller_k_control;
-  QT_labeled_obj<QSpinBox> *miller_l_control;  
+  QT_h_labeled_obj<QSpinBox> *miller_h_control;
+  QT_h_labeled_obj<QSpinBox> *miller_k_control;
+  QT_h_labeled_obj<QSpinBox> *miller_l_control;  
   
   //membranes
   QLabel *membranes_label;
@@ -173,7 +219,8 @@ private:
 
   // layouts
 
-
+  QVBoxLayout *slice_orientation_layout;
+  QVBoxLayout *slice_dimension_layout;
   
   QVBoxLayout *main_layout;
 
@@ -223,6 +270,9 @@ private:
   
 signals:
 
+
+  void call_change_uc_size( double ab, double c );
+
   void call_compute_projection();
   void call_update_stats();
 
@@ -239,7 +289,7 @@ signals:
 public slots:
 
 
-
+  void update_unitcell_size();
   
   void update_gui_from_sp();
   

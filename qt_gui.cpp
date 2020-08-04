@@ -27,7 +27,7 @@ void GUI::set_up_ui(){
   save_grid_control = new QPushButton( "Save grid", controls_save );
   save_surface_points_control = new QPushButton( "Save membrane points", controls_save );
   save_topological_network_control = new QPushButton( "Save network", controls_save );
-  path_prefix_control = new QT_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
+  path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
   
   // buttons for controls_basic
   button_quit = new QPushButton("Quit", controls_basic);
@@ -38,21 +38,21 @@ void GUI::set_up_ui(){
   /*
    * structure control
    */ 
-  ntucs_control = new QT_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
+  ntucs_control = new QT_v_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
   ntucs_control->object()->setRange(1, 50);
   
-  uc_size_control_a = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size (a)", controls_basic );
+  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit cell size (a)", controls_basic );
   uc_size_control_a->object()->setRange(0.01, 999);
   uc_size_control_a->object()->setSingleStep(0.01);
-  uc_size_control_c = new QT_labeled_obj<QDoubleSpinBox> ( "Unit cell size (c)", controls_basic );
+  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit cell size (c)", controls_basic );
   uc_size_control_c->object()->setRange(0.01, 999);
   uc_size_control_c->object()->setSingleStep(0.01); 
   
-  channel_prop_control = new QT_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
+  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
   //channel_prop_control->object()->setRange(0, 1);
   channel_prop_control->object()->setSingleStep(0.01);  
   
-  surface_type_control = new QT_labeled_obj<QComboBox> ( "Surface type", controls_basic );
+  surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", controls_basic );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
   for(unsigned int ii=0; ii<sfc_types.size(); ii++){
     surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
@@ -61,10 +61,10 @@ void GUI::set_up_ui(){
   /*
    * Resolution control
    */
-  xy_points_control = new QT_labeled_obj<QSpinBox> ( "XY resolution", controls_basic );
+  xy_points_control = new QT_v_labeled_obj<QSpinBox> ( "XY resolution", controls_basic );
   xy_points_control->object()->setRange(1, 3000);
  
-  z_points_control = new QT_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
+  z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
   z_points_control->object()->setRange(1, 3000);
 
   pix_size_indicator = new QLabel("");
@@ -78,7 +78,7 @@ void GUI::set_up_ui(){
   autoupdate_control = new QCheckBox( controls_basic );
   autoupdate_control->setText( "Autoupdate" );  
 
-  image_scaling_control = new QT_labeled_obj<QComboBox>( "Scaling", controls_basic );
+  image_scaling_control = new QT_v_labeled_obj<QComboBox>( "Scaling", controls_basic );
   std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
   for(unsigned int ii=0; ii<imgs_types.size(); ii++){
     image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
@@ -97,21 +97,29 @@ void GUI::set_up_ui(){
    * Slice control 
    */
 
-  slice_width_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);
-  slice_width_control->object()->setRange(0, 1);
+  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);
+  slice_width_control->object()->setRange(0, 250);
   slice_width_control->object()->setSingleStep(0.01);
+
+  slice_length_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice length", controls_basic);
+  slice_length_control->object()->setRange(0, 250);
+  slice_length_control->object()->setSingleStep(0.01);
+
+  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice height", controls_basic);
+  slice_height_control->object()->setRange(0, 250);
+  slice_height_control->object()->setSingleStep(0.01);  
   
-  slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "Slice height", controls_basic);    
+  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice position", controls_basic);    
   slice_position_control->object()->setRange(0, 1);
   slice_position_control->object()->setSingleStep(0.01);  
   
-  miller_h_control = new QT_labeled_obj<QSpinBox> ("h", controls_basic );
+  miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
   miller_h_control->object()->setRange(-100, 100);
   
-  miller_k_control = new QT_labeled_obj<QSpinBox> ("k", controls_basic );
+  miller_k_control = new QT_h_labeled_obj<QSpinBox> ("k", controls_basic );
   miller_k_control->object()->setRange(-100, 100);
   
-  miller_l_control = new QT_labeled_obj<QSpinBox> ("l", controls_basic );  
+  miller_l_control = new QT_h_labeled_obj<QSpinBox> ("l", controls_basic );  
   miller_l_control->object()->setRange(-100, 100);
 
   /*
@@ -196,7 +204,9 @@ void GUI::set_up_ui(){
   
   structure_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();
-  slice_settings = new QHBoxLayout();
+  slice_orientation_layout = new QVBoxLayout();
+  slice_dimension_layout = new QVBoxLayout();
+  slice_settings = new QHBoxLayout();  
   membrane_settings = new QHBoxLayout();
   membrane_buttons_layout = new QVBoxLayout();
   
@@ -212,13 +222,26 @@ void GUI::set_up_ui(){
   resolution_settings->addWidget( invert_control );
   resolution_settings->addWidget( autoupdate_control );
 
-  slice_settings->addLayout( slice_width_control->layout() );
-  slice_settings->addLayout( slice_position_control->layout() );
-  slice_settings->addItem( h_spacer );
-  slice_settings->addLayout( miller_h_control->layout() );
-  slice_settings->addLayout( miller_k_control->layout() );
-  slice_settings->addLayout( miller_l_control->layout() );    
 
+
+
+  
+  slice_dimension_layout->addLayout( slice_width_control->layout() );
+  slice_dimension_layout->addLayout( slice_height_control->layout() );
+  slice_dimension_layout->addLayout( slice_length_control->layout() );  
+  slice_dimension_layout->addLayout( slice_position_control->layout() );
+
+  slice_settings->addLayout( slice_dimension_layout );
+
+
+  slice_settings->addItem( h_spacer );
+  
+  slice_orientation_layout->addLayout( miller_h_control->layout() );
+  slice_orientation_layout->addLayout( miller_k_control->layout() );
+  slice_orientation_layout->addLayout( miller_l_control->layout() );    
+
+  slice_settings->addLayout( slice_orientation_layout );
+  
   membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
   membrane_buttons_layout->addWidget( rm_membrane_control );
@@ -253,6 +276,8 @@ void GUI::set_up_tooltips(){
    surface_type_control->object()->setToolTip( QString( ttips.type_tooltip.c_str() ) );
 
    slice_width_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
+   //slice_length_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
+   //slice_height_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );   
    slice_position_control->object()->setToolTip( QString( ttips.sliceheight_tooltip.c_str() ) );
 
    miller_h_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
@@ -308,9 +333,11 @@ void GUI::set_up_signals_and_slots(){
 	   sp, &sp_qt::change_ntucs );
   // unit cell size
   connect( uc_size_control_a->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_uc_size_a );
+	   sp, &sp_qt::change_uc_scale_ab );
   connect( uc_size_control_c->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_uc_size_c );  
+	   sp, &sp_qt::change_uc_scale_c );
+
+
   // channel proportion
   connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_vol_prop );
@@ -318,6 +345,10 @@ void GUI::set_up_signals_and_slots(){
   // slice width
   connect( slice_width_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_slice_width );
+  connect( slice_height_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_slice_height );
+  connect( slice_length_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	   sp, &sp_qt::change_slice_length );  
   // slice position
   connect( slice_position_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_slice_position );
@@ -503,31 +534,26 @@ void GUI::paintEvent( QPaintEvent * event ){
 }
 
 
-
-
 void GUI::update_status( QString s ){
   output_message( s, 0 );
 }
 
 
-
-
-
 void GUI::update_gui_from_sp(){
 
   ntucs_control->object()->setValue( sp->get_ntucs() );
-  uc_size_control_a->object()->setValue( sp->get_a()[0] );
-  uc_size_control_c->object()->setValue( sp->get_a()[2] );  
+
+  uc_size_control_a->object()->setValue( sp->get_uc_scale_ab() );
+  uc_size_control_c->object()->setValue( sp->get_uc_scale_c() );  
 
   channel_prop_control->object()->setValue( sp->get_channel_prop() );
   surface_type_control->object()->setCurrentIndex( sp->get_type() );
-
 
   z_points_control->object()->setValue( sp->get_depth() );
   xy_points_control->object()->setValue( sp->get_width() );
 
   slice_width_control->object()->setValue( sp->get_slice_width() );
-  slice_position_control->object()->setValue( sp->get_slice_height() );  
+  slice_position_control->object()->setValue( sp->get_slice_position() );  
   
   miller_h_control->object()->setValue( sp->get_h() );
   miller_k_control->object()->setValue( sp->get_k() );
@@ -537,8 +563,7 @@ void GUI::update_gui_from_sp(){
   
   update_stats( );
 
-  read_membranes();
-  
+  read_membranes();  
 }
 
 
@@ -674,27 +699,29 @@ void GUI::update_stats(){
 
   pix_size << " box size X/Y:  "  << sp->get_L()[0] << "/" << sp->get_L()[1]  << std::endl;
   pix_size << " box heigth :  ";
-  if( sp->get_periodicity_length() == -1 ){
-    pix_size << sp->get_slice_width() << "    " << std::endl;
-    pix_size << "Aperiodic";
-  } else {
-    pix_size << sp->get_periodicity_length() * sp->get_slice_width() << "    " << std::endl;
-    pix_size << "Periodic";
-  }
+  pix_size << sp->get_slice_width() << "    " << std::endl;
+  pix_size << "periodicity length : ";
+  pix_size << sp->get_periodicity_length() << std::endl;
+
   
   
   status_bar_pixs->setText( QString( pix_size.str().c_str() ) );
 
 
+  
   std::stringstream vols, areas, mins;
+
+
+  /*
   vols << "Volumes" << std::endl;
   std::vector<double> vol_data = sp_stats->get_channel_volumes();
   double tmp1 = (vol_data.size()>0) ? vol_data[0] : -1;
   double tmp2 = (vol_data.size()>0) ? vol_data[vol_data.size() - 1] : -1;
   vols << tmp1 << std::endl;
   vols << tmp2;
+  */
 
-
+  /*
 
   areas << "Areas" << std::endl;
   std::vector<double> area_data = sp_stats->get_membrane_surface_area();
@@ -702,8 +729,21 @@ void GUI::update_stats(){
   tmp2 = (area_data.size()>0) ? area_data[area_data.size() - 1] : -1;
   areas << tmp1 << std::endl;
   areas << tmp2;  
+  */
+
+  areas << "Pixelinfo" << std::endl;
+  areas << "x: " << sp->get_width() << " (" << sp->get_dx() << ")" << std::endl;
+  areas << "y: " << sp->get_height() << " (" << sp->get_dy() << ")" << std::endl;
+  areas << "z: " << sp->get_depth() << " (" << sp->get_dz() << ")" << std::endl;  
 
 
+  vols << "uc info" << std::endl;
+  vols << "x: " << sp->get_a()[0] << std::endl;// << "(" << sp->inv_a[0] << ")" << std::endl;
+  vols << "y: " << sp->get_a()[1] << std::endl;//"(" << sp->inv_a[1] << ")" << std::endl;
+  vols << "z: " << sp->get_a()[2] << std::endl;//"(" << sp->inv_a[2] << ")" << std::endl;  
+  
+  /*
+  
   // channel diameters
   double inner_min = sp_stats->get_minimal_channel_diameter( 0 );
   double outer_min = sp_stats->get_minimal_channel_diameter( 1 );  
@@ -711,6 +751,11 @@ void GUI::update_stats(){
   mins << "Inner membrane: " << inner_min << std::endl;
   mins << "Outer membrane: " << outer_min;
 
+  */
+
+  mins << "orientation" << std::endl;
+  mins << "phi=" << sp->get_phi() << std::endl;
+  mins << " theta=" << sp->get_theta() << std::endl;
 
   status_bar_vols->setText( QString( vols.str().c_str() ) );
   status_bar_areas->setText( QString( areas.str().c_str() ) );
@@ -831,6 +876,10 @@ void GUI::save_surface_points(){
   
 }
 
+
+void GUI::update_unitcell_size(){
+  emit call_change_uc_size( uc_size_control_a->object()->value(), uc_size_control_c->object()->value() );
+}
 
 /**
  * switches the state indicator of the GUI
