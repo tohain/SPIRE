@@ -14,10 +14,11 @@ sp_qt::~sp_qt(){
 
 
 void sp_qt::update_geometry_(){
-  set_orientation_from_hkl();
-  update_periodicity_length();  
+
   update_geometry();
-  update_containers();
+  set_orientation_from_hkl();
+  compute_uc_dim_in_orientation();
+
 }
 
 void sp_qt::change_surface_type( int ind ){
@@ -28,6 +29,8 @@ void sp_qt::change_surface_type( int ind ){
   set_type( ind );
 
   set_channel_vol_prop( vol_prop );
+
+  emit geometry_changed();
   emit parameter_changed();
 }
 
@@ -47,10 +50,10 @@ void sp_qt::change_z_points( int val ){
 void sp_qt::change_xy_points( int val ){
   set_n_points_x( val );
   set_n_points_y_to_unitcell( );
-  std::cout << "n_points=(" << n_points_x << "," << n_points_y <<","<< n_points_z << ")" << std::endl;
   emit geometry_changed();
   emit parameter_changed();
 }
+
 
 
 void sp_qt::change_uc_scale_ab( double ab ){
@@ -145,7 +148,7 @@ void sp_qt::change_membranes( std::vector<double> val ){
 
 void sp_qt::compute_projection(){
 
-  compute_slice_size();
+  update_containers(); 
   
   //get the points in the slice
   emit set_status( 0, 1 );
@@ -254,4 +257,15 @@ void sp_qt::save_surface_points( int id, QString fn ){
   print_channel_surface_points( id, fn.toStdString() );
 
   emit send_message( "Saved membrane!", 1);
+}
+
+void sp_qt::set_slice_dim_to_uc(){
+
+  set_slice_length( uc_dim_in_orientation[0] );
+  set_slice_height( uc_dim_in_orientation[1] );
+  set_slice_width( uc_dim_in_orientation[2] );
+
+  emit geometry_changed();
+  emit parameter_changed();
+
 }

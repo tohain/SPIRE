@@ -38,13 +38,11 @@ void GUI::set_up_ui(){
   /*
    * structure control
    */ 
-  ntucs_control = new QT_v_labeled_obj<QSpinBox> ( "Unit cells", controls_basic );
-  ntucs_control->object()->setRange(1, 50);
   
-  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit cell size (a)", controls_basic );
+  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (xy)", controls_basic );
   uc_size_control_a->object()->setRange(0.01, 999);
   uc_size_control_a->object()->setSingleStep(0.01);
-  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit cell size (c)", controls_basic );
+  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (z)", controls_basic );
   uc_size_control_c->object()->setRange(0.01, 999);
   uc_size_control_c->object()->setSingleStep(0.01); 
   
@@ -61,9 +59,9 @@ void GUI::set_up_ui(){
   /*
    * Resolution control
    */
-  xy_points_control = new QT_v_labeled_obj<QSpinBox> ( "XY resolution", controls_basic );
-  xy_points_control->object()->setRange(1, 3000);
- 
+  x_points_control = new QT_v_labeled_obj<QSpinBox> ( "X resolution", controls_basic );
+  x_points_control->object()->setRange(1, 3000);
+
   z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
   z_points_control->object()->setRange(1, 3000);
 
@@ -110,8 +108,9 @@ void GUI::set_up_ui(){
   slice_height_control->object()->setSingleStep(0.01);  
   
   slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice position", controls_basic);    
-  slice_position_control->object()->setRange(0, 1);
-  slice_position_control->object()->setSingleStep(0.01);  
+  slice_position_control->object()->setSingleStep(0.01);
+
+  button_set_to_uc_dim = new QPushButton ("Set to UC");
   
   miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
   miller_h_control->object()->setRange(-100, 100);
@@ -210,13 +209,12 @@ void GUI::set_up_ui(){
   membrane_settings = new QHBoxLayout();
   membrane_buttons_layout = new QVBoxLayout();
   
-  structure_settings->addLayout( ntucs_control->layout() );
   structure_settings->addLayout( uc_size_control_a->layout() );
   structure_settings->addLayout( uc_size_control_c->layout() );  
   structure_settings->addLayout( channel_prop_control->layout() );
   structure_settings->addLayout( surface_type_control->layout() );  
 
-  resolution_settings->addLayout( xy_points_control->layout() );
+  resolution_settings->addLayout( x_points_control->layout() );
   resolution_settings->addLayout( z_points_control->layout() );
   resolution_settings->addLayout( image_scaling_control->layout() );
   resolution_settings->addWidget( invert_control );
@@ -234,6 +232,10 @@ void GUI::set_up_ui(){
   slice_settings->addLayout( slice_dimension_layout );
 
 
+  //slice_settings->addItem( h_spacer );
+
+  slice_settings->addWidget( button_set_to_uc_dim );
+  
   slice_settings->addItem( h_spacer );
   
   slice_orientation_layout->addLayout( miller_h_control->layout() );
@@ -269,7 +271,6 @@ void GUI::set_up_ui(){
 
 void GUI::set_up_tooltips(){
 
-   ntucs_control->object()->setToolTip( QString( ttips.ntucs_tooltip.c_str() ) );
    uc_size_control_a->object()->setToolTip( QString( ttips.aa_tooltip.c_str() ) );
    uc_size_control_c->object()->setToolTip( QString( ttips.ac_tooltip.c_str() ) );
    channel_prop_control->object()->setToolTip( QString( ttips.level_set_tooltip.c_str() ) );
@@ -284,7 +285,7 @@ void GUI::set_up_tooltips(){
    miller_k_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
    miller_l_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
 
-   xy_points_control->object()->setToolTip( QString( ttips.nr_points_xy_tooltip.c_str() ) );
+   x_points_control->object()->setToolTip( QString( ttips.nr_points_xy_tooltip.c_str() ) );
    z_points_control->object()->setToolTip( QString( ttips.nr_points_z_tooltip.c_str() ) );
 
    invert_control->setToolTip( QString( ttips.invert_tooltip.c_str() ) );
@@ -322,15 +323,13 @@ void GUI::set_up_signals_and_slots(){
   // structure type
   connect(surface_type_control->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
 	  sp, &sp_qt::change_surface_type);
-  // xy resolution
-  connect(xy_points_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  // x resolution
+  connect(x_points_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	  sp, &sp_qt::change_xy_points );
   // z resolution
   connect(z_points_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	  sp, &sp_qt::change_z_points );
-  // number of unit cells
-  connect( ntucs_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	   sp, &sp_qt::change_ntucs );
+
   // unit cell size
   connect( uc_size_control_a->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_uc_scale_ab );
@@ -352,8 +351,11 @@ void GUI::set_up_signals_and_slots(){
   // slice position
   connect( slice_position_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_slice_position );
-  // miller hkl
 
+  // set to uc
+  connect( button_set_to_uc_dim, SIGNAL( clicked() ), sp, SLOT( set_slice_dim_to_uc() ) );
+  
+  // miller hkl
   connect( miller_h_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	   this, &GUI::change_orientation );
   connect( miller_k_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
@@ -361,6 +363,7 @@ void GUI::set_up_signals_and_slots(){
   connect( miller_l_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	   this, &GUI::change_orientation );
 
+  connect( this, &GUI::call_change_hkl, sp, &sp_qt::change_hkl );
 
 
   /*
@@ -388,6 +391,7 @@ void GUI::set_up_signals_and_slots(){
   //connect( sp, &sp_qt::status_updated , this, &GUI::update_status  );
   // read the updated parameters
   connect( sp, &sp_qt::parameter_changed, this, &GUI::update_gui_from_sp );
+  //connect( sp, &sp_qt::geometry_changed, this, &GUI::update_gui_from_sp );  
 
   // actiave autoupdate
   connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
@@ -541,25 +545,33 @@ void GUI::update_status( QString s ){
 
 void GUI::update_gui_from_sp(){
 
-  ntucs_control->object()->setValue( sp->get_ntucs() );
+  channel_prop_control->object()->setValue( sp->get_channel_prop() );
+
+
+  surface_type_control->object()->setCurrentIndex( sp->get_type() );  
 
   uc_size_control_a->object()->setValue( sp->get_uc_scale_ab() );
-  uc_size_control_c->object()->setValue( sp->get_uc_scale_c() );  
+  uc_size_control_c->object()->setValue( sp->get_uc_scale_c() );
 
-  channel_prop_control->object()->setValue( sp->get_channel_prop() );
-  surface_type_control->object()->setCurrentIndex( sp->get_type() );
-
+  if( sp->get_surface_choices()[sp->get_type()] == "Wurtzite" ){
+    uc_size_control_c->object()->setEnabled( true );
+  } else {
+    uc_size_control_c->object()->setEnabled( false );
+  }
+  
   z_points_control->object()->setValue( sp->get_depth() );
-  xy_points_control->object()->setValue( sp->get_width() );
+  x_points_control->object()->setValue( sp->get_width() );
 
   slice_width_control->object()->setValue( sp->get_slice_width() );
+  slice_height_control->object()->setValue( sp->get_slice_height() );
+  slice_length_control->object()->setValue( sp->get_slice_length() );  
   slice_position_control->object()->setValue( sp->get_slice_position() );  
   
   miller_h_control->object()->setValue( sp->get_h() );
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
 
-  sp->update_periodicity_length();
+  sp->compute_uc_dim_in_orientation();
   
   update_stats( );
 
@@ -689,27 +701,24 @@ void GUI::change_orientation( int val ){
   int k = miller_k_control->object()->value();
   int l = miller_l_control->object()->value();  
 
-  sp->change_hkl( h, k, l );
+  emit call_change_hkl( h, k, l );
   
 }
 
 void GUI::update_stats(){
-
-  std::stringstream pix_size;  
-
-  pix_size << " box size X/Y:  "  << sp->get_L()[0] << "/" << sp->get_L()[1]  << std::endl;
-  pix_size << " box heigth :  ";
-  pix_size << sp->get_slice_width() << "    " << std::endl;
-  pix_size << "periodicity length : ";
-  pix_size << sp->get_periodicity_length() << std::endl;
-
   
+  auto uc_dim = sp->get_uc_dim_in_orientation();
+  std::stringstream uc_orient_info;  
+
+  uc_orient_info << "UC in orientation" << std::endl;
+  uc_orient_info << "X:  " << uc_dim[0] << std::endl;
+  uc_orient_info << "Y:  " << uc_dim[1] << std::endl;  
+  uc_orient_info << "Z:  " << uc_dim[2] << std::endl;  
   
-  status_bar_pixs->setText( QString( pix_size.str().c_str() ) );
+  status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
 
 
-  
-  std::stringstream vols, areas, mins;
+  std::stringstream orient_info, pix_info, uc_dim_info;
 
 
   /*
@@ -731,16 +740,16 @@ void GUI::update_stats(){
   areas << tmp2;  
   */
 
-  areas << "Pixelinfo" << std::endl;
-  areas << "x: " << sp->get_width() << " (" << sp->get_dx() << ")" << std::endl;
-  areas << "y: " << sp->get_height() << " (" << sp->get_dy() << ")" << std::endl;
-  areas << "z: " << sp->get_depth() << " (" << sp->get_dz() << ")" << std::endl;  
+  pix_info << "Resolution (pixel size)" << std::endl;
+  pix_info << "X: " << std::setw(5) << sp->get_width()  << " (" << std::setprecision(2) << sp->get_dx() << ")" << std::endl;
+  pix_info << "Y: " << std::setw(5) << sp->get_height() << " (" << std::setprecision(2) << sp->get_dy() << ")" << std::endl;
+  pix_info << "Z: " << std::setw(5) << sp->get_depth()  << " (" << std::setprecision(2) << sp->get_dz() << ")" << std::endl;  
 
 
-  vols << "uc info" << std::endl;
-  vols << "x: " << sp->get_a()[0] << std::endl;// << "(" << sp->inv_a[0] << ")" << std::endl;
-  vols << "y: " << sp->get_a()[1] << std::endl;//"(" << sp->inv_a[1] << ")" << std::endl;
-  vols << "z: " << sp->get_a()[2] << std::endl;//"(" << sp->inv_a[2] << ")" << std::endl;  
+  uc_dim_info << "Unitcell [001]" << std::endl;
+  uc_dim_info << "X: " << sp->get_a()[0] << std::endl;
+  uc_dim_info << "Y: " << sp->get_a()[1] << std::endl;
+  uc_dim_info << "Z: " << sp->get_a()[2] << std::endl;
   
   /*
   
@@ -753,13 +762,14 @@ void GUI::update_stats(){
 
   */
 
-  mins << "orientation" << std::endl;
-  mins << "phi=" << sp->get_phi() << std::endl;
-  mins << " theta=" << sp->get_theta() << std::endl;
+  orient_info << "Orientation     " << std::endl;
+  orient_info << "Phi=" << std::setw(5) << sp->get_phi() << std::endl;
+  orient_info << "Ttheta=" << std::setw(5) << sp->get_theta() << std::endl;
 
-  status_bar_vols->setText( QString( vols.str().c_str() ) );
-  status_bar_areas->setText( QString( areas.str().c_str() ) );
-  status_bar_mins->setText( QString( mins.str().c_str() ) );
+  status_bar_mins->setText( QString( uc_dim_info.str().c_str() ) );
+  status_bar_vols->setText( QString( orient_info.str().c_str() ) );
+  status_bar_areas->setText( QString( pix_info.str().c_str() ) );
+
   
 }
 

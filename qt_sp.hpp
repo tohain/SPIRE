@@ -51,9 +51,8 @@ public slots:
   void change_uc_scale_ab( double ab );
   void change_uc_scale_c( double c );
 
-
-  //void change_uc_size_c( double a );  
-
+  void set_slice_dim_to_uc();
+  
   void change_vol_prop( double val );
   void change_xy_points( int val );
   void change_z_points( int val );

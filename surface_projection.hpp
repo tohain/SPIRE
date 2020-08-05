@@ -83,11 +83,11 @@ public:
   /// Computes the projection, wrapper around several functions
   void compute_projection();
 
-  /// Computes the periodicity length of the given orientation
-  void update_periodicity_length();
+  /// Computes the periodicity length in the given direction
+  double compute_periodicity( std::vector<double> n );
 
-  /// Computes the dimensions of the slice, so it has the right aspect ration
-  void compute_slice_size();
+  /// Computes the dimension of the unitcell in the current orientation
+  void compute_uc_dim_in_orientation();
   
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
@@ -101,7 +101,6 @@ public:
 
   /// Computes the surface area of the membranes
   void compute_surface_area();
-
 
   /// Computes the minimal channel diameter of the given channel
   void compute_channel_network();
@@ -158,7 +157,7 @@ public:
   /// Returns the points (=positions) of the points
   std::vector<float> get_points() const;  
   
-  /// Returns the periodicity (unit cell size) of the surface
+  /// Returns the unit cell size the surface in [001] direction
   std::vector<double> get_a() const;
   /// returns unit cell scale in ab direction
   double get_uc_scale_ab() const;
@@ -178,6 +177,10 @@ public:
   std::vector<double> get_membrane_surface_area() const;
   /// Returns the width of the slice
   double get_slice_width() const;
+  /// Returns the height of the slice
+  double get_slice_height() const;
+  /// Returns the length of the slice
+  double get_slice_length() const;  
   /// Returns the position of the slice along its normal vector
   double get_slice_position() const;
   /// Returns theta of the current orientation
@@ -191,7 +194,7 @@ public:
   /// Returns the distance between two points in z direction  
   double get_dz() const;
   /// Returns the unit cell size (periodicity length) in the current orientation
-  double get_periodicity_length() const;
+  std::vector<double> get_uc_dim_in_orientation() const;
   /// Returns the slice dimensions
   std::vector<double> get_L() const;
   /// Returns the available surfaces
@@ -253,9 +256,6 @@ public:
   void set_k( int val );
   /// Sets the \ref l Miller index  
   void set_l( int val );  
-  /// Sets the \ref periodicity_length
-  void set_periodicity_length( double val );
-
 
   
 protected:
@@ -345,12 +345,7 @@ protected:
   /// Distance between to points in z direction and voxel size in z direction  
   double dz;  
 
-  /** \brief Width of the slice 
-   *
-   * This parameter is within [0,1] if the current orientation is
-   * periodic (i.e. periodicity_length>0) and is then interpreted as a
-   * fraction of the periodicity_length. For aperiodic orientations it
-   * is given in absolute length units
+  /** \brief Width of the slice in absolute length units
    */
   double slice_width;
   /** \brief Slice position along its normal vector in length units
@@ -390,12 +385,12 @@ protected:
   /// l Miller index  
   int l;
 
-  /** \brief The length of the unitbox in the current orientation in absolute units (same as a[2]).
+  /** \brief The length of the unitcell in the given orientation of the slice.
    *
-   * -1 if there if the structure is aperiodic within reasonable
-   * lengthscales
+   * In [001] direction, this equals the unitcell_dim. -1 if there if
+   * the structure is aperiodic within reasonable lengthscales
    */
-  double periodicity_length;
+  std::vector<double> uc_dim_in_orientation;
   
   /// The number of points in the slice in x direction
   unsigned int n_points_x;
@@ -432,7 +427,7 @@ protected:
   /// unitcell dimension is set using the parameter a above, however,
   /// some membranes are non-cubic with a fixed a/b a/c ratio. This
   /// ratio needs to be supplied here so 
-  const std::vector< std::vector<double> > unitcell_dim = { {1.0,1.0,1.0},
+  const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0},
 							    {1.0,1.0,1.0},
 							    {1.0,1.0,1.0},
 							    {2.0, sqrt(3.0), 1.732692}

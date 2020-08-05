@@ -26,6 +26,7 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QScrollArea>
 
 #include <QThread>
 #include <QMutex>
@@ -168,7 +169,9 @@ private:
   QT_v_labeled_obj<QLineEdit> *path_prefix_control;
   
   // structure control
-  QT_v_labeled_obj<QSpinBox> *ntucs_control;
+
+  //QT_v_labeled_obj<QSpinBox> *ntucs_control;
+
   QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
   QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
   QT_v_labeled_obj<QDoubleSpinBox> *channel_prop_control;
@@ -177,7 +180,7 @@ private:
 
   // resolution control
   QT_v_labeled_obj<QSpinBox> *z_points_control;
-  QT_v_labeled_obj<QSpinBox> *xy_points_control;
+  QT_v_labeled_obj<QSpinBox> *x_points_control;
   QT_v_labeled_obj<QComboBox> *image_scaling_control;  
   QLabel *pix_size_indicator;
   QCheckBox *invert_control;  
@@ -190,6 +193,8 @@ private:
   QT_h_labeled_obj<QDoubleSpinBox> *slice_height_control;  
   QT_h_labeled_obj<QDoubleSpinBox> *slice_position_control;
 
+  QPushButton *button_set_to_uc_dim;
+  
   QT_h_labeled_obj<QSpinBox> *miller_h_control;
   QT_h_labeled_obj<QSpinBox> *miller_k_control;
   QT_h_labeled_obj<QSpinBox> *miller_l_control;  
@@ -199,7 +204,6 @@ private:
   QTableWidget *membranes_control;
   QPushButton *add_membrane_control;
   QPushButton *rm_membrane_control;
-
   
   //basic buttons
   QPushButton *button_quit;
@@ -272,6 +276,7 @@ signals:
 
 
   void call_change_uc_size( double ab, double c );
+  void call_change_hkl( int h, int k, int l );
 
   void call_compute_projection();
   void call_update_stats();
