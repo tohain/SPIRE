@@ -70,7 +70,8 @@ public slots:
   void save_grid( QString fn );
   void save_topological_network( int id, QString fn_prefix );
   void save_surface_points( int id, QString fn_prefix );
-  
+
+  void change_channel_color( int id, int val );
   
 };
 

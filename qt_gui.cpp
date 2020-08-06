@@ -146,7 +146,7 @@ void GUI::set_up_ui(){
   fill_channels_control_content = new QWidget();
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
 
-  fill_channels_control_container->setWidget( fill_channels_control_content );
+  fill_channels_control_container->setWidget( fill_channels_control_content );  
   
   /*
    * Layout
@@ -400,6 +400,8 @@ void GUI::set_up_signals_and_slots(){
 
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
   //connect( sp, &sp_qt::parameter_changed, this, &GUI::read_membranes );
+
+  connect( this, &GUI::call_change_channel_color, sp, &sp_qt::change_channel_color );
   
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
@@ -974,13 +976,8 @@ void GUI::set_measurements_status( int state ){
  */
 void GUI::update_fill_channels(){
 
-  //get membranes
-  std::vector<double> mem = sp->get_membranes();
-  //number of membranes
-  int nr_mem = int( mem.size() / 2.0 );
-  // number of channels
-  int nr_chan = nr_mem + 1;
-
+  //get filled channels
+  std::vector<int> ch_fl = sp->get_channel_fill();
   
   //
   //clear ui, by deleting all old elements and recreating them
@@ -1004,17 +1001,56 @@ void GUI::update_fill_channels(){
   
   
   // create Checkboxes for each channel
-  for( unsigned int ii=0; ii<nr_chan; ii++){
-    std::string lab = "Channel " + std::to_string(ii+1);
+  int mem_cnt=1, ch_cnt=1;
+  for( unsigned int ii=0; ii<ch_fl.size(); ii++){
+    std::string lab;
+    if( ii % 2 == 0 ){
+      lab = "Channel " + std::to_string(ch_cnt);
+      ch_cnt++;
+    } else {
+      lab = "Membrane " + std::to_string(mem_cnt);
+      mem_cnt++;
+    }
+    
     fill_channels.push_back( new QCheckBox( lab.c_str() ) );
     fill_channels_container_layout->addWidget( fill_channels[ii] );
-  }
-  
-  
-  fill_channels_container_layout->setSizeConstraint(QLayout::SetMinimumSize);
+
+    connect( fill_channels[ii], SIGNAL( stateChanged(int) ), this, SLOT( check_channel_color() ) );
     
+    if( ch_fl[ii] == 1 ){
+      fill_channels[ii]->setCheckState( Qt::Checked );
+    }
+    
+  }
+    
+  fill_channels_container_layout->setSizeConstraint(QLayout::SetMinimumSize);
   
 }
+
+void GUI::check_channel_color(){
+
+  //get filled channels
+  std::vector<int> ch_fl = sp->get_channel_fill();
+  
+  for( unsigned int ii=0; ii<fill_channels.size(); ii++){
+    
+    int checked;
+    if( fill_channels[ii]->checkState() == Qt::Checked ){
+      checked = 1;
+    } else {
+      checked = 0;
+    }
+
+    if( ch_fl[ii] != checked ){
+      emit call_change_channel_color( ii+1, checked );
+      std::cout << "emitted signal\n";
+    }
+    
+  }
+
+
+}
+
 
 
 void GUI::do_something(){  

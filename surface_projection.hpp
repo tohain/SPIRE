@@ -94,7 +94,12 @@ public:
 
   /// Adds a membrane
   void add_membrane( double dist, double width );
-  
+
+  /// sets the "color" of a membrane
+  void set_channel_color( int mem_id, int val );
+
+  /// updates the size and resets the filled channels control
+  void update_channel_fill_container();
   
   /// Computes the volumes of the channels
   void compute_volume();
@@ -137,7 +142,7 @@ public:
   int get_height() const;
   /// Returns the number of points in the slice in z direction  
   int get_depth() const;
-
+  
   /// Returns h of the Miller indeces of the slice orientation
   int get_h() const;
   /// Returns k of the Miller indeces of the slice orientation  
@@ -156,7 +161,8 @@ public:
   std::vector<short> get_channel() const;  
   /// Returns the points (=positions) of the points
   std::vector<float> get_points() const;  
-  
+  /// returns the channel_filled array
+  std::vector<int> get_channel_fill() const;  
   /// Returns the unit cell size the surface in [001] direction
   std::vector<double> get_a() const;
   /// returns unit cell scale in ab direction
@@ -372,6 +378,12 @@ protected:
   /// Holds information for the membranes in pairs of (distance,
   /// width). For n membranes this container has then 2*n entries
   std::vector<double> membranes;
+
+  /// Holds information about the channel color (if it is "filled"
+  /// thus contributing to the projection). Membranes are by default
+  /// "filled", where as space in between channels are not. Same order
+  /// as the membranes vector.
+  std::vector<int> channel_filled;
   
   /// Theta angle of the orientation of the slice
   double theta;

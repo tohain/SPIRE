@@ -207,6 +207,7 @@ private:
   QWidget *fill_channels_control_content;
   QVBoxLayout *fill_channels_container_layout;
   std::vector<QCheckBox*> fill_channels;
+  std::vector<bool> channel_states;
   
   //basic buttons
   QPushButton *button_quit;
@@ -299,12 +300,14 @@ signals:
 
   void call_set_measurement_status( int state );
 
+  void call_change_channel_color( int id, int val );
 
   void call_show_dialog_box();
 					       
 public slots:
 
-
+  void check_channel_color();
+  
   void update_unitcell_size();
   
   void update_gui_from_sp();

@@ -160,6 +160,24 @@ void sp_qt::compute_projection(){
   
   //get grid
   set_grid();
+
+  // apply channel colors
+  for( unsigned int ii=0; ii < channel_filled.size(); ii++){
+
+    if( ii % 2 == 0 ){
+      //channel, if it is zero, do nothing, otherwise mark it
+      if( channel_filled[ii] != 0 ){
+	set_channel_color( ii + 1, 1 );
+      }
+    } else {
+      //membrane, if it is one, do nothing, otherwise mark it
+      if( channel_filled[ii] != 1 ){
+	set_channel_color( ii + 1, 0 );
+      }      
+    }
+
+
+  }
   
   //get projection
   //emit send_message( "Computing Projection", 0 );
@@ -268,4 +286,9 @@ void sp_qt::set_slice_dim_to_uc(){
   emit geometry_changed();
   emit parameter_changed();
 
+}
+
+
+void sp_qt::change_channel_color( int id, int val ){
+  set_channel_color( id, val );
 }

@@ -184,6 +184,10 @@ surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1)
   membranes.push_back( 0 );
   membranes.push_back( 0.02 );
 
+  // add the first two channels
+  channel_filled.push_back( 0 ); // inner channel
+  channel_filled.push_back( 1 ); // main membrane
+  channel_filled.push_back( 0 ); // outer channel
 }
 
 
@@ -717,6 +721,23 @@ void surface_projection::compute_projection( ){
   set_grid();
 
   progress = 0.6;
+
+  // apply channel colors
+  for( unsigned int ii=0; ii < channel_filled.size(); ii++){
+
+    if( ii % 2 == 0 ){
+      //channel, if it is zero, do nothing, otherwise mark it
+      if( channel_filled[ii] != 0 ){
+	set_channel_color( ii + 1, 1 );
+      }
+    } else {
+      //membrane, if it is one, do nothing, otherwise mark it
+      if( channel_filled[ii] != 1 ){
+	set_channel_color( ii + 1, 0 );
+      }      
+    }
+
+  }
   
   //get projection
   status = "Computing Projection";
@@ -1011,9 +1032,28 @@ void surface_projection::add_membrane(double dist, double width ){
 
   membranes.push_back( dist );
   membranes.push_back( width );
+  
 }
 
 
+/**
+ * sets the "color" of a membrane. This means all voxels belonging to
+ * that membrane are set to "0" or "1". This way it can be chosen, if
+ * the channel contributes towards the projection
+ *
+ * \param[in] mem_id the id of the channel to color (starting at 1)
+ * \param[in] val the value to set the channel voxels to (0,1)
+ */
+void surface_projection::set_channel_color( int mem_id, int val ){
+
+  channel_filled[mem_id-1] = val;
+  
+  for( unsigned int ii=0; ii<channel.size(); ii++ ){
+    if( std::abs( channel[ii]) == std::abs( mem_id ) ){
+      grid[ii] = val;
+    }
+  }  
+}
 
 /**
  * This function computes the volumes of the channels. It is just
@@ -1446,6 +1486,20 @@ void surface_projection::delete_membrane( int id ){
 
 void surface_projection::set_membranes( std::vector<double> mems ){
   membranes = mems;
+  update_channel_fill_container();
+}
+
+void surface_projection::update_channel_fill_container(){
+
+  // clear previous data
+  channel_filled.clear();
+  channel_filled.resize( membranes.size() + 1, 0 );
+
+  for( unsigned int ii=0; ii<channel_filled.size(); ii++){
+    if( ii % 2 == 1 )
+      channel_filled[ii] = 1;
+  }
+  
 }
 
 void surface_projection::set_theta( double ang ){
@@ -1631,3 +1685,6 @@ void surface_projection::set_l( int val ){
 }
 
 
+std::vector<int> surface_projection::get_channel_fill() const{
+  return channel_filled;
+}
