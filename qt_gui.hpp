@@ -202,6 +202,8 @@ private:
   QTableWidget *membranes_control;
   QPushButton *add_membrane_control;
   QPushButton *rm_membrane_control;
+
+  QScrollArea *fill_channels_control;
   
   //basic buttons
   QPushButton *button_quit;
@@ -221,19 +223,27 @@ private:
 
   // layouts
 
+  // the main layout, holds status bar and sub_main_layout
+  QVBoxLayout *main_layout;
+
+  // the status bar at the bottom of the window
+  QHBoxLayout *status_bar_layout;
+  
+  // slice properties
+  QHBoxLayout *slice_settings;
   QVBoxLayout *slice_orientation_layout;
   QVBoxLayout *slice_dimension_layout;
   
-  QVBoxLayout *main_layout;
-
+  // holds the tab bar and the drawing area
   QHBoxLayout *sub_main_layout;
-  QHBoxLayout *status_bar_layout;
+
+
   
   QHBoxLayout *buttons_layout;
   
   QHBoxLayout *structure_settings;
   QHBoxLayout *resolution_settings;
-  QHBoxLayout *slice_settings;
+
   QHBoxLayout *membrane_settings;
   QVBoxLayout *membrane_buttons_layout;
   

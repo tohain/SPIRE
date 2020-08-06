@@ -141,6 +141,8 @@ void GUI::set_up_ui(){
   rm_membrane_control = new QPushButton( "Remove" );
 
   membranes_label = new QLabel( "Membranes", controls_basic );
+
+  fill_channels_control = new QScrollArea( controls_basic );
   
   
   /*
@@ -253,6 +255,7 @@ void GUI::set_up_ui(){
   membrane_buttons_layout->addWidget( rm_membrane_control );
   membrane_settings->addLayout( membrane_buttons_layout );
   membrane_settings->addWidget( membranes_control );
+  membrane_settings->addWidget( fill_channels_control );
   
   controls_basic_layout->addLayout( structure_settings );
   controls_basic_layout->addItem( v_spacer );
