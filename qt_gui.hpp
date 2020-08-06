@@ -203,7 +203,10 @@ private:
   QPushButton *add_membrane_control;
   QPushButton *rm_membrane_control;
 
-  QScrollArea *fill_channels_control;
+  QScrollArea *fill_channels_control_container;
+  QWidget *fill_channels_control_content;
+  QVBoxLayout *fill_channels_container_layout;
+  std::vector<QCheckBox*> fill_channels;
   
   //basic buttons
   QPushButton *button_quit;
@@ -339,6 +342,8 @@ public slots:
 
   void set_measurements_status( int state );
 
+
+  void update_fill_channels();
   
   void do_something();
   

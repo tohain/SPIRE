@@ -142,8 +142,11 @@ void GUI::set_up_ui(){
 
   membranes_label = new QLabel( "Membranes", controls_basic );
 
-  fill_channels_control = new QScrollArea( controls_basic );
-  
+  fill_channels_control_container = new QScrollArea( controls_basic );
+  fill_channels_control_content = new QWidget();
+  fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
+
+  fill_channels_control_container->setWidget( fill_channels_control_content );
   
   /*
    * Layout
@@ -253,9 +256,10 @@ void GUI::set_up_ui(){
   membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
   membrane_buttons_layout->addWidget( rm_membrane_control );
+
   membrane_settings->addLayout( membrane_buttons_layout );
   membrane_settings->addWidget( membranes_control );
-  membrane_settings->addWidget( fill_channels_control );
+  membrane_settings->addWidget( fill_channels_control_container );
   
   controls_basic_layout->addLayout( structure_settings );
   controls_basic_layout->addItem( v_spacer );
@@ -584,6 +588,8 @@ void GUI::update_gui_from_sp(){
   miller_l_control->object()->setValue( sp->get_l() );  
 
   sp->compute_uc_dim_in_orientation();
+
+  update_fill_channels();
   
   update_stats( );
 
@@ -962,6 +968,53 @@ void GUI::set_measurements_status( int state ){
 
 }
 
+/*
+ * This functions gets the number of channels from the sp computation
+ * class and adds a checkbox for each channel to the scroll area
+ */
+void GUI::update_fill_channels(){
+
+  //get membranes
+  std::vector<double> mem = sp->get_membranes();
+  //number of membranes
+  int nr_mem = int( mem.size() / 2.0 );
+  // number of channels
+  int nr_chan = nr_mem + 1;
+
+  
+  //
+  //clear ui, by deleting all old elements and recreating them
+  //
+
+  // delete them
+  for( unsigned int ii=0; ii<fill_channels.size(); ii++){
+    delete fill_channels[ii];
+    }
+  fill_channels.clear();  
+  delete fill_channels_container_layout;
+  delete fill_channels_control_content;
+  
+  
+  // recreate them
+
+  fill_channels_control_content = new QWidget( );
+  fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
+  // assign the new QWidget
+  fill_channels_control_container->setWidget( fill_channels_control_content );
+  
+  
+  // create Checkboxes for each channel
+  for( unsigned int ii=0; ii<nr_chan; ii++){
+    std::string lab = "Channel " + std::to_string(ii+1);
+    fill_channels.push_back( new QCheckBox( lab.c_str() ) );
+    fill_channels_container_layout->addWidget( fill_channels[ii] );
+  }
+  
+  
+  fill_channels_container_layout->setSizeConstraint(QLayout::SetMinimumSize);
+    
+  
+}
 
 
 void GUI::do_something(){  
