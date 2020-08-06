@@ -169,12 +169,10 @@ private:
   QT_v_labeled_obj<QLineEdit> *path_prefix_control;
   
   // structure control
-
-  //QT_v_labeled_obj<QSpinBox> *ntucs_control;
-
   QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
   QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
   QT_v_labeled_obj<QDoubleSpinBox> *channel_prop_control;
+  QT_v_labeled_obj<QComboBox> *level_par_type;
   QT_v_labeled_obj<QComboBox> *surface_type_control;
   
 

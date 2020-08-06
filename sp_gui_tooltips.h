@@ -13,6 +13,8 @@ class tooltips {
   const std::string aa_tooltip = "The edge length of the projection box in xy direction in length units. All values in length units will have the same unit as this value.";
   const std::string ac_tooltip = "The edge length of the projection box in z direction in length units. All values in length units will have the same unit as this value.";
 
+  const std::string level_par_tooltip = "Chooses if the current value is interpreted as a volume fill fraction, or the mathematical level set value used in the nodal representation.";
+  
   const std::string type_tooltip = "The type of surface to project.";
 
   const std::string theta_tooltip = "The theta angle of the normal vector denoting the orientation of the slice.";
@@ -20,8 +22,12 @@ class tooltips {
   
   const std::string hkl_tooltip = "The Miller indeces indicating the orientation of the projection box in the periodic surface structure. These can be seen as the components of the normal vector of the xy-plane of the projection box";
 
-  const std::string slicewidth_tooltip = "The width of the projection box in fraction of the total box height";
-  const std::string sliceheight_tooltip = "The position of the center of the projection along the normal vector of the slice in a fraction of the total box height.";
+  const std::string set_to_uc_dim_tooltip = "Sets the slice dimensions to the dimensions of the unit cell size in the current orientation. Leaves a value unchanged if no periodicity is found in a single direction";
+  
+  const std::string slicewidth_tooltip = "The width (thickness of slice) of the projection box in absolute length units";
+  const std::string sliceheight_tooltip = "The height (y) of the projection box in absolute length units";
+  const std::string slicelength_tooltip = "The length (x)  of the projection box in absolute length units";
+  const std::string sliceposition_tooltip = "The position of the center of the projection along the normal vector of the slice in absolute length units";
   
 
   

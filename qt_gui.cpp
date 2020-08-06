@@ -46,9 +46,13 @@ void GUI::set_up_ui(){
   uc_size_control_c->object()->setRange(0.01, 999);
   uc_size_control_c->object()->setSingleStep(0.01); 
   
-  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "Volume proportions", controls_basic );
+  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", controls_basic );
   //channel_prop_control->object()->setRange(0, 1);
   channel_prop_control->object()->setSingleStep(0.01);  
+
+  level_par_type = new QT_v_labeled_obj<QComboBox> ( "", controls_basic );
+  level_par_type->object()->insertItem( 0, "Vol. prop." );
+  level_par_type->object()->insertItem( 1, "lvl. set" );
   
   surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", controls_basic );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
@@ -212,6 +216,7 @@ void GUI::set_up_ui(){
   structure_settings->addLayout( uc_size_control_a->layout() );
   structure_settings->addLayout( uc_size_control_c->layout() );  
   structure_settings->addLayout( channel_prop_control->layout() );
+  structure_settings->addLayout( level_par_type->layout() );  
   structure_settings->addLayout( surface_type_control->layout() );  
 
   resolution_settings->addLayout( x_points_control->layout() );
@@ -222,7 +227,7 @@ void GUI::set_up_ui(){
 
 
 
-
+  slice_settings->addItem( h_spacer );
   
   slice_dimension_layout->addLayout( slice_width_control->layout() );
   slice_dimension_layout->addLayout( slice_height_control->layout() );
@@ -230,9 +235,6 @@ void GUI::set_up_ui(){
   slice_dimension_layout->addLayout( slice_position_control->layout() );
 
   slice_settings->addLayout( slice_dimension_layout );
-
-
-  //slice_settings->addItem( h_spacer );
 
   slice_settings->addWidget( button_set_to_uc_dim );
   
@@ -243,6 +245,8 @@ void GUI::set_up_ui(){
   slice_orientation_layout->addLayout( miller_l_control->layout() );    
 
   slice_settings->addLayout( slice_orientation_layout );
+
+  slice_settings->addItem( h_spacer );
   
   membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
@@ -274,13 +278,18 @@ void GUI::set_up_tooltips(){
    uc_size_control_a->object()->setToolTip( QString( ttips.aa_tooltip.c_str() ) );
    uc_size_control_c->object()->setToolTip( QString( ttips.ac_tooltip.c_str() ) );
    channel_prop_control->object()->setToolTip( QString( ttips.level_set_tooltip.c_str() ) );
+
+   level_par_type->object()->setToolTip( QString( ttips.level_par_tooltip.c_str() ) );
+   
    surface_type_control->object()->setToolTip( QString( ttips.type_tooltip.c_str() ) );
 
    slice_width_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
-   //slice_length_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
-   //slice_height_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );   
-   slice_position_control->object()->setToolTip( QString( ttips.sliceheight_tooltip.c_str() ) );
-
+   slice_length_control->object()->setToolTip( QString( ttips.slicelength_tooltip.c_str() ) );
+   slice_height_control->object()->setToolTip( QString( ttips.sliceheight_tooltip.c_str() ) );   
+   slice_position_control->object()->setToolTip( QString( ttips.sliceposition_tooltip.c_str() ) );   
+   
+   button_set_to_uc_dim->setToolTip( QString( ttips.set_to_uc_dim_tooltip.c_str() ) );
+   
    miller_h_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
    miller_k_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
    miller_l_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
