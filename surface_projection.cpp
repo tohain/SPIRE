@@ -159,8 +159,7 @@ void surface_projection::print_topological_network( int which, std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : ntucs(1), slice_width(1), slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
-
+surface_projection::surface_projection( double &p, std::string &stat) : slice_width(1), slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
   //set the channel proportion to 0.5
   set_channel_vol_prop( 0.5 );
@@ -679,6 +678,8 @@ void surface_projection::update_containers(){
  */
 void surface_projection::update_geometry(){
 
+  set_orientation_from_hkl();
+  compute_uc_dim_in_orientation();
   update_a();
   
   L_2[0] = L[0]/2.0;
@@ -702,6 +703,9 @@ void surface_projection::update_geometry(){
  * much of a difference
  */
 void surface_projection::compute_projection( ){
+
+
+  update_containers();
   
   progress = 0;
   
@@ -714,7 +718,7 @@ void surface_projection::compute_projection( ){
   progress = 0.3;
   
   //reset grid
-  memset( grid.data(), 0, sizeof(int) * grid.size() );
+  memset( grid.data(), 0, sizeof(short) * grid.size() );
   
   //get grid
   status = "Setting up the grid";
@@ -1367,10 +1371,6 @@ int surface_projection::get_l() const{
   return l;
 }
 
-int surface_projection::get_ntucs() const{
-  return ntucs;
-}
-
 int surface_projection::get_type() const {
   return type;
 }
@@ -1532,18 +1532,6 @@ void surface_projection::set_type(int val ){
   } else {
     type = val;
   }
-}
-
-void surface_projection::set_ntucs( int val ){
-  if( val <= 0 ){
-    ntucs = 1;
-    throw invalid_parameter_exception("At least one unit cell must be projected");
-  } else {
-    ntucs = val;
-  }
-  
-  //update geometry and arrrays
-  update_geometry();
 }
 
 void surface_projection::set_slice_width ( double val ){

@@ -10,7 +10,7 @@
 #include <string>
 #include <algorithm>
 
-void write_image( std::string fn, std::vector<double> data, int width, int height, bool invert = false );
+void write_image( std::string fn, unsigned char *data, int width, int height, bool invert = false );
 
 
 #endif

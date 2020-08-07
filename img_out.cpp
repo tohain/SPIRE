@@ -2,12 +2,22 @@
 
 
 
-void write_image( std::string fn, std::vector<double> data, int width, int height, bool invert ){
+void write_image( std::string fn, unsigned char *data, int width, int height, bool invert ){
 
   //find max value
-  double max = *std::max_element( data.begin(), data.end() );
-  double min = *std::min_element( data.begin(), data.end() );
+  unsigned char min=std::numeric_limits<char>::max(), max=std::numeric_limits<char>::min();
+  for( unsigned int ii=0; ii<width*height; ii++){
 
+    if( data[ii] < min ){
+      min = data[ii];
+    }
+
+    if( data[ii] > max ){
+      max = data[ii];
+    }
+    
+  }
+  
   //open filestream
   std::ofstream out ( fn );
 

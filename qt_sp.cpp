@@ -35,12 +35,6 @@ void sp_qt::change_surface_type( int ind ){
 }
 
 
-void sp_qt::change_ntucs( int val ){
-  set_ntucs( val );
-  emit geometry_changed();
-  emit parameter_changed();
-}
-
 void sp_qt::change_z_points( int val ){
   set_n_points_z( val );
   emit geometry_changed();
@@ -194,26 +188,34 @@ void sp_qt::do_something(){
 
 void sp_qt::copy_parameters( sp_qt *source ){
 
-
+  // orientation
   set_h( source->get_h() );
   set_k( source->get_k() );
   set_l( source->get_l() );  
 
-  set_ntucs( source->get_ntucs() );
+  // update orientation
+  set_orientation_from_hkl();  
 
-
-  set_uc_scale_ab( source->get_uc_scale_ab() );
-  set_uc_scale_c( source->get_uc_scale_c() );
-  update_a();
-  
-  set_membranes( source->get_membranes() );
-  set_channel_vol_prop( source->get_channel_prop() );
-
+  // slice
   set_slice_width( source->get_slice_width() );
+  set_slice_height( source->get_slice_height() );
+  set_slice_length( source->get_slice_length() );
   set_slice_position( source->get_slice_position() );
 
-  set_type( source->get_type() );
+  
+  // uc scale
+  set_uc_scale_ab( source->get_uc_scale_ab() );
+  set_uc_scale_c( source->get_uc_scale_c() );
 
+  update_a();
+  
+  // structure
+  set_surface_level( source->get_surface_level() );
+  set_type( source->get_type() );
+  set_membranes( source->get_membranes() );
+
+  update_geometry();
+  
   emit geometry_changed();
   emit parameter_changed();
 }
@@ -222,7 +224,7 @@ void sp_qt::copy_parameters( sp_qt *source ){
 
 
 void sp_qt::update_measurements(){
-  
+
   emit set_status( 1, 1 );
   
   update_geometry();
@@ -241,7 +243,7 @@ void sp_qt::update_measurements(){
 
   emit send_message( "Computing networks", 1 );
   
-  compute_channel_network();
+  //compute_channel_network();
   
   emit send_message( "Finished computing measurements", 1 );
 

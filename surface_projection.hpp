@@ -149,8 +149,6 @@ public:
   int get_k() const;
   /// Returns l of the Miller indeces of the slice orientation  
   int get_l() const;
-  /// Returns the size of the slice in nr. of unit cells
-  int get_ntucs() const;
   /// Returns the currently set type of the surface
   int get_type() const;
   /// Returns the projection array
@@ -214,8 +212,6 @@ public:
   void set_phi( double ang );
   /// Sets the type of the surface to be projected
   void set_type( int val );
-  /// Sets the number of unit cells of the slice
-  void set_ntucs( int val );
   /// Sets the slice width // z 
   void set_slice_width( double val );
   /// Sets the slice heigth // y
@@ -336,9 +332,6 @@ protected:
   /*
    * box parameters
    */
-
-  /// The number of unit cells the slice covers
-  int ntucs;
 
   /// Edge length of the slice
   std::vector<double> L;

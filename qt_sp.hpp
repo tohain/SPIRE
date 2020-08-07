@@ -46,7 +46,6 @@ public slots:
   void update_measurements();
   
   void change_surface_type( int ind );
-  void change_ntucs( int ind );
 
   void change_uc_scale_ab( double ab );
   void change_uc_scale_c( double c );

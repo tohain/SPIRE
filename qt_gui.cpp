@@ -853,6 +853,7 @@ void GUI::change_autoupdate( int state ){
 
 void GUI::measure(){
   sp_stats->copy_parameters( sp );
+
   sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y( 76 );
   sp_stats->set_n_points_z( 76 );  
