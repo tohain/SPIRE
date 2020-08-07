@@ -47,7 +47,6 @@ void GUI::set_up_ui(){
   uc_size_control_c->object()->setSingleStep(0.01); 
   
   channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", controls_basic );
-  //channel_prop_control->object()->setRange(0, 1);
   channel_prop_control->object()->setSingleStep(0.01);  
 
   level_par_type = new QT_v_labeled_obj<QComboBox> ( "", controls_basic );
@@ -353,9 +352,12 @@ void GUI::set_up_signals_and_slots(){
 	   sp, &sp_qt::change_uc_scale_c );
 
 
-  // channel proportion
+  // channel proportion / level set
   connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	   sp, &sp_qt::change_vol_prop );
+
+  connect(level_par_type->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
+	  this, &GUI::change_surface_par_type);
 
   // slice width
   connect( slice_width_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
@@ -563,8 +565,12 @@ void GUI::update_status( QString s ){
 
 void GUI::update_gui_from_sp(){
 
-  channel_prop_control->object()->setValue( sp->get_channel_prop() );
 
+  if( level_par_type->object()->currentIndex() == 0 ){
+    channel_prop_control->object()->setValue( sp->get_channel_prop() );
+  } else {
+    channel_prop_control->object()->setValue( sp->get_surface_level() );
+  }
 
   surface_type_control->object()->setCurrentIndex( sp->get_type() );  
 
@@ -1043,14 +1049,45 @@ void GUI::check_channel_color(){
 
     if( ch_fl[ii] != checked ){
       emit call_change_channel_color( ii+1, checked );
-      std::cout << "emitted signal\n";
-    }
-    
+    } 
   }
-
-
 }
 
+
+/*
+ * changes if the surface parameter level controls the volume
+ * proportion or level set
+ */
+void GUI::change_surface_par_type( int index ){
+
+  if( index == 0 ){
+    //volume proportion
+
+    // link to the right function in surface projection
+    disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	     sp, &sp_qt::change_lvl_set );
+    connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	     sp, &sp_qt::change_vol_prop );
+
+    // channel proportion only allows values between 0 and 1
+    channel_prop_control->object()->setRange(0, 1);
+
+    // set the value to the channel proportion
+    channel_prop_control->object()->setValue( sp->get_channel_prop() );
+  } else if ( index == 1 ){
+    // level set
+    disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+		 sp, &sp_qt::change_vol_prop );
+    connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+	     sp, &sp_qt::change_lvl_set );
+
+    // level set values can be pretty much everything
+    channel_prop_control->object()->setRange(-10, 10);
+    
+    channel_prop_control->object()->setValue( sp->get_surface_level() );
+  }
+
+}
 
 
 void GUI::do_something(){  

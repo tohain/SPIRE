@@ -306,6 +306,8 @@ signals:
 					       
 public slots:
 
+  void change_surface_par_type( int index );
+  
   void check_channel_color();
   
   void update_unitcell_size();
@@ -345,7 +347,8 @@ public slots:
 
   void set_measurements_status( int state );
 
-
+  
+  
   void update_fill_channels();
   
   void do_something();

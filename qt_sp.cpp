@@ -88,17 +88,14 @@ void sp_qt::change_uc_scale_c( double c ){
 }
 
 
-  /*
-void sp_qt::change_uc_size_c( double val ){
-  std::vector<double> tmp_size = get_a();
-  set_a( tmp_size[0], tmp_size[1], val );  
-  emit geometry_changed();
-  emit parameter_changed();
-}
-  */
 
 void sp_qt::change_vol_prop( double val ){
   set_channel_vol_prop( val );
+  emit parameter_changed();
+}
+
+void sp_qt::change_lvl_set( double val ){
+  set_surface_level( val );
   emit parameter_changed();
 }
 
@@ -175,7 +172,6 @@ void sp_qt::compute_projection(){
 	set_channel_color( ii + 1, 0 );
       }      
     }
-
 
   }
   

@@ -54,6 +54,7 @@ public slots:
   void set_slice_dim_to_uc();
   
   void change_vol_prop( double val );
+  void change_lvl_set( double val );
   void change_xy_points( int val );
   void change_z_points( int val );
   void change_hkl( int h, int k, int l );
