@@ -281,30 +281,48 @@ double surface_projection::level_set_primitive( double x, double y, double z, st
   return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
 }
 
-double surface_projection::level_set_wurtzite( double x, double y, double z, std::vector<double> inv_a) {
+double surface_projection::level_set_wurtzite_0_05( double x, double y, double z, std::vector<double> inv_a) {
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];
+
+  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.0532718*cos(6*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0526959*sin(2*+freq_y*y)*sin(3*+freq_z*z) - 0.0578834*sin(2*+freq_y*y)*sin(5*+freq_z*z) + 0.0688335*cos(4*+freq_y*y)*cos(4*+freq_z*z) - 0.0614875*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) - 0.065981*cos(2*freq_x*x)*cos(+freq_y*y)*cos(6*+freq_z*z) - 0.0589097*cos(2*freq_x*x)*sin(+freq_y*y)*sin(7*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0570703*cos(2*freq_x*x)*cos(5*+freq_y*y) - 0.0687129*cos(2*freq_x*x)*sin(5*+freq_y*y)*sin(+freq_z*z) - 0.0620785*cos(2*freq_x*x)*cos(7*+freq_y*y)*cos(4*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.0568124*cos(4*freq_x*x)*cos(4*+freq_y*y) + 0.0686862*cos(4*freq_x*x)*sin(4*+freq_y*y)*sin(+freq_z*z) - 0.0736126*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) - 0.0564133*cos(6*freq_x*x)*cos(+freq_y*y) + 0.067969*cos(6*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0627811*cos(6*freq_x*x)*cos(5*+freq_y*y)*cos(4*+freq_z*z) - 0.0620622*cos(8*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z);
+
+}
+
+double surface_projection::level_set_wurtzite_0_075( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
   double freq_z = inv_a[2];  
-    
-  return + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.0532718*cos(6*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0526959*sin(2*+freq_y*y)*sin(3*+freq_z*z) - 0.0578834*sin(2*+freq_y*y)*sin(5*+freq_z*z) + 0.0688335*cos(4*+freq_y*y)*cos(4*+freq_z*z) - 0.0614875*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) - 0.065981*cos(2*freq_x*x)*cos(+freq_y*y)*cos(6*+freq_z*z) - 0.0589097*cos(2*freq_x*x)*sin(+freq_y*y)*sin(7*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0570703*cos(2*freq_x*x)*cos(5*+freq_y*y) - 0.0687129*cos(2*freq_x*x)*sin(5*+freq_y*y)*sin(+freq_z*z) - 0.0620785*cos(2*freq_x*x)*cos(7*+freq_y*y)*cos(4*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.0568124*cos(4*freq_x*x)*cos(4*+freq_y*y) + 0.0686862*cos(4*freq_x*x)*sin(4*+freq_y*y)*sin(+freq_z*z) - 0.0736126*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) - 0.0564133*cos(6*freq_x*x)*cos(+freq_y*y) + 0.067969*cos(6*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0627811*cos(6*freq_x*x)*cos(5*+freq_y*y)*cos(4*+freq_z*z) - 0.0620622*cos(8*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z);
+
+  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+
 }
 
-/**
- * For debugging purposes: just a simple layer
- *
- */
-double surface_projection::level_set_layer( double x, double y, double z, std::vector<double> inv_a) {
-  return mod(z, 1./a[2]);
+
+double surface_projection::level_set_wurtzite_0_1( double x, double y, double z, std::vector<double> inv_a) {
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];
+
+  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+
 }
 
-/**
- * For debugging purposes: just a simple sphere
- *
- */
-double surface_projection::level_set_sphere( double x, double y, double z, std::vector<double> inv_a) {
-  return (x*x+y*y+z*z);
+double surface_projection::level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> inv_a) {
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];  
+
+  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+
 }
+
+
 
 /**
  * Computes and sets the theta and phi angles to match the orientation
@@ -491,13 +509,16 @@ void surface_projection::set_grid(){
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 3 ){ //wurtzite
-      level = level_set_wurtzite( points[ii], points[ii+1], points[ii+2], inv_a );      
-    } else if( type == 4 ){ //layer
-      level = level_set_layer( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 5 ){ //sphere
-      level = level_set_sphere( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 3 ){ //wurtzite_0.05
+      level = level_set_wurtzite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 4 ){ //wurtzite_0.075
+      level = level_set_wurtzite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 5 ){ //wurtzite_0.1
+      level = level_set_wurtzite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 6 ){ //wurtzite_0.2
+      level = level_set_wurtzite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
+    
     else {
       throw std::string("type not supported");
     }
@@ -1646,6 +1667,23 @@ void surface_projection::set_n_points_z( int val ){
     dz = slice_width / n_points_z;      
   }
 }
+
+void surface_projection::set_n_points_z_to_unitcell(){
+
+  int val = n_points_x * ( slice_width / L[0] );
+
+  if( val <= 0){
+    n_points_y = 50;
+    //recompute the resolution
+    dz = slice_width / n_points_z;
+    throw invalid_parameter_exception("n_points_z: Must have a minimum of 1 point");
+  } else {    
+    n_points_z = val;
+    //recompute the resolution
+    dy = slice_width / n_points_z;
+  }   
+}
+
 
 
 void surface_projection::set_h( int val ){

@@ -211,10 +211,11 @@ private:
   
   //basic buttons
   QPushButton *button_quit;
-  QPushButton *button_measure;
   QPushButton *button_render;
   QPushButton *button_save;
 
+  QPushButton *button_measure_vol_area;
+  QPushButton *button_measure_network;
 
   //status bar
   QStatusBar *status_bar;
@@ -253,6 +254,7 @@ private:
   
   QVBoxLayout *controls_basic_layout;
   QVBoxLayout *controls_measurement_layout;
+  QHBoxLayout *controls_measurement_buttons_layout;
   QVBoxLayout *controls_save_layout;
 
   QVBoxLayout *manual_widget_layout;
@@ -291,7 +293,7 @@ signals:
   void call_change_hkl( int h, int k, int l );
 
   void call_compute_projection();
-  void call_update_stats();
+  void call_update_stats( QString what );
 
 
   void call_save_grid( QString fn );
@@ -335,7 +337,8 @@ public slots:
 
   void change_autoupdate( int state );
 
-  void measure();
+  void measure_vol_area();
+  void measure_network();
 
   void choose_export_prefix();
   std::string get_prefix();

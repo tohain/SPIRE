@@ -43,7 +43,7 @@ public slots:
   void update_geometry_();  
   void compute_projection();
 
-  void update_measurements();
+  void update_measurements( QString what );
   
   void change_surface_type( int ind );
 

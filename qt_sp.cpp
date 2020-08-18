@@ -223,35 +223,36 @@ void sp_qt::copy_parameters( sp_qt *source ){
 
 
 
-void sp_qt::update_measurements(){
+void sp_qt::update_measurements( QString what ){
 
+  std::cout << "called update_measurement: " << what.toStdString() << std::endl;
+  
   emit set_status( 1, 1 );
   
   update_geometry();
 
   emit send_message( "Computing projection", 1 );
-  
   compute_projection();
 
-  emit send_message( "Computing volumes", 1 );
+  emit send_message( "Computing " + what, 1 );  
   
-  compute_volume();
+  if( what == "Volumes" ){
+    compute_volume();
+  }
 
-  emit send_message( "Computing areas", 1 );
-  
-  compute_surface_area();
+  if( what == "Areas" ){
+    compute_surface_area();
+  }
 
-  emit send_message( "Computing networks", 1 );
-  
-  //compute_channel_network();
-  
-  emit send_message( "Finished computing measurements", 1 );
+  if( what == "Networks" ){
+    compute_channel_network();
+  }
 
+  emit send_message("Measurement Done");
   emit set_status( 1, 0 );
 
   emit measurements_updated();
 }
-
 
 
 void sp_qt::save_grid( QString fn ){

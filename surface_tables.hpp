@@ -47,13 +47,14 @@ public:
       it_begin = G_SURFACE_VOL.begin();
       it_rbegin = G_SURFACE_VOL.rbegin();
       it_end = G_SURFACE_VOL.end();
-    } else if ( surface == "Wurtzite" ){
+    } else if ( surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
+		surface == "Wurtzite_0.1" || surface == "Wurtzite_0.2"){
       it = W_SURFACE_VOL.begin();
       it_begin = W_SURFACE_VOL.begin();
       it_rbegin = W_SURFACE_VOL.rbegin();
       it_end = W_SURFACE_VOL.end();      
     } else {
-      throw invalid_parameter_exception( "Unkown surface type" );
+      throw invalid_parameter_exception( "surface_tables.hpp (line: " + std::to_string(__LINE__) + "): Unkown surface type" );
     }
    
     
@@ -103,14 +104,15 @@ public:
       it_begin = G_SURFACE_VOL_INV.begin();
       it_rbegin = G_SURFACE_VOL_INV.rbegin();
       it_end = G_SURFACE_VOL_INV.end();
-    } else if ( surface == "Wurtzite" ){
+    } else if ( surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
+		surface == "Wurtzite_0.1" || surface == "Wurtzite_0.2"){
       it = W_SURFACE_VOL_INV.begin();
       it_begin = W_SURFACE_VOL_INV.begin();
       it_rbegin = W_SURFACE_VOL_INV.rbegin();
       it_end = W_SURFACE_VOL_INV.end();      
       
     } else {
-      throw invalid_parameter_exception( "Unkown surface type" );
+      throw invalid_parameter_exception( "surface_tables.hpp (line: " + std::to_string(__LINE__) + "): Unkown surface type" );
     }
    
     

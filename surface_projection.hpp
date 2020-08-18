@@ -252,6 +252,9 @@ public:
   void set_n_points_y_to_unitcell();  
   /// Sets the number of points in the slice in z direction  
   void set_n_points_z( int val );
+  /// Sets the number of points in the slice in z direction according
+  /// to the dimension of the unitcell
+  void set_n_points_z_to_unitcell();    
   /// Sets the \ref h Miller index
   void set_h( int val );
   /// Sets the \ref k Miller index  
@@ -296,8 +299,14 @@ protected:
   /// Nodal approximation of the level set function of a p surface
   double level_set_primitive( double x, double y, double z, std::vector<double> a);
 
-  /// Nodal approximation of the level set function of a w surface
-  double level_set_wurtzite( double x, double y, double z, std::vector<double> a);  
+  /// Nodal approximation of the level set function of a w surface with tolerance 0.05
+  double level_set_wurtzite_0_05( double x, double y, double z, std::vector<double> a);
+  /// Nodal approximation of the level set function of a w surface with tolerance 0.075
+  double level_set_wurtzite_0_075( double x, double y, double z, std::vector<double> a);
+  /// Nodal approximation of the level set function of a w surface with tolerance 0.1
+  double level_set_wurtzite_0_1( double x, double y, double z, std::vector<double> a);
+  /// Nodal approximation of the level set function of a w surface with tolerance 0.2
+  double level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> a);    
 
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, std::vector<double> a);
@@ -423,9 +432,10 @@ protected:
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
-						    "Wurtzite",
-						    //"Layer",
-						    //"Sphere"
+						    "Wurtzite_0.05",
+						    "Wurtzite_0.075",
+						    "Wurtzite_0.1",
+						    "Wurtzite_0.2",						    
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -433,9 +443,12 @@ protected:
   /// some membranes are non-cubic with a fixed a/b a/c ratio. This
   /// ratio needs to be supplied here so 
   const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0},
-							    {1.0,1.0,1.0},
-							    {1.0,1.0,1.0},
-							    {2.0, sqrt(3.0), 1.732692}
+							   {1.0,1.0,1.0},
+							   {1.0,1.0,1.0},
+							   {2.0, sqrt(3.0), 1.732692},
+							   {2.0, sqrt(3.0), 1.732692},
+							   {2.0, sqrt(3.0), 1.732692},
+							   {2.0, sqrt(3.0), 1.732692},							   
   };
 
   /// Available image scalings

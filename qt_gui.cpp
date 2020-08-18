@@ -33,7 +33,8 @@ void GUI::set_up_ui(){
   button_quit = new QPushButton("Quit", controls_basic);
   button_save = new QPushButton("Save Image", controls_basic);
   button_render = new QPushButton("Compute Projection", controls_basic);
-  button_measure = new QPushButton("Measure", controls_basic);  
+  button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
+  button_measure_network = new QPushButton("Measure Network", controls_basic);    
   
   /*
    * structure control
@@ -193,11 +194,17 @@ void GUI::set_up_ui(){
   // the layout of the tabs
   controls_basic_layout = new QVBoxLayout( controls_basic );
   controls_save_layout = new QVBoxLayout( controls_save );
-  controls_measurement_layout = new QVBoxLayout( controls_measurement );  
+  controls_measurement_layout = new QVBoxLayout( controls_measurement );
+  controls_measurement_buttons_layout = new QHBoxLayout( );    
   manual_widget_layout = new QVBoxLayout( manual_widget );
 
 
   controls_measurement_layout->addWidget( detailled_stats );
+
+  controls_measurement_buttons_layout->addWidget( button_measure_vol_area );
+  controls_measurement_buttons_layout->addWidget( button_measure_network );  
+  
+  controls_measurement_layout->addLayout( controls_measurement_buttons_layout );
   
   controls_save_layout->addLayout( path_prefix_control->layout() );
   controls_save_layout->addWidget( choose_path_prefix );
@@ -271,7 +278,6 @@ void GUI::set_up_ui(){
   controls_basic_layout->addLayout( buttons_layout );
     
   buttons_layout->addWidget( button_render );
-  buttons_layout->addWidget( button_measure );
   buttons_layout->addWidget( button_save );
   buttons_layout->addWidget( button_quit );
 
@@ -313,7 +319,8 @@ void GUI::set_up_tooltips(){
 
 
    button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
-   button_measure->setToolTip( QString( ttips.button_measure.c_str() ) );
+   button_measure_vol_area->setToolTip( QString( ttips.button_measure.c_str() ) );
+   button_measure_network->setToolTip( QString( ttips.button_measure.c_str() ) );
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );   
 
@@ -391,7 +398,10 @@ void GUI::set_up_signals_and_slots(){
   //buttons
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );  
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
-  connect( button_measure, SIGNAL( clicked() ), this, SLOT( measure() ) );  
+
+  connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
+
+  connect( button_measure_network, SIGNAL( clicked() ), this, SLOT( measure_network() ) );  
 
   
   connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
@@ -436,6 +446,7 @@ void GUI::set_up_signals_and_slots(){
 
   // measurements
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
+
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_stats );
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_detailled_stats );  
 
@@ -851,14 +862,30 @@ void GUI::change_autoupdate( int state ){
 }
 
 
-void GUI::measure(){
+void GUI::measure_vol_area(){
   sp_stats->copy_parameters( sp );
 
   sp_stats->set_n_points_x( 76 );
-  sp_stats->set_n_points_y( 76 );
-  sp_stats->set_n_points_z( 76 );  
+  sp_stats->set_n_points_y_to_unitcell();
+  sp_stats->set_n_points_z_to_unitcell();
 
-  emit call_update_stats();   
+  std::cout << "measuring with (" << sp_stats->get_width() << "," << sp_stats->get_height() << "," << sp_stats->get_depth() << ")" << std::endl;
+  
+  emit call_update_stats( QString( "Volumes" ) );
+  emit call_update_stats( QString( "Areas" ) );  
+}
+
+void GUI::measure_network(){
+  sp_stats->copy_parameters( sp );
+
+  sp_stats->set_n_points_x( 76 );
+  sp_stats->set_n_points_y_to_unitcell();
+  sp_stats->set_n_points_z_to_unitcell();
+
+    std::cout << "measuring with (" << sp_stats->get_width() << "," << sp_stats->get_height() << "," << sp_stats->get_depth() << ")" << std::endl;
+
+  
+  emit call_update_stats( QString("Networks" ));
 }
 
 

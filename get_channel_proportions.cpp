@@ -33,13 +33,19 @@ int main(int argc, char* argv[])
   sp.set_k( 0 );
   sp.set_l( 1 );
   sp.set_orientation_from_hkl();
-
+  sp.compute_uc_dim_in_orientation();
+  auto dim = sp.get_uc_dim_in_orientation();
+  
+  sp.set_slice_length( dim[0] );
+  sp.set_slice_height( dim[1] );
+  sp.set_slice_width( dim[2] );  
+  
   // at lower resolution the membrane isn't that thick.
   int res = 200;
   
   sp.set_n_points_x( res );
-  sp.set_n_points_y( res );
-  sp.set_n_points_z( res );
+  sp.set_n_points_y_to_unitcell();
+  sp.set_n_points_z_to_unitcell();
 
   // iterate over all available surfaces
   for(unsigned int ii=0; ii < sp.get_surface_choices().size(); ii++){
@@ -59,7 +65,7 @@ int main(int argc, char* argv[])
 
 
     // this is somewhat arbitrary and depends on the surface where to start and end
-    double begin = -3.5, end=3.52, step=0.1;
+    double begin = -3.5, end=3.52, step=0.01;
 
     std::vector< std::vector<double> > vol_container;
     std::vector<double> levels;
