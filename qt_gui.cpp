@@ -329,7 +329,9 @@ void GUI::set_up_tooltips(){
    button_measure_vol_area->setToolTip( QString( ttips.button_measure_va.c_str() ) );
    button_measure_network->setToolTip( QString( ttips.button_measure_network.c_str() ) );
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
-   button_save->setToolTip( QString( ttips.button_save.c_str() ) );   
+   button_save->setToolTip( QString( ttips.button_save.c_str() ) );
+   button_read_pars->setToolTip( QString( ttips.button_read_pars.c_str() ) );
+   button_write_pars->setToolTip( QString( ttips.button_write_pars.c_str() ) );   
 
    save_grid_control->setToolTip( QString( ttips.button_save_grid.c_str() ) );
    save_surface_points_control->setToolTip( QString( ttips.button_save_membranes.c_str() ) );

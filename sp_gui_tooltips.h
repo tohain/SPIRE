@@ -49,6 +49,9 @@ class tooltips {
   const std::string button_measure_network = "Computes the topoligically irreducible network of the strucutre. This may take up to several minutes. Wait for the status indicator to turn green.";  
   const std::string button_render = "Computes and displays the projection for the current parameters. This may take up to several minutes. Wait for the status indicator to turn green";
 
+  const std::string button_write_pars = "Writes the current parameters in an ASCI file";
+  const std::string button_read_pars = "Reads parameters from an ASCI file";
+
   const std::string button_save_grid = "Saves all xyz positions, labels and color of all points in the slice to an ASCI files. This may take up several minutes and hundreds of MB disk space, depending on the resolution.";
   const std::string button_save_membranes = "Saves the xyz positions of all the points in a membranes to an ASCI file. Each membrane is saved in to a seperate file";
   const std::string button_save_network = "Saves the xyz positions of the minimal topological network of the two main channels (inner and outermost channel) into an ASCI file.";
