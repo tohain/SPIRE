@@ -214,6 +214,9 @@ private:
   QPushButton *button_render;
   QPushButton *button_save;
 
+  QPushButton *button_write_pars;
+  QPushButton *button_read_pars;
+  
   QPushButton *button_measure_vol_area;
   QPushButton *button_measure_network;
 
@@ -350,7 +353,8 @@ public slots:
 
   void set_measurements_status( int state );
 
-  
+  void read_parameters();
+  void write_parameters();
   
   void update_fill_channels();
   

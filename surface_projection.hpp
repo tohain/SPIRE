@@ -12,7 +12,7 @@
 #include <cstring>
 #include <cstdio>
 #include <exception>
-
+#include "auxiliary.hpp"
 
 
 #ifdef USE_CGAL
@@ -129,12 +129,18 @@ public:
   
   /// Outputs the grid
   void print_grid( std::string fn );
-
+  
   /// Outputs surface points of the given membrane
   void print_channel_surface_points( int mem_id, std::string fn );
 
   /// Output the points making up the minimal topological network
   void print_topological_network( int which, std::string fn );
+
+  /// write parameters to an ASCI file
+  void write_parameters( std::string outfile );
+
+  /// reads parameters to an ASCI file
+  void read_parameters( std::string outfile );  
   
   /// Returns the number of points in the slice in x direction
   int get_width() const;
@@ -353,9 +359,6 @@ protected:
   /// Distance between to points in z direction and voxel size in z direction  
   double dz;  
 
-  /** \brief Width of the slice in absolute length units
-   */
-  double slice_width;
   /** \brief Slice position along its normal vector in length units
    *
    * It has the same units as the unit cell dimension

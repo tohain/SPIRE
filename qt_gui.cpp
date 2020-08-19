@@ -33,6 +33,10 @@ void GUI::set_up_ui(){
   button_quit = new QPushButton("Quit", controls_basic);
   button_save = new QPushButton("Save Image", controls_basic);
   button_render = new QPushButton("Compute Projection", controls_basic);
+
+  button_read_pars = new QPushButton("Read parameters", controls_basic );
+  button_write_pars = new QPushButton("Write parameters", controls_basic );  
+
   button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
   button_measure_network = new QPushButton("Measure Network", controls_basic);    
   
@@ -278,6 +282,8 @@ void GUI::set_up_ui(){
   controls_basic_layout->addLayout( buttons_layout );
     
   buttons_layout->addWidget( button_render );
+  buttons_layout->addWidget( button_read_pars );
+  buttons_layout->addWidget( button_write_pars );
   buttons_layout->addWidget( button_save );
   buttons_layout->addWidget( button_quit );
 
@@ -401,9 +407,10 @@ void GUI::set_up_signals_and_slots(){
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
 
   connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
-
   connect( button_measure_network, SIGNAL( clicked() ), this, SLOT( measure_network() ) );  
 
+  connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
+  connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
   
   connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
 
@@ -869,8 +876,6 @@ void GUI::measure_vol_area(){
   sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
   sp_stats->set_n_points_z_to_unitcell();
-
-  std::cout << "measuring with (" << sp_stats->get_width() << "," << sp_stats->get_height() << "," << sp_stats->get_depth() << ")" << std::endl;
   
   emit call_update_stats( QString( "Volumes" ) );
   emit call_update_stats( QString( "Areas" ) );  
@@ -882,8 +887,6 @@ void GUI::measure_network(){
   sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
   sp_stats->set_n_points_z_to_unitcell();
-
-    std::cout << "measuring with (" << sp_stats->get_width() << "," << sp_stats->get_height() << "," << sp_stats->get_depth() << ")" << std::endl;
 
   
   emit call_update_stats( QString("Networks" ));
@@ -1118,8 +1121,36 @@ void GUI::change_surface_par_type( int index ){
 
 }
 
+void GUI::write_parameters(){
+
+  QString filename = QFileDialog::getSaveFileName( this, "Select File", "./", tr("*"), NULL, QFileDialog::DontUseNativeDialog );
+
+  if( !filename.isNull() ){
+
+    sp->write_parameters( filename.toStdString() );
+    
+  }
+  
+}
+
+void GUI::read_parameters(){
+
+  QString filename = QFileDialog::getOpenFileName( this, "Select File", "./", tr("*"), NULL, QFileDialog::DontUseNativeDialog );
+
+  if( !filename.isNull() ){
+
+    sp->read_parameters( filename.toStdString() );
+
+    update_gui_from_sp();
+    emit call_compute_projection();    
+    
+  }
+  
+}
+
 
 void GUI::do_something(){  
   std::cout << "done something\n"; 
   
 }
+

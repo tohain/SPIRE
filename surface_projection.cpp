@@ -91,8 +91,190 @@ const std::string invalid_parameter_exception::details() const {
   return msg;
 }
 
+/**
+ * writes all parameters to an ASCI file, so certain settings can be
+ * reloaded 
+ */
+void surface_projection::write_parameters( std::string outfile ){
+
+  std::ofstream out ( outfile );
+
+  out << " # parameters" << std::endl;;
 
 
+  out << "Lx=" << L[0] << std::endl
+      << "Ly=" << L[1] << std::endl
+      << "Lz=" << L[2] << std::endl;
+
+  out << "slice_position=" << slice_position << std::endl;
+  
+  out << "ax=" << a[0] << std::endl
+      << "ay=" << a[1] << std::endl
+      << "az=" << a[2] << std::endl;  
+
+  out << "uc_scale_ab=" << uc_scale_ab << std::endl
+      << "uc_scale_c=" << uc_scale_c << std::endl;
+
+  out << "surface_level=" << surface_level << std::endl;
+
+  out << "<membranes>" << std::endl;
+  for( unsigned int ii=0; ii < membranes.size(); ii+=2 ){
+    out << "pos=" << membranes[ii] << ";width=" << membranes[ii+1] << std::endl;
+  }
+  out << "</membranes>" << std::endl;
+
+  out << "channel_filled=";
+  for(unsigned int ii=0; ii<channel_filled.size(); ii++){
+    out << channel_filled[ii];
+    if( ii < channel_filled.size()-1 )
+      out<<",";
+  }
+  out << std::endl;
+
+  out << "h=" << h << std::endl
+      << "k=" << k << std::endl
+      << "l=" << l << std::endl;
+
+  out << "n_points_x=" << n_points_x << std::endl
+      << "n_points_z=" << n_points_z << std::endl;
+
+  out << "type=" << type << std::endl;
+  
+  out.close();
+}
+
+/**
+ * reads all parameters from an ASCI file
+ */
+void surface_projection::read_parameters( std::string infile ){
+
+  std::ifstream in ( infile );
+
+  // read file line by line
+  std::string line;  
+  while( !in.eof() ){
+
+    std::getline( in, line );
+
+    //check if line starts with a comment
+    int char_pos = 0;
+    while( line[char_pos] == ' ' )
+      char_pos++;
+    if( char_pos < line.size() && line[char_pos] != '#' ){
+      // get content
+
+      auto line_split = my_utility::str_split( line, '=' );
+
+      if( line_split[0] == "Lx" ){
+	L[0] = std::stod( line_split[1] );
+      }
+      if( line_split[0] == "Ly" ){
+	L[1] = std::stod( line_split[1] );
+      }
+      if( line_split[0] == "Lz" ){
+	L[2] = std::stod( line_split[1] );
+      }
+
+      if( line_split[0] == "slice_position" ){
+	slice_position = std::stod( line_split[1] );
+      }
+
+      if( line_split[0] == "ax" ){
+	a[0] = std::stod( line_split[1] );
+      }
+      if( line_split[0] == "ay" ){
+	a[1] = std::stod( line_split[1] );
+      }
+      if( line_split[0] == "az" ){
+	a[2] = std::stod( line_split[1] );
+      }
+
+
+      if( line_split[0] == "uc_scale_ab" ){
+	uc_scale_ab = std::stod( line_split[1] );
+      }
+      if( line_split[0] == "uc_scale_c" ){
+	uc_scale_c = std::stod( line_split[1] );
+      }
+
+      if( line_split[0] == "surface_level" ){
+	surface_level = std::stod( line_split[1] );
+      }
+
+      /*
+       * membranes
+       */
+      if( line_split[0] == "<membranes>" ){
+
+	membranes.clear();
+	
+	// scan until all membranes are read
+	std::getline( in, line );
+	do{
+	  auto mem = my_utility::str_split(line, ';' );
+
+	  membranes.push_back( std::stod( my_utility::str_split(mem[0], '=' )[1] ) );
+	  membranes.push_back( std::stod( my_utility::str_split(mem[1], '=' )[1] ) );
+
+	  std::getline( in, line );
+	} while( line != "</membranes>" );
+
+      }
+
+      /*
+       * channel_filled
+       */
+
+      if( line_split[0] == "channel_filled" ){
+	channel_filled.clear();
+	auto vals = my_utility::str_split( line_split[1], ',' );
+	for( unsigned int ii=0; ii<vals.size(); ii++ ){
+	  channel_filled.push_back( std::stoi( vals[ii] ) );
+	} 
+      }
+
+
+      if( line_split[0] == "h" ){
+	h = std::stoi( line_split[1] );
+      }
+      if( line_split[0] == "k" ){
+	k = std::stoi( line_split[1] );
+      }
+      if( line_split[0] == "l" ){
+	l = std::stoi( line_split[1] );
+      }
+
+      if( line_split[0] == "n_points_x" ){
+	n_points_x = std::stoi( line_split[1] );
+      }
+      if( line_split[0] == "n_points_z" ){
+	n_points_z = std::stoi( line_split[1] );
+      }
+
+      if( line_split[0] == "type" ){
+	type = std::stoi( line_split[1] );
+      }
+      
+
+    }
+    
+  }
+
+
+  int nr_channel_soll = membranes.size() + 1;
+
+  if( nr_channel_soll != channel_filled.size() ){
+    throw std::string("There was an error reading the parameter file; parameters not completly restored");
+    
+  }
+  
+  update_geometry();
+
+  compute_projection();
+
+  in.close();
+  
+}
 
 /** This function prints the grid to a file. The file has the form 
  * x y z color
@@ -159,7 +341,7 @@ void surface_projection::print_topological_network( int which, std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : slice_width(1), slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
+surface_projection::surface_projection( double &p, std::string &stat) : slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
   //set the channel proportion to 0.5
   set_channel_vol_prop( 0.5 );
@@ -417,7 +599,7 @@ void surface_projection::set_up_points(){
       double kz;
 
       // the start of the slice in absolute length units
-      kz = slice_position - 0.5*slice_width;
+      kz = slice_position - 0.5*L[2];
       
       for(unsigned int kk=0; kk<n_points_z; kk++){ //depth
 	
@@ -713,7 +895,7 @@ void surface_projection::update_geometry(){
   //update points number
   dx = L[0] / n_points_x;
   dy = L[1] / n_points_y;
-  dz = (slice_width) / n_points_z;  
+  dz = L[2] / n_points_z;  
 }
 
 /**
@@ -1418,7 +1600,7 @@ double surface_projection::get_channel_prop() const {
 }
 
 double surface_projection::get_slice_width() const {
-  return slice_width;
+  return L[2];
 }
 
 double surface_projection::get_slice_height() const {
@@ -1557,10 +1739,10 @@ void surface_projection::set_type(int val ){
 
 void surface_projection::set_slice_width ( double val ){
   if( val < 0 ){
-    slice_width = 0.1;
+    L[2] = 0.1;
     throw invalid_parameter_exception("Slice width can't be negative");
   } else {
-    slice_width = val;
+    L[2] = val;
   }
 }
 
@@ -1659,28 +1841,28 @@ void surface_projection::set_n_points_z( int val ){
   if( val <= 0){
     n_points_z = 50;
     //recompute the resolution
-    dz = slice_width / n_points_z;      
+    dz = L[2] / n_points_z;      
     throw invalid_parameter_exception("n_points_z: Must have a minimum of 1 point");
   } else {
     n_points_z = val;
     //recompute the resolution
-    dz = slice_width / n_points_z;      
+    dz = L[2] / n_points_z;      
   }
 }
 
 void surface_projection::set_n_points_z_to_unitcell(){
 
-  int val = n_points_x * ( slice_width / L[0] );
+  int val = n_points_x * ( L[2] / L[0] );
 
   if( val <= 0){
     n_points_y = 50;
     //recompute the resolution
-    dz = slice_width / n_points_z;
+    dz = L[2] / n_points_z;
     throw invalid_parameter_exception("n_points_z: Must have a minimum of 1 point");
   } else {    
     n_points_z = val;
     //recompute the resolution
-    dy = slice_width / n_points_z;
+    dy = L[2] / n_points_z;
   }   
 }
 

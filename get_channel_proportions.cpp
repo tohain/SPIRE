@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   sp.set_n_points_z_to_unitcell();
 
   // iterate over all available surfaces
-  for(unsigned int ii=0; ii < sp.get_surface_choices().size(); ii++){
+  for(unsigned int ii=3; ii < sp.get_surface_choices().size(); ii++){
 
     // open the outputfile
     std::ofstream volumes_out ("vols_"+sp.get_surface_choices()[ii]+".dat");
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
 
     // this is somewhat arbitrary and depends on the surface where to start and end
-    double begin = -3.5, end=3.52, step=0.01;
+    double begin = -3.5, end=3.52, step=0.1;
 
     std::vector< std::vector<double> > vol_container;
     std::vector<double> levels;

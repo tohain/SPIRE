@@ -56,7 +56,7 @@ void sp_qt::change_uc_scale_ab( double ab ){
 
   // if we have membranes of cubic symmetries, change c scaling as
   // well, since it needs to be cubic
-  if( surface_choices[type] != "Wurtzite" ){
+  if( surface_choices[type].substr(0,8) != "Wurtzite" ){
     set_uc_scale_c( ab );
   }
 
@@ -71,7 +71,7 @@ void sp_qt::change_uc_scale_c( double c ){
 
   //only allow if we have other than cubic symmetries
 
-  if( surface_choices[type] == "Wurtzite" ){
+  if( surface_choices[type].substr(0,8) == "Wurtzite" ){
   
     set_uc_scale_c( c );
     update_a();
@@ -223,9 +223,7 @@ void sp_qt::copy_parameters( sp_qt *source ){
 
 
 
-void sp_qt::update_measurements( QString what ){
-
-  std::cout << "called update_measurement: " << what.toStdString() << std::endl;
+void sp_qt::update_measurements( QString what ){  
   
   emit set_status( 1, 1 );
   
