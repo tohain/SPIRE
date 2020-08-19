@@ -317,10 +317,11 @@ void GUI::set_up_tooltips(){
    add_membrane_control->setToolTip ( QString( ttips.membranes_add_tooltip.c_str() ) );
    rm_membrane_control->setToolTip ( QString( ttips.membranes_remove_tooltip.c_str() ) );   
 
+   fill_channels_control_container->setToolTip( QString( ttips.channel_fill_tooltip.c_str() ) );
 
    button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
-   button_measure_vol_area->setToolTip( QString( ttips.button_measure.c_str() ) );
-   button_measure_network->setToolTip( QString( ttips.button_measure.c_str() ) );
+   button_measure_vol_area->setToolTip( QString( ttips.button_measure_va.c_str() ) );
+   button_measure_network->setToolTip( QString( ttips.button_measure_network.c_str() ) );
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );   
 
@@ -588,7 +589,7 @@ void GUI::update_gui_from_sp(){
   uc_size_control_a->object()->setValue( sp->get_uc_scale_ab() );
   uc_size_control_c->object()->setValue( sp->get_uc_scale_c() );
 
-  if( sp->get_surface_choices()[sp->get_type()] == "Wurtzite" ){
+  if( sp->get_surface_choices()[sp->get_type()].substr(0,8) == "Wurtzite" ){
     uc_size_control_c->object()->setEnabled( true );
   } else {
     uc_size_control_c->object()->setEnabled( false );
@@ -1048,7 +1049,7 @@ void GUI::update_fill_channels(){
     
     fill_channels.push_back( new QCheckBox( lab.c_str() ) );
     fill_channels_container_layout->addWidget( fill_channels[ii] );
-
+    
     connect( fill_channels[ii], SIGNAL( stateChanged(int) ), this, SLOT( check_channel_color() ) );
     
     if( ch_fl[ii] == 1 ){
