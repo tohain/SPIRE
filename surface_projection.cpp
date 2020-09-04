@@ -376,64 +376,6 @@ surface_projection::~surface_projection(){
 
 }
 
-/**
- * Quick and dirty dot product between two vectors
- */
-double surface_projection::dot_prod ( std::vector<double> v, std::vector<double> w ){
-  assert( v.size() == 3 && w.size() == 3 );
-  return v[0]*w[0]+v[1]*w[1]+v[2]*w[2];
-}
-
-
-/**
- * Quick and dirty matrix-vector product
- */
-std::vector<double> surface_projection::dot_prod( Matrix m, std::vector<double> v ){
-  assert( v.size() == 3 );
-  std::vector<double> r (3, 0);
-  r[0] = dot_prod( m.v, v);
-  r[1] = dot_prod( m.w, v);
-  r[2] = dot_prod( m.z, v);
-  return r;
-}
-
-
-/**
- * Returns a rotation matrix. The rotation is by ang against the
- * clock around the x-Axis
- */
-Matrix surface_projection::get_x_rot_m (double ang) const {
-  Matrix R;
-  R.v = { 1, 0,           0          };
-  R.w = { 0, cos(ang), -sin(ang) };
-  R.z = { 0, sin(ang),  cos(ang) };
-  return R;
-}
-
-
-/**
- * Returns a rotation matrix. The rotation is by ang against the
- * clock around the y-Axis
- */
-Matrix surface_projection::get_y_rot_m (double ang) const {
-  Matrix R;
-  R.v = {  cos(ang), 0, sin(ang) };
-  R.w = {     0    , 1,    0     };
-  R.z = { -sin(ang), 0, cos(ang) };
-  return R;
-}
-
-/**
- * Returns a rotation matrix. The rotation is by ang against the
- * clock around the z-Axis
- */
-Matrix surface_projection::get_z_rot_m (double ang) const {
-  Matrix R;
-  R.v = { cos(ang), -sin(ang), 0 };
-  R.w = { sin(ang),  cos(ang), 0 };
-  R.z = { 0,         0,        1 };  
-  return R;
-}
 
  
 /**
@@ -578,12 +520,14 @@ void surface_projection::set_up_points(){
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
   //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
-  Matrix Ry = get_y_rot_m(theta), Rz = get_z_rot_m(2*M_PI - phi);
+  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
 
   //rotate
-  nx = dot_prod( Rz, dot_prod( Ry, nx));
-  ny = dot_prod( Rz, dot_prod( Ry, ny));
-  nz = dot_prod( Rz, dot_prod( Ry, nz));  
+  nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
+  ny = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, ny));
+  nz = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nz));  
+
+  std::cout << "nz=(" << nz[0] << "," << nz[1] << "," << nz[2] << ")" << std::endl;
   
   long max_points = n_points_x*n_points_y*n_points_z;
   
@@ -645,12 +589,12 @@ void surface_projection::compute_uc_dim_in_orientation(){
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
   //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
-  Matrix Ry = get_y_rot_m(theta), Rz = get_z_rot_m(2*M_PI - phi);
+  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
 
   //rotate
-  nx = dot_prod( Rz, dot_prod( Ry, nx));
-  ny = dot_prod( Rz, dot_prod( Ry, ny));
-  nz = dot_prod( Rz, dot_prod( Ry, nz));  
+  nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
+  ny = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, ny));
+  nz = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nz));  
 
   // get the periodicities along the rotate base vectors
   uc_dim_in_orientation[0] = compute_periodicity( nx );
@@ -1028,10 +972,10 @@ std::vector<double> surface_projection::get_normal() {
   //rotation matrices
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
-  Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
+  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(2*M_PI - theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
 
   //rotate
-  n = dot_prod( Rz, dot_prod( Ry, n));  
+  n = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, n));  
   
   return n;
 }

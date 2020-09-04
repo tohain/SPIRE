@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <exception>
 #include "auxiliary.hpp"
-
+#include "vec_mat_math.hpp"
 
 #ifdef USE_CGAL
 #include <CGAL/Simple_cartesian.h>
@@ -48,15 +48,6 @@ public:
 #include "distance_transform.hpp"
 #include "homotopic_thinning.hpp"
 #include "surface_tables.hpp"
-
-
-/// Quick and dirty 3x3 Matrix object, consisting of 3 rows
-struct Matrix {
-    std::vector<double> v;
-    std::vector<double> w;
-    std::vector<double> z;  
-};
-
 
 
 /** \brief The computational core class of this code. Computes the projection calculations and stores al * l parameters.
@@ -274,27 +265,12 @@ protected:
   /// Numerical tolerance when two floating point numbers are considered equal
   double tolerance = 1e-5;
   
-  /// Dot product of two vectors
-  double dot_prod ( std::vector<double> v, std::vector<double> w );
-
-  /// Quick and dirty 3x3 matric by vector multiplication
-  std::vector<double> dot_prod( Matrix m, std::vector<double> v );
-
   /// Quick and dirty modulo between two doubles
   inline double mod( double lhs, double rhs );
   
   /// Returns the normal vector of unit length for the given
   /// orientation
-  std::vector<double> get_normal();
-  
-  /// Creates and returns a rotation matrix around x axis
-  Matrix get_x_rot_m( double ang ) const;
-
-  /// Creates and returns a rotation matrix around y axis
-  Matrix get_y_rot_m( double ang ) const;  
-
-  /// Creates and returns a rotation matrix around z axis
-  Matrix get_z_rot_m( double ang ) const;   
+  std::vector<double> get_normal();  
   
   /// Nodal approximation of the level set function of a g surface
   double level_set_gyroid( double x, double y, double z, std::vector<double> a);
