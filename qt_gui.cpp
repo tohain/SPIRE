@@ -97,8 +97,8 @@ void GUI::set_up_ui(){
   draw_area->setSizePolicy(QSizePolicy::MinimumExpanding,
                      QSizePolicy::MinimumExpanding);
 
-
-
+  orientation_visualisation = new QSvgWidget();
+  orientation_visualisation->setMinimumSize(50,50);
   /*
    * Slice control 
    */
@@ -185,6 +185,8 @@ void GUI::set_up_ui(){
   
   sub_main_layout = new QHBoxLayout();
   sub_main_layout->addWidget( controls);
+
+
   sub_main_layout->addWidget( draw_area );
 
   status_bar_layout = new QHBoxLayout();
@@ -259,7 +261,11 @@ void GUI::set_up_ui(){
   slice_orientation_layout->addLayout( miller_k_control->layout() );
   slice_orientation_layout->addLayout( miller_l_control->layout() );    
 
-  slice_settings->addLayout( slice_orientation_layout );
+  slice_settings->addLayout( slice_orientation_layout );  
+
+  slice_settings->addItem( h_spacer );
+
+  slice_settings->addWidget( orientation_visualisation );
 
   slice_settings->addItem( h_spacer );
   
@@ -558,7 +564,8 @@ void GUI::update_view(){
   image = new QImage( img_data, sp->get_width(), sp->get_height(), sp->get_width(), QImage::Format_Grayscale8 );
 
   img_pix->convertFromImage( *image );
-  draw_area->setPixmap( *img_pix);  
+  draw_area->setPixmap( *img_pix);
+
 }
 
 
@@ -622,7 +629,13 @@ void GUI::update_gui_from_sp(){
   
   update_stats( );
 
-  read_membranes();  
+  read_membranes();
+
+
+  std::string hkl_visual = draw_slice_orientation( sp->get_h(), sp->get_k(), sp->get_l(), sp->get_theta(), sp->get_phi() );
+  QByteArray tmp_arr ( hkl_visual.c_str(), -1 );  
+  orientation_visualisation->load( tmp_arr );
+  
 }
 
 

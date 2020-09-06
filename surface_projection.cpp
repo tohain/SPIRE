@@ -526,8 +526,6 @@ void surface_projection::set_up_points(){
   nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
   ny = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, ny));
   nz = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nz));  
-
-  std::cout << "nz=(" << nz[0] << "," << nz[1] << "," << nz[2] << ")" << std::endl;
   
   long max_points = n_points_x*n_points_y*n_points_z;
   

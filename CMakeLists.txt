@@ -20,7 +20,7 @@ SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic
 SET(SRC_WX_GUI sp_app.cpp sp_gui.cpp sp_gui_imp.cpp)
 
 #the source files for the QT gui
-SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp)
+SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp slice_orientation_visualisation.cpp drawme.cpp)
 
 #source files for terminal interface
 SET(SRC_TER minimal_terminal.cpp)
@@ -58,7 +58,7 @@ if(BUILD_QT_GUI)
   set(CMAKE_AUTORCC ON)
   set(CMAKE_AUTOUIC ON)
 
-  find_package(Qt5 COMPONENTS Widgets Gui REQUIRED)
+  find_package(Qt5 COMPONENTS Widgets Gui Svg REQUIRED)
   
   add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI} resources.qrc)
 
@@ -72,7 +72,7 @@ if(BUILD_QT_GUI)
     endif()
   endif( USE_CGAL )
 
-  target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui)
+  target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
   
 

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <cstdlib>
+#include <string>
 
 /*
  * This class provides functionality to compute the skeleton of a 3D

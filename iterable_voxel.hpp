@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 #include <vector>
-
+#include <string>
 
 /*
  * A quick & dirt implementation of a pixel, which can iterate thorugh

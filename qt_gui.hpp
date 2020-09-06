@@ -28,12 +28,14 @@
 #include <QPlainTextEdit>
 #include <QScrollArea>
 
+#include <QtSvg/QSvgWidget>
+
 #include <QThread>
 #include <QMutex>
 
 #include "qt_sp.hpp"
 #include "sp_gui_tooltips.h"
-
+#include "slice_orientation_visualisation.hpp"
 
 template <class QT_O>
 class QT_v_labeled_obj {
@@ -147,6 +149,7 @@ private:
   
   // ui elements
   QLabel *draw_area;
+  QSvgWidget *orientation_visualisation;
 
   QTabWidget *controls;
   QWidget *controls_basic;
