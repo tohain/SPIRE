@@ -15,9 +15,13 @@ sp_qt::~sp_qt(){
 
 void sp_qt::update_geometry_(){
 
-  update_geometry();
-  set_orientation_from_hkl();
-  compute_uc_dim_in_orientation();
+  try {
+    update_geometry();
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
+    set_orientation_from_hkl();
+    compute_uc_dim_in_orientation();
 
 }
 
@@ -36,14 +40,22 @@ void sp_qt::change_surface_type( int ind ){
 
 
 void sp_qt::change_z_points( int val ){
-  set_n_points_z( val );
+  try {
+    set_n_points_z( val );
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
   emit geometry_changed();
   emit parameter_changed();
 }
 
 void sp_qt::change_xy_points( int val ){
-  set_n_points_x( val );
-  set_n_points_y_to_unitcell( );
+  try {
+    set_n_points_x( val );
+    set_n_points_y_to_unitcell( );
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
   emit geometry_changed();
   emit parameter_changed();
 }
@@ -109,19 +121,31 @@ void sp_qt::change_hkl( int _h, int _k, int _l ){
 
 
 void sp_qt::change_slice_width( double val ){
-  set_slice_width( val );
+  try {
+    set_slice_width( val );
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
   emit geometry_changed();
   emit parameter_changed();
 }
 
 void sp_qt::change_slice_length( double val ){
-  set_slice_length( val );
+  try {
+    set_slice_length( val );
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
   emit geometry_changed();
   emit parameter_changed();
 }
 
 void sp_qt::change_slice_height( double val ){
-  set_slice_height( val );
+  try {
+    set_slice_height( val );
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }    
   emit geometry_changed();
   emit parameter_changed();
 }
@@ -214,7 +238,12 @@ void sp_qt::copy_parameters( sp_qt *source ){
   set_type( source->get_type() );
   set_membranes( source->get_membranes() );
 
-  update_geometry();
+  try {
+    update_geometry();
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }
+
   
   emit geometry_changed();
   emit parameter_changed();
@@ -226,8 +255,12 @@ void sp_qt::copy_parameters( sp_qt *source ){
 void sp_qt::update_measurements( QString what ){  
   
   emit set_status( 1, 1 );
-  
-  update_geometry();
+
+  try {
+    update_geometry();
+  } catch ( invalid_parameter_exception e ){
+    emit send_message( e.what() );
+  }  
 
   emit send_message( "Computing projection", 1 );
   compute_projection();

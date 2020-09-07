@@ -45,11 +45,13 @@ void GUI::set_up_ui(){
    */ 
   
   uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (xy)", controls_basic );
-  uc_size_control_a->object()->setRange(0.01, 999);
+  uc_size_control_a->object()->setMinimum(0.001);
   uc_size_control_a->object()->setSingleStep(0.01);
+  uc_size_control_a->object()->setDecimals( 3 );
   uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (z)", controls_basic );
-  uc_size_control_c->object()->setRange(0.01, 999);
-  uc_size_control_c->object()->setSingleStep(0.01); 
+  uc_size_control_c->object()->setMinimum(0.001);
+  uc_size_control_c->object()->setSingleStep(0.01);
+  uc_size_control_c->object()->setDecimals( 3 );
   
   channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", controls_basic );
   channel_prop_control->object()->setSingleStep(0.01);  
@@ -68,10 +70,10 @@ void GUI::set_up_ui(){
    * Resolution control
    */
   x_points_control = new QT_v_labeled_obj<QSpinBox> ( "X resolution", controls_basic );
-  x_points_control->object()->setRange(1, 3000);
+  x_points_control->object()->setRange(1, 600);
 
   z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
-  z_points_control->object()->setRange(1, 3000);
+  z_points_control->object()->setRange(1, 250);
 
   pix_size_indicator = new QLabel("");
   pix_size_indicator->setWordWrap( true );
@@ -106,19 +108,24 @@ void GUI::set_up_ui(){
    */
 
   slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);
-  slice_width_control->object()->setRange(0, 250);
-  slice_width_control->object()->setSingleStep(0.01);
+  slice_width_control->object()->setRange(0.001,1000);
+  slice_width_control->object()->setSingleStep(0.001);
+  slice_width_control->object()->setDecimals( 3 );
 
   slice_length_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice length", controls_basic);
-  slice_length_control->object()->setRange(0, 250);
-  slice_length_control->object()->setSingleStep(0.01);
+  slice_length_control->object()->setRange(0.001,1000);
+  slice_length_control->object()->setSingleStep(0.001);
+  slice_length_control->object()->setDecimals( 3 );
 
   slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice height", controls_basic);
-  slice_height_control->object()->setRange(0, 250);
-  slice_height_control->object()->setSingleStep(0.01);  
+  slice_height_control->object()->setRange(0.001,1000);
+  slice_height_control->object()->setSingleStep(0.001);
+  slice_height_control->object()->setDecimals( 3 );
   
   slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice position", controls_basic);    
   slice_position_control->object()->setSingleStep(0.01);
+  slice_position_control->object()->setRange( -1000, 1000 );
+  slice_position_control->object()->setDecimals( 3 );
 
   button_set_to_uc_dim = new QPushButton ("Set to UC");
   

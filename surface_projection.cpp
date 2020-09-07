@@ -1680,9 +1680,8 @@ void surface_projection::set_type(int val ){
 }
 
 void surface_projection::set_slice_width ( double val ){
-  if( val < 0 ){
-    L[2] = 0.1;
-    throw invalid_parameter_exception("Slice width can't be negative");
+  if( val <= 0 ){
+    throw invalid_parameter_exception("Slice width can't be negative or zero");
   } else {
     L[2] = val;
   }
@@ -1690,12 +1689,20 @@ void surface_projection::set_slice_width ( double val ){
 
 
 void surface_projection::set_slice_length ( double val ){
-  L[0] = val;
+  if( val <= 0 ){
+    throw invalid_parameter_exception("Slice length can't be negative or zero");
+  } else {
+    L[0] = val;
+  }
 }
 
 
 void surface_projection::set_slice_height ( double val ){
-  L[1] = val;
+  if( val <= 0 ){
+    throw invalid_parameter_exception("Slice height can't be negative or zero");
+  } else {
+    L[1] = val;
+  }
 }
 
 void surface_projection::set_slice_position ( double val ){
@@ -1739,7 +1746,7 @@ void surface_projection::update_a(){
 
 void surface_projection::set_n_points_x( int val ){
   if( val <= 0){
-    n_points_x = 50;
+    n_points_x = 1;
     //recompute the resolution
     dx = L[0] / n_points_x;
     throw invalid_parameter_exception("n_points_x: Must have a minimum of 1 point");
@@ -1752,7 +1759,7 @@ void surface_projection::set_n_points_x( int val ){
 
 void surface_projection::set_n_points_y( int val ){
   if( val <= 0){
-    n_points_y = 50;
+    n_points_y = 1;
     //recompute the resolution
     dy = L[1] / n_points_y;      
     throw invalid_parameter_exception("n_points_y: Must have a minimum of 1 point");
@@ -1768,7 +1775,7 @@ void surface_projection::set_n_points_y_to_unitcell(){
   int val = n_points_x * ( L[1] / L[0] );
 
   if( val <= 0){
-    n_points_y = 50;
+    n_points_y = 1;
     //recompute the resolution
     dy = L[1] / n_points_y;      
     throw invalid_parameter_exception("n_points_y: Must have a minimum of 1 point");
