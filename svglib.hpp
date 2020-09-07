@@ -153,7 +153,9 @@ public:
        << "\" x2=\"" << x2 << "\" y2=\"" << y2
        << "\" stroke=\"" << color
        << "\" stroke-width=\"" << stroke
-       << "\" fill=\"" << fill  << "\" />";
+       << "\" fill=\"" << fill
+       << "\" stroke-linecap=\"round"
+       << "\" />";
     
     return ss.str();
   }
@@ -252,6 +254,7 @@ public:
        << "\" stroke-width=\"" << stroke
        << "\" fill=\"" << fill
        << "\" fill-opacity=\"" << alpha
+       << "\" stroke-linejoin=\"round"
        << "\" />";
 
     return ss.str();

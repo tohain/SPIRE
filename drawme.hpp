@@ -66,11 +66,13 @@ class canvas {
 public:
 
   canvas( std::vector<double> n, int res_x, int res_y  );
-  canvas( std::vector<double> n, int res_x, int res_y, double mid_x, double mid_y  );  
+  canvas( std::vector<double> n, int res_x, int res_y, double size_x, double size_y  );
+  canvas( std::vector<double> n, int res_x, int res_y, point mid_  );
+  canvas( std::vector<double> n, int res_x, int res_y, double size_x, double size_y, point mid_  );
 
   void project_sketch( sketch &sk );
 
-  std::string draw_projection_svg(  );
+  std::string draw_projection_svg();
   
   void print_lines();
   
@@ -90,14 +92,11 @@ private:
 
   // the resolution of the output pixmap
   int res_x, res_y;
-
+  int size_x, size_y;
+  
   // the point in coordinates to put in the middle
-  double mid_x, mid_y;
-  
-  // the corners of the image
-  double lo_x, lo_y;
-  double hi_x, hi_y;
-  
+  point mid_point, mid_point_proj;
+    
 };
 
 

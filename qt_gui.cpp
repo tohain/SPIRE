@@ -98,7 +98,9 @@ void GUI::set_up_ui(){
                      QSizePolicy::MinimumExpanding);
 
   orientation_visualisation = new QSvgWidget();
-  orientation_visualisation->setMinimumSize(50,50);
+  orientation_visualisation->setSizePolicy(QSizePolicy::MinimumExpanding,
+                     QSizePolicy::MinimumExpanding);
+  orientation_visualisation->setMinimumSize(120,120);
   /*
    * Slice control 
    */

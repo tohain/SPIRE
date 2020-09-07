@@ -51,7 +51,10 @@ polygon::polygon( std::vector<point> points_, std::string stroke_color_, std::st
  * class canvas
  */
 
-canvas::canvas( std::vector<double> n, int res_x_, int res_y_, double mid_x_, double mid_y_ ) : normal(n), res_x(res_x_), res_y(res_y_), mid_x(mid_x_), mid_y(mid_y_){
+canvas::canvas( std::vector<double> n, int res_x_, int res_y_, point mid_ ) : normal(n), res_x(res_x_), res_y(res_y_), mid_point( mid_ ){
+
+  size_x = res_x;
+  size_y = res_y;
   
   pixvals.resize( res_x * res_y, 0 );
   
@@ -59,8 +62,22 @@ canvas::canvas( std::vector<double> n, int res_x_, int res_y_, double mid_x_, do
 
 canvas::canvas( std::vector<double> n, int res_x_, int res_y_ ) : normal(n), res_x(res_x_), res_y(res_y_){
 
-  mid_x = res_x / 2.0;
-  mid_y = res_y / 2.0;
+  size_x = res_x;
+  size_y = res_y;
+  
+  mid_point = point { 0, 0, 0};
+  
+  pixvals.resize( res_x * res_y, 0 );
+  
+}
+
+canvas::canvas( std::vector<double> n, int res_x_, int res_y_, double size_x_, double size_y_, point mid_ ) : normal(n), res_x(res_x_), res_y(res_y_), mid_point( mid_ ), size_x( size_x_), size_y( size_y_ ){
+
+  pixvals.resize( res_x * res_y, 0 );  
+}
+
+canvas::canvas( std::vector<double> n, int res_x_, int res_y_, double size_x_, double size_y_ ) : normal(n), res_x(res_x_), res_y(res_y_), size_x( size_x_ ), size_y( size_y_ ){
+  mid_point = point { 0, 0, 0};
   
   pixvals.resize( res_x * res_y, 0 );
   
@@ -83,9 +100,16 @@ void canvas::update_projection_matrix(){
  */
 void canvas::project_sketch( sketch &sk ){
 
+  // clear former sketch
+  lines.clear();
+  polys.clear();
+  
   // get the projection matrix
   update_projection_matrix();
 
+  // get the projection of the midpoint
+  mid_point_proj = VEC_MAT_MATH::dot_prod( projection_matrix, mid_point );
+  
   // get lines and polygons to project
   std::vector<line> dd_lines = sk.get_lines();
   std::vector<polygon> dd_polys = sk.get_polys();
@@ -125,28 +149,36 @@ void canvas::project_sketch( sketch &sk ){
 /**
  * Outputs the projection to an svg image, using my own svg library
  */
-std::string canvas::draw_projection_svg( ){
-
+std::string canvas::draw_projection_svg(){
 
   svg_canvas can( res_x, res_y );
 
-  for( auto ll : lines ){
+  
+  double scale_x = (double) res_x / size_x;
+  double scale_y = (double) res_y / size_y;
 
-    svg_line tmp ( mid_x + ll.start[0], mid_y + ll.start[1],
-		   mid_x + ll.end[0],   mid_y + ll.end[1], ll.color, ll.width  );
-
-    can.add_object( &tmp );
-  }
-
+  
   for( auto pp : polys ){
 
     svg_polygon svg_pp ( pp.stroke_color, pp.stroke_width, pp.fill_color, pp.alpha );
 
     for( unsigned int ii = 0; ii < pp.points.size(); ii++){
-      svg_pp.add_point( mid_x + pp.points[ii][0], mid_y + pp.points[ii][1] );
+      svg_pp.add_point( (scale_x * (-mid_point_proj[0] + pp.points[ii][0])) + res_x/2.0,
+			(scale_y * (-mid_point_proj[1] + pp.points[ii][1])) + res_y/2.0 );
     }
 
     can.add_object( &svg_pp );
+  }
+
+  for( auto ll : lines ){
+
+    svg_line tmp ( (scale_x * (-mid_point_proj[0] + ll.start[0])) + res_x/2.0,
+		   scale_y * (-mid_point_proj[1] + ll.start[1]) + res_y/2.0,
+		   scale_x * (-mid_point_proj[0] + ll.end[0]) + res_x/2.0,
+		   scale_y * (-mid_point_proj[1] + ll.end[1]) + res_y/2.0,
+		   ll.color, ll.width  );
+    
+    can.add_object( &tmp );
   }
   
   return can.to_string();
