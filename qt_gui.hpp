@@ -127,7 +127,7 @@ class GUI : public QWidget {
   Q_OBJECT
 
 public:
-  explicit GUI( QApplication *app, QWidget *parent = 0 );
+  explicit GUI( QApplication *app, QLocale *def_locale_, QWidget *parent = 0 );
 
 
   double progress, progress_stats;
@@ -139,6 +139,9 @@ protected:
   
 private:
 
+  // locale
+  QLocale *def_locale;
+  
   //tooltips
   tooltips ttips;
 

@@ -485,8 +485,8 @@ void GUI::set_up_signals_and_slots(){
 
 
 
-GUI::GUI( QApplication *_app, QWidget *parent ) : QWidget( parent ), app(_app){
-
+GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ){
+  
   //initialize surface projection
   sp = new sp_qt( progress, status );
   sp->set_n_points_x( 200 );
@@ -653,8 +653,22 @@ void GUI::write_membranes(int row, int col){
 
     double dist, width;
     try {
+      /*
       dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
       width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
+      */
+      bool ok;
+      
+      dist = def_locale->toDouble( membranes_control->item( rr, 0 )->text(), &ok );
+      if( !ok ){
+	dist = membranes_control->item( rr, 0 )->text().toDouble();
+      }
+      
+      width = def_locale->toDouble( membranes_control->item( rr, 1 )->text(), &ok );
+      if( !ok ){
+	width = membranes_control->item( rr, 1 )->text().toDouble();
+      }
+      
     } catch ( std::invalid_argument e ) {
       output_message( "Invalid argument, resetting to last good configuration" );
       read_membranes();
@@ -701,9 +715,10 @@ void GUI::add_membrane( double first, double second ){
   membranes_control->setItem( curRow, 0, new QTableWidgetItem() );
   membranes_control->setItem( curRow, 1, new QTableWidgetItem() );  
 
-  membranes_control->item( curRow, 0)->setText( QString::number( first ) );
-  membranes_control->item( curRow, 1)->setText( QString::number( second ) );
 
+  membranes_control->item( curRow, 0)->setText( def_locale->toString( first ) );
+  membranes_control->item( curRow, 1)->setText( def_locale->toString( second ) );
+    
   //reconnect them
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
 }
