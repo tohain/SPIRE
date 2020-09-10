@@ -369,37 +369,30 @@ void GUI::set_up_signals_and_slots(){
   // structure type
   connect(surface_type_control->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
 	  sp, &sp_qt::change_surface_type);
+
   // x resolution
-  connect(x_points_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	  sp, &sp_qt::change_xy_points );
+  connect(x_points_control->object(), &QSpinBox::editingFinished, this, &GUI::set_parameter );
   // z resolution
-  connect(z_points_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
-	  sp, &sp_qt::change_z_points );
+  connect(z_points_control->object(), &QSpinBox::editingFinished, this, &GUI::set_parameter );
 
   // unit cell size
-  connect( uc_size_control_a->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_uc_scale_ab );
-  connect( uc_size_control_c->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_uc_scale_c );
+  connect( uc_size_control_a->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter );
+  connect( uc_size_control_c->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter );
 
 
   // channel proportion / level set
-  connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_vol_prop );
-
+  connect( channel_prop_control->object(), &QDoubleSpinBox::editingFinished,
+	   this, &GUI::set_parameter );
   connect(level_par_type->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
 	  this, &GUI::change_surface_par_type);
 
-  // slice width
-  connect( slice_width_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_slice_width );
-  connect( slice_height_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_slice_height );
-  connect( slice_length_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_slice_length );  
+  // slice dimensions
+  connect( slice_width_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);
+  connect( slice_height_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);
+  connect( slice_length_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);  
   // slice position
-  connect( slice_position_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	   sp, &sp_qt::change_slice_position );
+  connect( slice_position_control->object(), &QDoubleSpinBox::editingFinished,
+	   this, &GUI::set_parameter );
 
   // set to uc
   connect( button_set_to_uc_dim, SIGNAL( clicked() ), sp, SLOT( set_slice_dim_to_uc() ) );
@@ -411,7 +404,6 @@ void GUI::set_up_signals_and_slots(){
   	   this, &GUI::change_orientation );
   connect( miller_l_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
 	   this, &GUI::change_orientation );
-
   connect( this, &GUI::call_change_hkl, sp, &sp_qt::change_hkl );
 
 
@@ -466,8 +458,6 @@ void GUI::set_up_signals_and_slots(){
   
   //projection
   connect( this, &GUI::call_compute_projection, sp, &sp_qt::compute_projection );
-
-
 
   // measurements
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
@@ -1134,11 +1124,13 @@ void GUI::change_surface_par_type( int index ){
   if( index == 0 ){
     //volume proportion
 
+    /*
     // link to the right function in surface projection
     disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	     sp, &sp_qt::change_lvl_set );
     connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	     sp, &sp_qt::change_vol_prop );
+    */
 
     // channel proportion only allows values between 0 and 1
     channel_prop_control->object()->setRange(0, 1);
@@ -1147,10 +1139,13 @@ void GUI::change_surface_par_type( int index ){
     channel_prop_control->object()->setValue( sp->get_channel_prop() );
   } else if ( index == 1 ){
     // level set
+
+    /*
     disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 		 sp, &sp_qt::change_vol_prop );
     connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
 	     sp, &sp_qt::change_lvl_set );
+    */
 
     // level set values can be pretty much everything
     channel_prop_control->object()->setRange(-10, 10);
@@ -1186,6 +1181,87 @@ void GUI::read_parameters(){
   }
   
 }
+
+
+/*
+ * Since QAbstractSpinbox::finishedEditing is a slot without a
+ * parameter, we have to catch that signal in this slot to read the
+ * value from the object and pass it onto another slot in the sp class
+ * to actually change the value. Using the valueChanged signal would
+ * avoid this issue, however causes annoying behavior where the focus
+ * is lost, when updating the GUI after each digit change. Somehoe
+ * this does not affect the (integer) QSpinBox objects. Maybe I'll
+ * implement this in a cleaner fashion in the future
+ */
+void GUI::set_parameter(){
+
+  // get the sender
+  QObject* sender = QObject::sender();
+
+  if( sender == uc_size_control_a->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_uc_scale_ab );
+    emit request_parameter_change( uc_size_control_a->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_uc_scale_ab );
+    
+  } else if ( sender == uc_size_control_c->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_uc_scale_c );
+    emit request_parameter_change( uc_size_control_c->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_uc_scale_c );
+
+  } else if ( sender == channel_prop_control->object() ){
+
+    if( level_par_type->object()->currentIndex() == 0 ){ // channel proportion given
+      connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_vol_prop );
+      emit request_parameter_change( channel_prop_control->object()->value() );
+      disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_vol_prop );      
+    } else { // level set given
+      connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_lvl_set );
+      emit request_parameter_change( channel_prop_control->object()->value() );
+      disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_lvl_set ); 
+    }
+
+  } else if ( sender == z_points_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_z_points );
+    emit request_parameter_change( z_points_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_z_points );
+    
+  } else if ( sender == x_points_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_xy_points );
+    emit request_parameter_change( x_points_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_xy_points );
+    
+  } else if ( sender == slice_width_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
+    emit request_parameter_change( slice_width_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
+    
+  } else if ( sender == slice_height_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_height );
+    emit request_parameter_change( slice_height_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_height );
+    
+  } else if ( sender == slice_length_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_length );
+    emit request_parameter_change( slice_length_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_length );
+    
+  } else if ( sender == slice_position_control->object() ){
+    // connect signal to right slot
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_position );
+    emit request_parameter_change( slice_position_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_position );
+    
+  } 						
+  
+}
+
 
 
 void GUI::do_something(){  

@@ -9,6 +9,8 @@
 
 #include "surface_projection.hpp"
 
+
+
 class sp_qt : public QObject, public surface_projection {
 
   Q_OBJECT;
@@ -37,9 +39,11 @@ signals:
   void send_message( QString msg, int type = 1 ); 
 
   void set_status( int what, int state );					       
-						
-public slots:
 
+
+					
+public slots:
+  
   void update_geometry_();  
   void compute_projection();
 

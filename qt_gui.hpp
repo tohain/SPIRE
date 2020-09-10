@@ -37,6 +37,9 @@
 #include "sp_gui_tooltips.h"
 #include "slice_orientation_visualisation.hpp"
 
+
+
+
 template <class QT_O>
 class QT_v_labeled_obj {
 
@@ -314,7 +317,9 @@ signals:
   void call_change_channel_color( int id, int val );
 
   void call_show_dialog_box();
-					       
+
+  void request_parameter_change( double value );
+			     
 public slots:
 
   void change_surface_par_type( int index );
@@ -364,6 +369,8 @@ public slots:
   
   void update_fill_channels();
   
+  void set_parameter();
+
   void do_something();
   
 };
