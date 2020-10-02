@@ -434,11 +434,10 @@ void GUI::set_up_signals_and_slots(){
   
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
-  // update the gui if surface_projection updated its status
-  //connect( sp, &sp_qt::status_updated , this, &GUI::update_status  );
+
+
   // read the updated parameters
   connect( sp, &sp_qt::parameter_changed, this, &GUI::update_gui_from_sp );
-  //connect( sp, &sp_qt::geometry_changed, this, &GUI::update_gui_from_sp );  
 
   // actiave autoupdate
   connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
@@ -585,9 +584,7 @@ void GUI::paintEvent( QPaintEvent * event ){
 }
 
 
-void GUI::update_status( QString s ){
-  output_message( s, 0 );
-}
+
 
 
 void GUI::update_gui_from_sp(){
@@ -886,14 +883,42 @@ void GUI::update_detailled_stats(){
 }
 
 
+/*
+ * This is still a bit of a weird one. When directly connecting the sp
+ * signal parameter_changed to the compute_projection signal, the gui
+ * might get stuck in a loop for whatever reason. When making the
+ * detour to the GUI class, and letting the GUI class call for the
+ * compute_projection there is no such thing. Don't really know yet why
+ */
+
 void GUI::change_autoupdate( int state ){
   
   if( state ){
-    connect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    //connect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    connect( sp, &sp_qt::parameter_changed, this, &GUI::request_compute_projection );
+
     output_message( "Actiavted autoupdate" );
   } else {
-    disconnect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    //disconnect( sp, &sp_qt::parameter_changed, sp, &sp_qt::compute_projection );
+    disconnect( sp, &sp_qt::parameter_changed, this, &GUI::request_compute_projection );
     output_message( "Deactiavted autoupdate" );    
+  }
+
+}
+
+
+/*
+ * This should only send the call_compute_projection signal, if the sp
+ * class is not busy. However, as used now for auto update this is not
+ * really necessary, since this function is called (if autoupdate is
+ * on) by a parameter_changed signal, which can not be emitted, while
+ * the sp class is busy. But I leave it in here, just in case.
+ */
+void GUI::request_compute_projection(){
+  
+  if( sp_state == 0 ){
+    emit call_compute_projection();
+  } else {
   }
 
 }
@@ -989,13 +1014,16 @@ void GUI::set_state( int what, int state ){
   std::stringstream text;
   text.str("");
   QLabel *display;
-
+  int *stat_int;  
+  
   if( what == 0 ){
     text << "Projection" << std::endl << std::endl;
     display = status_bar_status_p;
+    stat_int = &sp_state;
   } else if ( what == 1 ){
     text << "Measurement:" << std::endl << std::endl;
-    display = status_bar_status_m;    
+    display = status_bar_status_m;
+    stat_int = &sp_stat_state;
   } 
 
 
@@ -1004,9 +1032,11 @@ void GUI::set_state( int what, int state ){
   if( state == 0 ){    
     text << "Ready";
     style = "QLabel { background-color : green; color : black; }";
+    *stat_int = 0;
   } else if ( state == 1){
     text << "Busy";
     style = "QLabel { background-color : red; color : black; }";
+    *stat_int = 1;
   }
   display->setStyleSheet( QString( style.c_str() ) );
   display->setText( text.str().c_str() );
@@ -1177,7 +1207,6 @@ void GUI::read_parameters(){
 
     update_gui_from_sp();
     emit call_compute_projection();    
-    
   }
   
 }
@@ -1265,7 +1294,15 @@ void GUI::set_parameter(){
 
 
 void GUI::do_something(){  
-  std::cout << "done something\n"; 
+  //std::cout << "done something\n"; 
+
+  if( sp_state == 0 ){
+    std::cout << "ready" << std::endl;
+    //emit call_compute_projection();
+  } else {
+    std::cout << "too busy" << std::endl;
+  }
+
   
 }
 

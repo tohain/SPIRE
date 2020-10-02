@@ -142,6 +142,9 @@ protected:
   
 private:
 
+  int sp_state, sp_stat_state;
+  
+  
   // locale
   QLocale *def_locale;
   
@@ -330,7 +333,6 @@ public slots:
   
   void update_gui_from_sp();
   
-  void update_status( QString s);
   
   void update_view();
   void quit_app();
@@ -350,6 +352,7 @@ public slots:
   void update_detailled_stats();
 
   void change_autoupdate( int state );
+  void request_compute_projection();
 
   void measure_vol_area();
   void measure_network();
