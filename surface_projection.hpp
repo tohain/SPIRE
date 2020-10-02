@@ -20,6 +20,8 @@
 #include <CGAL/Advancing_front_surface_reconstruction.h>
 #include <CGAL/tuple.h>
 #include <CGAL/Vector_3.h>
+
+#include <random>
 #endif
 
 /** \brief Quick and dirty implementation of an invalid parameter exception

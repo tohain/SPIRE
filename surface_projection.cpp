@@ -305,7 +305,7 @@ void surface_projection::print_grid( std::string fn ){
  */
 void surface_projection::print_channel_surface_points( int mem_id, std::string fn ){
 
-  std::vector<int> ch_s_points = get_surface_points( mem_id );
+  std::vector<int> ch_s_points = get_surface_points( mem_id, 6 );
   
   std::ofstream out ( fn );
   out << " # x y z" << std::endl;
@@ -1333,8 +1333,7 @@ void surface_projection::compute_surface_area(){
 
     // get all the points making  up the membrane
     auto membrane_points = get_surface_points( (2*ii)+1, 6 );
-
-
+    
     /*
     std::ofstream p_out ( "surface_points_" + std::to_string( ii ) + ".dat" );
     for( auto it : membrane_points ){
@@ -1342,7 +1341,14 @@ void surface_projection::compute_surface_area(){
     }
     p_out.close();
     */
-    
+
+
+    //bring in some random numbers!
+    double rand_mag = 1e-4;
+    std::mt19937 rand_gen;
+    std::normal_distribution<double> rand_dist_x ( 0, rand_mag * get_dx() );
+    std::normal_distribution<double> rand_dist_y ( 0, rand_mag * get_dy() );
+    std::normal_distribution<double> rand_dist_z ( 0, rand_mag * get_dz() );
     
     // copy and paste the points into a CGAL compatible array
     std::vector<Point_3> CGAL_membrane_points;
@@ -1350,10 +1356,18 @@ void surface_projection::compute_surface_area(){
       double x = points.at( 3 * membrane_points.at(jj) );
       double y = points.at( 3 * membrane_points.at(jj) + 1 );
       double z = points.at( 3 * membrane_points.at(jj) + 2 );
+  
+      // since the Delauny triangulation doesn't like regularily space
+      // points, we will give disperse all of them a tiny bit
+      x += rand_dist_x( rand_gen );
+      y += rand_dist_y( rand_gen );
+      z += rand_dist_z( rand_gen );
+
+      
       CGAL_membrane_points.push_back( Point_3( x, y, z) );
     }
 
-
+    
     // get the surface triangulation
     std::vector<Facet> facets;
     Perimeter perimeter( 0.5 );
@@ -1377,7 +1391,7 @@ void surface_projection::compute_surface_area(){
     //safe area
     surface_area[ii] = total_area;
 
-
+    
     
     // for debugging: output surfaces
     std::ofstream triang_out ( "membrane_" + std::to_string(ii) + ".off" );
