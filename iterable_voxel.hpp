@@ -20,28 +20,153 @@ public:
   iterable_voxel( int id_, int x_, int y_, int z_ ) : id(id_), x(x_), y(y_), z(z_) {}
 
   /// Overload () operator for easy access
-  int operator()(){
+  inline int operator()(){
     return id;
   }
+
+
+
+
+  /// one voxel to the right
+  inline iterable_voxel r(){
+    int m = id % (x*z);
+    if( (x*z) - z <= m &&
+	m < (x*z) ){
+      return iterable_voxel( id - (( x - 1) * z), x, y, z );
+    } else {
+      return iterable_voxel( id + z, x, y, z );
+    }
+  }
+
+  /// one voxel to the left
+  inline iterable_voxel l(){
+    int m = id % (x*z);
+    if( 0 <= m && m < z ){
+      return iterable_voxel( id + ((x - 1) * z), x, y, z );
+    } else {
+      return iterable_voxel(id - z, x, y, z);
+    }
+  }
   
-  iterable_voxel r();
-  iterable_voxel l();
-  iterable_voxel u();
+
+  /// one voxel up
+  inline iterable_voxel u(){
+    if(id % z == z - 1){
+      return iterable_voxel(id-(z-1), x, y, z);
+    } else {
+      return iterable_voxel(id+1, x, y, z);
+    }  
+  }
+
+  /// one voxel down
+  inline iterable_voxel d(){
+    if( id % z == 0 ){
+      return iterable_voxel( id+(z-1), x, y, z);
+    } else {
+      return iterable_voxel( id - 1, x, y, z);
+    }
+  }
+  
+
+  /// one voxel backwards
+  inline iterable_voxel b(){
+    if( id < x * z ){
+      return iterable_voxel( id + ( x * z * (y-1) ), x, y, z);
+    } else {
+      return iterable_voxel( id - (x * z), x, y, z );
+    }
+  }
+
+  /// one voxel forward
+  inline iterable_voxel f(){
+    if( id >= (y-1) * x * z ){
+      return iterable_voxel( id - ( x * z * (y-1) ), x, y, z );
+    } else {
+      return iterable_voxel(id + (x * z), x, y, z);
+    }
+  }
+  
+  
+  inline std::unordered_set<int> get_6_neighbors(){
+    
+    std::unordered_set<int> nbs;
+    
+    nbs.insert( u()() );
+    nbs.insert( d()() );
+  
+    nbs.insert( l()() );
+    nbs.insert( r()() );
+    
+    nbs.insert( f()() );
+    nbs.insert( b()() );
+    
+    return nbs;
+  }
+  
+  
+  inline std::unordered_set<int> get_18_neighbors(){
+    
+    std::unordered_set<int> nbs = get_6_neighbors();
+    
+    nbs.insert( f().l()() );
+    nbs.insert( f().r()() );
+    nbs.insert( b().l()() );
+    nbs.insert( b().r()() );
+    
+    nbs.insert( l().u()() );
+    nbs.insert( l().d()() );
+    nbs.insert( r().u()() );
+    nbs.insert( r().d()() );
+    
+    nbs.insert( f().u()() );
+    nbs.insert( f().d()() );
+    nbs.insert( b().u()() );
+    nbs.insert( b().d()() );
+    
+    return nbs;
+  }    
+  
+  
+  
+  inline std::unordered_set<int> get_26_neighbors(){
+    
+    std::unordered_set<int> nbs = get_18_neighbors();;
+    
+    iterable_voxel up = u();
+    nbs.insert( up.f().l()() );
+    nbs.insert( up.f().r()() );
+    nbs.insert( up.b().l()() );
+    nbs.insert( up.b().r()() );
+    
+    iterable_voxel down = d();
+    nbs.insert( down.f().l()() );
+    nbs.insert( down.f().r()() );
+    nbs.insert( down.b().l()() );
+    nbs.insert( down.b().r()() );
+    
+    return nbs;
+  }
+  
+  /*
+    iterable_voxel r();
+    iterable_voxel l();
+    iterable_voxel u();
   iterable_voxel d();
   iterable_voxel f();
   iterable_voxel b();  
   
   
   /// Returns all neighbours with 6 connectivity (only main axes)
-  std::unordered_set<int> get_6_neighbors();
+  inline std::unordered_set<int> get_6_neighbors();
   
   /// Returns all neighbours with 18 connectivity (main axis, and in plane diagonals)
-  std::unordered_set<int> get_18_neighbors();
+  inline std::unordered_set<int> get_18_neighbors();
   
   /// Returns all neighbours with 26 connectivity (all diagonals and main axes)
-  std::unordered_set<int> get_26_neighbors();
-  
-  
+  inline std::unordered_set<int> get_26_neighbors();
+    */
+
+    
   /// Returns all neighbours and their directions with 6 connectivity (only
   /// main axes)
   std::vector< std::pair<int, std::string> > get_6_neighbors_dir();
