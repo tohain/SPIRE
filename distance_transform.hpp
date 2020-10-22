@@ -15,8 +15,13 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <algorithm>
+#include <map>
+#include <set>
+
 
 /** \brief This class computes the euclidean distance map of a structure
  *
@@ -60,8 +65,14 @@ public:
   /// Performs the distance transformation
   void compute_distance_map();
 
+  /// computes the largest radius covering transform
+  void compute_max_radius_covering();
+  
   /// get distance map
   std::vector<M> get_distance_map() const ;
+
+  
+  std::vector<M> get_max_radius_covering() const ;
 
   /// Update the parameters
   void set_parameters( std::vector<T> data,
@@ -69,7 +80,7 @@ public:
 		       std::vector<double> pixsize );
   
   /// outputs the map to console
-  void print_map() const;
+  void print_map( std::ostream &out = std::cout ) const;
   
 private:
 
@@ -79,13 +90,21 @@ private:
   /// evaluates the function on the given data
   template <class U>
   std::vector<M> eval_grid_function( std::vector<U> &data, double max );
-    
+
+  /// returns all pixels which are within a radius r of the provided pixel
+  std::unordered_set<unsigned int> get_voxels_in_ball( double r, int id );
+
+  
   /// The image to transform
   std::vector<T> img;
   
   /// The array holding the distance map
   std::vector<M> map;
 
+  /// Container for maximum radius covering transform
+  std::vector<M> mrct;
+  std::vector<bool> marked;
+  
   /// The dimension of the object to transform
   unsigned int dim;
   /// The number of pixels of the object in each direction (x,y,z)

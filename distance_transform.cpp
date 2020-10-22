@@ -19,10 +19,11 @@ distance_transform<T, M>::distance_transform(){
 
   img = std::vector<T> (0, 0);
   dim = 1;
-  size[0]=1; size[1]=1; size[2];
+  size[0]=1; size[1]=1; size[2]=1;
   pix_size[0]=1; pix_size[1]=1; pix_size[2]=1;
 
   map = std::vector<M> (0, 0);
+  mrct = std::vector<M> (0, 0);
 }
 
 
@@ -45,6 +46,7 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, double
   
   //allocate memory
   map = std::vector<M> (n, 0);
+  mrct = std::vector<M> (n, 0);
 }
 
 
@@ -69,6 +71,7 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k,
 
   //allocate memory
   map = std::vector<M> (n*k, 0);
+  mrct = std::vector<M> (n*k, 0);
 }
 
 
@@ -97,6 +100,7 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k,
 
   //allocate memory
   map = std::vector<M> (n*k*l, 0);
+  mrct = std::vector<M> (n*k*l, 0);
 }
 
 
@@ -127,21 +131,24 @@ void distance_transform<T, M>::set_parameters( std::vector<T> data,
     size[0]=_dim[0]; size[1]=1; size[2]=1;
     pix_size[0]=pixsize[0]; pix_size[1]=1; pix_size[2]=1;
 
-    map = std::vector<M> ( _dim[0], 0);
+    map = std::vector<M>  ( _dim[0], 0);
+    mrct = std::vector<M> ( _dim[0], 0);
     
   } else if( _dim.size() == 2 ){
 
     size[0]=_dim[0]; size[1]=_dim[1]; size[2]=1;
     pix_size[0]=pixsize[0]; pix_size[1]=pixsize[1]; pix_size[2]=1;
 
-    map = std::vector<M> ( _dim[0]*_dim[1], 0 );
+    map = std::vector<M>  ( _dim[0]*_dim[1], 0 );
+    mrct = std::vector<M> ( _dim[0]*_dim[1], 0 );
     
   } else if( _dim.size() == 3 ){
 
     size[0]=_dim[0]; size[1]=_dim[1]; size[2]=_dim[2];
     pix_size[0]=pixsize[0]; pix_size[1]=pixsize[1]; pix_size[2]=pixsize[2];
 
-    map = std::vector<M> ( _dim[0]*_dim[1]*_dim[2], 0 );
+    map = std::vector<M>  ( _dim[0]*_dim[1]*_dim[2], 0 );
+    mrct = std::vector<M> ( _dim[0]*_dim[1]*_dim[2], 0 );
     
   }
   
@@ -176,32 +183,54 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
   // matter). After a second call in 2d/3d the units will be in length
   // units, so any grid[*] is in length units
 
-
+  
+  bool periodic = true;
+  
   std::vector<M> transform ( grid.size(), 0 );
+
   
   //Index of rightmost parabola in lower envelope
   unsigned int k = 0;
   //indeces/locations of parabolas in lower envelope
-  std::vector<int> v = {0}; 
+  std::vector<int> v = {0};
+  
   //Locations of boundaries between parabolas in length units
-  std::vector<M> z = {-pixsize*std::numeric_limits<M>::max(), pixsize*std::numeric_limits<M>::max()};
+  std::vector<M> z = {-static_cast<M>(pixsize)*std::numeric_limits<M>::max(), static_cast<M>(pixsize)*std::numeric_limits<M>::max()};
+
+
+  // create a twice as large to cope with periodical shit
+  std::vector<M> grid_ext (2*(grid.size()), 0);
+  std::vector<M> transform_ext ( grid_ext.size(), 0 );
+  // original grid
+  for( int ii=0; ii<grid.size(); ii++){
+    grid_ext[ii + 0.5*grid.size()] = grid[ii];
+  }
+  //front
+  for( int ii=0; ii<int(grid.size()*0.5); ii++){
+    grid_ext[ii] = grid[ ii + int(round(0.5*grid.size())) ];
+  }
+  //back
+  for( int ii=0; ii<grid.size()*0.5; ii++){
+    grid_ext[ii+int(0.5*grid.size())+grid.size()] = grid[ ii ];
+  }
+
   
   //find the envelope
-  for( unsigned int ii=1; ii<grid.size(); ii++){
+  for( int ii=1; ii<grid_ext.size(); ii++){
     //intersection of two parabolas
-
+    
     //the position of the index in length units
     M ii_l = ii*pixsize;
     
     //this needs to be in length units already! so convert pixel
     //values to length units where neccessary
-    M s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
+    M s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
 
     //check where the intersection is. If it is left of the previous
     //parabola, the current one is the new lowest envelope
     while( s <= z[k] ){
       k--;
-      s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / (2*(ii_l-(v[k]*pixsize)));
+      s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / (2*(ii_l-(v[k]*pixsize)));
     }
 
     //found the previous lowest envelope
@@ -225,19 +254,26 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
     }    
   }
 
-
+  
   //fill in the transform by evaluating the parabola envelope at the
   //grid
   k=0;
-  for(unsigned int ii=0; ii<grid.size(); ii++){
+  for(unsigned int ii=0; ii<grid_ext.size(); ii++){
     while( z[k+1] < ii*pixsize ){
       k++;
     }
     
     //get the "real" distances in length units by multiplying squared
     //index distances by pixelsize
-    transform[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
+    transform_ext[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid_ext[ v[k] ];
   }
+
+  
+  //extract transform
+  for( unsigned int ii=0; ii<transform.size(); ii++){
+    transform[ii] = transform_ext[ int(grid.size()*0.5) + ii ];
+  }
+
 
   return transform;
 }
@@ -447,24 +483,200 @@ void distance_transform<T, M>::compute_distance_map(){
 }
 
 
+
+/*
+ * This function returns one dimensional id's (index arrays) of all
+ * the voxels which lie within a sphere with the given radius around
+ * the given voxel. So far, only voxels are returned which lie within
+ * the pore space, i.e. have a distance map value > 0
+ *
+ * \param[in] r Radius of the sphere
+ * \param]in] id 1d index of the center voxel
+ *
+ */ 
+template<class T, class M>
+std::unordered_set<unsigned int> distance_transform<T, M>::get_voxels_in_ball( double r, int id ){
+  
+  std::unordered_set<unsigned int> voxels;
+
+  // xyz grid positions of center of ball c* and currently considered
+  // particle i* and column index cciici
+  int cx, cy, cz, cci, ix, iy, iz, ici;
+
+  // get 3d indeces
+  cz = id % size[2];
+  cci = int( id / size[2] );
+  cy = int( cci / size[0] );
+  cx = cci % size[0] ;
+
+  int limit_z = int(r / pix_size[2]);
+  
+  
+  for( int zz = -limit_z; zz <= limit_z; zz++ ){
+    double r_xy = sqrt( r*r - pix_size[2]*pix_size[2]*zz*zz);
+    int limit_y = int( r_xy / pix_size[1] );
+    for( int yy = -limit_y; yy <= limit_y; yy++ ){
+      double r_x =  sqrt( r_xy*r_xy - pix_size[1]*pix_size[1]*yy*yy );
+      int limit_x = int( r_x / pix_size[0] );
+      for( int xx = -limit_x; xx <= limit_x; xx++ ){
+	
+	ix = cx + xx;
+	iy = cy + yy;
+	iz = cz + zz;
+	
+	if( ix >= (int) size[0] ){
+	  ix -= size[0];
+	} else if( ix < 0 ){
+	  ix += size[0];
+	}
+	if( iy >= (int) size[1] ){
+	  iy -= size[1];
+	} else if( iy < 0 ){
+	  iy += size[1];
+	}
+	if( iz >= (int) size[2] ){
+	  iz -= size[2];
+	} else if( iz < 0 ){
+	  iz += size[2];
+	}
+	
+
+	int ind = iz + ix * size[2] + iy * size[2] * size[0];
+
+	if( !marked[ind] )
+	  voxels.insert( ind );
+	
+      }
+    }
+  }
+    
+  
+  return voxels;
+
+}
+
+/*
+ * This function computes the maximum sphere cover transfrom. It's
+ * idea is based on the fact, that the euclidean distance map provides
+ * the largest possible sphere radius for its voxel. We then start at
+ * the maximum, and mark all points within the sphere with the value
+ * of the maximum, since all these pixels can't have a higher value
+ * anyways. We then mark them as "marked" and proceed to the next
+ * lower value and repeat this. A pixel only gets a value if it is not
+ * yet marked as "marked".
+ */ 
+template <class T, class M>
+void distance_transform<T, M>::compute_max_radius_covering(){
+
+  // hold information, if a voxel in the mrct is already assigned a
+  // value
+  marked = std::vector<bool> ( mrct.size(), false );  
+  
+  // let's start off by sorting all voxel according to descending
+  // order
+  std::multimap<M, unsigned int> dmap;  
+  for( unsigned int ii=0; ii<map.size(); ii++){
+    if( std::fabs( map[ii] ) > 1e-10 )
+      dmap.emplace( map[ii], ii );
+  }
+  
+  // start with the maximum
+  auto cur_vox = dmap.rbegin();
+
+  // xyz grid positions of center of ball c* and currently considered
+  // particle i* and column index cciici
+  int cx, cy, cz, cci, ix, iy, iz, ici;
+  
+  int count = 0;
+  // process all voxels in the pore space
+  do {
+      
+    /*
+     * iterate over all indeces within a sphere
+     */
+    int id = cur_vox->second;
+    double r = cur_vox->first;
+    
+    // get 3d indeces
+    cz = id % size[2];
+    cci = int( id / size[2] );
+    cy = int( cci / size[0] );
+    cx = cci % size[0] ;
+    
+    int limit_z = int(r / pix_size[2]);        
+    for( int zz = -limit_z; zz <= limit_z; zz++ ){
+      double r_xy = sqrt( r*r - pix_size[2]*pix_size[2]*zz*zz);
+      int limit_y = int( r_xy / pix_size[1] );
+      for( int yy = -limit_y; yy <= limit_y; yy++ ){
+	double r_x =  sqrt( r_xy*r_xy - pix_size[1]*pix_size[1]*yy*yy );
+	int limit_x = int( r_x / pix_size[0] );
+	for( int xx = -limit_x; xx <= limit_x; xx++ ){
+	  
+	  ix = cx + xx;
+	  iy = cy + yy;
+	  iz = cz + zz;
+	  
+	  if( ix >= (int) size[0] ){
+	    ix -= size[0];
+	  } else if( ix < 0 ){
+	    ix += size[0];
+	  }
+	  if( iy >= (int) size[1] ){
+	    iy -= size[1];
+	  } else if( iy < 0 ){
+	    iy += size[1];
+	  }
+	  if( iz >= (int) size[2] ){
+	    iz -= size[2];
+	  } else if( iz < 0 ){
+	    iz += size[2];
+	  }
+	  
+	  // get 1d index
+	  int ind = iz + ix * size[2] + iy * size[2] * size[0];
+
+	  // assign value and mark point as processed
+	  if( !marked[ind] ){
+	    mrct[ind] = sqrt(cur_vox->first);
+	    marked[ind] = true;
+	  }	 
+	  
+	}
+      }
+    }
+               
+    // next voxel
+    cur_vox++;
+    
+  } while ( cur_vox != dmap.rend() );
+}
+
+
+template <class T, class M>
+std::vector<M> distance_transform<T, M>::get_max_radius_covering() const {
+  return mrct;
+}
+
+
+
 /**
  * Outputs the distance map to the console
  */
 template <class T, class M>
-void distance_transform<T, M>::print_map() const {
+void distance_transform<T, M>::print_map( std::ostream &out) const {
   
   for( unsigned int ii=0; ii < size[2]; ii++){ //layers
-    std::cout << "Layer " << ii << std::endl;
+    out << "Layer " << ii << std::endl;
     for( unsigned int jj=0; jj < size[1]; jj++){ //columns
       for( unsigned int kk=0; kk< size[0]; kk++){ //rows
 
 	int ind = ii + kk * size[2] + jj * size[2]*size[0];	
 	
-	std::cout << " " << std::setprecision(3) << std::setw(6) << sqrt(map[ind]) << " ";	  
+	out << " " << std::setprecision(3) << std::setw(6) << sqrt(map[ind]) << " ";	  
       }
-      std::cout << std::endl;
+      out << std::endl;
     }
-    std::cout << std::endl << std::endl;
+    out << std::endl << std::endl;
   }
 }
 
