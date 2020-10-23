@@ -200,19 +200,36 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
   //Locations of boundaries between parabolas in length units
   std::vector<M> z = {-static_cast<M>(pixsize)*std::numeric_limits<M>::max(), static_cast<M>(pixsize)*std::numeric_limits<M>::max()};
 
-
-  int end;
+  std::vector<M> grid_ext;
+  std::vector<M> transform_ext;
+    
   if( periodic ){
-    end = 2*grid.size();
+    // create a twice as large to cope with periodical stuff. Turns
+    // out it's faster than doing complicated indeces magic
+    grid_ext = std::vector<M> (2*(grid.size()), 0);
+    transform_ext = std::vector<M> ( grid_ext.size(), 0 );
+    // now copy data
+    // original grid
+    for( int ii=0; ii<grid.size(); ii++){
+      grid_ext[ii + 0.5*grid.size()] = grid[ii];
+    }
+    //front
+    for( int ii=0; ii<int(grid.size()*0.5); ii++){
+      grid_ext[ii] = grid[ ii + int(round(0.5*grid.size())) ];
+    }
+    //back
+    for( int ii=0; ii<grid.size()*0.5; ii++){
+      grid_ext[ii+int(0.5*grid.size())+grid.size()] = grid[ ii ];
+    }
   } else {
-    end = grid.size();
+    grid_ext = grid;
+    transform_ext = transform;
   }
 
-  //half grid size
-  int n2 = int(grid.size()/2.0);
-  
+
+
   //find the envelope
-  for( int ii=1; ii<end; ii++){
+  for( int ii=1; ii<grid_ext.size(); ii++){
     //intersection of two parabolas
     
     /* the position of the index in length units
@@ -220,69 +237,19 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
      * mapping out of bound indeces back into array limits
      */
     
-    M ii_l;
-    int oo, oo_vk;
-    if( periodic ){
-
-
-      ii_l = (ii - n2 ) * pixsize; 
-
-      if( ii < n2 ){
-	oo = ii - n2 + grid.size(); // this looks unecessarily
-				    // complicated but deals with the
-				    // leftovers of the integer
-				    // division in case of uneven grid
-				    // sizes
-      } else if ( ii >= n2 && ii < (n2 + grid.size()) ){
-	oo = ii - n2;
-      } else if ( ii >= ( n2 + grid.size() ) ){
-	oo = ii - grid.size() -n2;
-      }
-      
-      if( v[k] < n2 ){
-	oo_vk = v[k] - n2 + grid.size();
-      } else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
-	oo_vk = v[k] - n2;
-      } else if( v[k] >= (n2 + grid.size()) ){
-	oo_vk = v[k] - grid.size() - n2;
-      }
-            
-    } else {
-      ii_l = ii*pixsize;
-    }
+    M ii_l = ii * pixsize;
     
     //this needs to be in length units already! so convert pixel
     //values to length units where neccessary
-    M s;
-    if( periodic ){
-      s = ( ( grid[oo] + (ii_l*ii_l) ) - (grid[ oo_vk ] + ( (v[k]-n2)*(v[k]-n2)*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*(v[k]-n2)) ) );
-    } else {
-      s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
-    }
+    M s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
 
     //check where the intersection is. If it is left of the previous
     //parabola, the current one is the new lowest envelope
     while( s <= z[k] ){
       k--;
-
-      if( periodic ){
-
-	if( v[k] < n2 ){
-	  oo_vk = v[k] - n2 + grid.size();
-	} else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
-	  oo_vk = v[k] - n2;
-	} else if ( v[k] >= (n2 + grid.size()) ){
-	  oo_vk = v[k] - grid.size() - n2;
-	}
-	
-	s = ( ( grid[oo] + (ii_l*ii_l) ) - (grid[ oo_vk ] + ( (v[k]-n2)*(v[k]-n2)*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*(v[k]-n2)) ) );
-	
-      } else {
-	s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
-      }
+      s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
     }
-      
-     
+    
 
     //found the previous lowest envelope
     k++;
@@ -305,35 +272,28 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
     }    
   }
       
-    
+  
   //fill in the transform by evaluating the parabola envelope at the
   //grid
   k=0;
-  for(unsigned int ii=0; ii<transform.size(); ii++){
+  for(unsigned int ii=0; ii<transform_ext.size(); ii++){
     while( z[k+1] < ii*pixsize ){
       k++;
     }
 
-    if(periodic){
-      int oo_vk;    
-      if( v[k] < n2 ){
-	oo_vk = v[k] - n2 + grid.size();
-      } else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
-	oo_vk = v[k] - n2;
-      } else if ( v[k] >= grid.size() ){
-	oo_vk = v[k] - grid.size() - n2;
-      }
-      
-      //get the "real" distances in length units by multiplying squared
-      //index distances by pixelsize
-      transform[ii] = pixsize*pixsize*( (ii-(v[k]-n2))*(ii-(v[k]-n2)) ) + grid[ oo_vk ];
-    } else {
-      transform[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
-    }
+    transform_ext[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid_ext[ v[k] ];
   }
 
 
-  return transform;
+  if( periodic ){
+    //extract transform
+    for( unsigned int ii=0; ii<transform.size(); ii++){
+      transform[ii] = transform_ext[ int(grid.size()*0.5) + ii ];
+    }
+    return transform;
+  } else {
+    return transform_ext;
+  }
 }
 
 
