@@ -16,14 +16,34 @@ homotopic_thinning<T>::homotopic_thinning ( int nx, int ny, int nz, std::vector<
  * Just a small helper function to compute the intersection of two
  * sets. Unfortunatly O(N^2)
  */
-std::unordered_set<int> intersection( std::unordered_set<int> a, std::unordered_set<int> b ){
+inline std::vector<int> intersection( std::vector<int> &a, std::vector<int> &b ){
 
-  std::unordered_set<int> intersection_set;
+  std::vector<int> intersection_set;
 
   for( auto it_a : a ){
     for( auto it_b : b ){
       if( it_a == it_b){
-	intersection_set.insert(it_a);
+	intersection_set.push_back(it_a);
+	break;
+      }
+    }
+  }
+  
+  return intersection_set;
+}
+
+/*
+ * Just a small helper function to compute the intersection of two
+ * sets. Unfortunatly O(N^2)
+ */
+inline std::vector<int> intersection( std::vector<int> &a, std::unordered_set<int> &b ){
+
+  std::vector<int> intersection_set;
+
+  for( auto it_a : a ){
+    for( auto it_b : b ){
+      if( it_a == it_b){
+	intersection_set.push_back(it_a);
 	break;
       }
     }
@@ -55,13 +75,13 @@ std::unordered_set<int> homotopic_thinning<T>::get_exterior_points( T channel_id
     
       iterable_voxel point ( ii, n_points_x, n_points_y, n_points_z );
       
-      std::unordered_set<int> nbs;
+      std::vector<int> nbs;
       if( n == 6 ){
-	nbs = point.get_6_neighbors();
+	point.get_6_neighbors( nbs );
       } else if( n == 18 ){
-	nbs = point.get_18_neighbors();
+	point.get_18_neighbors( nbs );
       } else if ( n == 26 ){
-	nbs = point.get_26_neighbors();
+	point.get_26_neighbors( nbs );
       } else {
 	throw std::string("no adjancy model found for n=" + std::to_string(n) );
       }
@@ -113,7 +133,8 @@ bool homotopic_thinning<T>::point_deletable( int id, int m, int n ){
   for( unsigned int ii=0; ii<components_image.size(); ii++){
 
     iterable_voxel point ( id, n_points_x, n_points_y, n_points_z);
-    auto nbs = point.get_26_neighbors();
+    std::vector<int> nbs;
+    point.get_26_neighbors(nbs);
 
     auto common_points = intersection( nbs, components_image[ii] );
 
@@ -128,7 +149,8 @@ bool homotopic_thinning<T>::point_deletable( int id, int m, int n ){
   for( unsigned int ii=0; ii<components_background.size(); ii++){
 
     iterable_voxel point ( id, n_points_x, n_points_y, n_points_z);
-    auto nbs = point.get_6_neighbors();
+    std::vector<int> nbs;
+    point.get_6_neighbors( nbs );
 
     auto common_points = intersection( nbs, components_background[ii] );
 
@@ -204,7 +226,8 @@ std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
       //now add all neighbors of the point
       
       //get the neighbors
-      std::unordered_set<int> nbs = point.get_26_neighbors();
+      std::vector<int> nbs;
+      point.get_26_neighbors(nbs);
       
       for( auto it : nbs ){
 	if( std::fabs( image[it] ) == std::fabs(ch_id)   &&
@@ -252,11 +275,11 @@ std::vector< std::unordered_set<int> >  homotopic_thinning<T>::get_connected_com
   //depending on if we are working with (m,n)=(26,6) or (m,n)=(6,26)
   // the neighborhoods are defined differently
   iterable_voxel midpoint( center, n_points_x, n_points_y, n_points_z );
-  std::unordered_set<int> nbs;
+  std::vector<int> nbs;
   if( m == 6 ){
-    nbs = midpoint.get_18_neighbors();
+    midpoint.get_18_neighbors(nbs);
   } else if ( m == 26 ) {
-    nbs = midpoint.get_26_neighbors();
+    midpoint.get_26_neighbors(nbs);
   } else {
     throw ("error");
   }
@@ -327,11 +350,11 @@ std::vector< std::unordered_set<int> >  homotopic_thinning<T>::get_connected_com
       
       // depending on if we are computing components for image or
       // background we ahve different neighbourhood definitions
-      std::unordered_set<int> local_nbs;
+      std::vector<int> local_nbs;
       if( img ){
-	local_nbs = it.get_26_neighbors();
+	it.get_26_neighbors(local_nbs);
       } else {
-	local_nbs = it.get_6_neighbors();
+	it.get_6_neighbors(local_nbs);
       } 
       
       // now we have *all* points around nbs, we only want the

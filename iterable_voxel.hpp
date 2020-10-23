@@ -87,64 +87,59 @@ public:
   }
   
   
-  inline std::unordered_set<int> get_6_neighbors(){
+  inline void get_6_neighbors( std::vector<int> &nbs ){
     
-    std::unordered_set<int> nbs;
+    nbs.resize (6, 0);
     
-    nbs.insert( u()() );
-    nbs.insert( d()() );
+    nbs[0] = u()();
+    nbs[1] = d()();
   
-    nbs.insert( l()() );
-    nbs.insert( r()() );
+    nbs[2] = l()();
+    nbs[3] = r()();
     
-    nbs.insert( f()() );
-    nbs.insert( b()() );
-    
-    return nbs;
+    nbs[4] = f()();
+    nbs[5] = b()();    
   }
   
   
-  inline std::unordered_set<int> get_18_neighbors(){
+  inline void get_18_neighbors(std::vector<int> &nbs){
     
-    std::unordered_set<int> nbs = get_6_neighbors();
+    get_6_neighbors( nbs );
+    nbs.resize (18, 0);
     
-    nbs.insert( f().l()() );
-    nbs.insert( f().r()() );
-    nbs.insert( b().l()() );
-    nbs.insert( b().r()() );
+    nbs[6] = f().l()();
+    nbs[7] = f().r()();
+    nbs[8] = b().l()();
+    nbs[9] = b().r()();
     
-    nbs.insert( l().u()() );
-    nbs.insert( l().d()() );
-    nbs.insert( r().u()() );
-    nbs.insert( r().d()() );
+    nbs[10] = l().u()();
+    nbs[11] = l().d()();
+    nbs[12] = r().u()();
+    nbs[13] = r().d()();
     
-    nbs.insert( f().u()() );
-    nbs.insert( f().d()() );
-    nbs.insert( b().u()() );
-    nbs.insert( b().d()() );
-    
-    return nbs;
+    nbs[14] = f().u()();
+    nbs[15] = f().d()();
+    nbs[16] = b().u()();
+    nbs[17] = b().d()();    
   }    
   
   
   
-  inline std::unordered_set<int> get_26_neighbors(){
+  inline void get_26_neighbors( std::vector<int> &nbs){
     
-    std::unordered_set<int> nbs = get_18_neighbors();;
+    get_18_neighbors( nbs );
+    nbs.resize(26, 0);
     
-    iterable_voxel up = u();
-    nbs.insert( up.f().l()() );
-    nbs.insert( up.f().r()() );
-    nbs.insert( up.b().l()() );
-    nbs.insert( up.b().r()() );
+    nbs[18] = u().f().l()();
+    nbs[19] = u().f().r()();
+    nbs[20] = u().b().l()();
+    nbs[21] = u().b().r()();
     
-    iterable_voxel down = d();
-    nbs.insert( down.f().l()() );
-    nbs.insert( down.f().r()() );
-    nbs.insert( down.b().l()() );
-    nbs.insert( down.b().r()() );
+    nbs[22] = d().f().l()();
+    nbs[23] = d().f().r()();
+    nbs[24] = d().b().l()();
+    nbs[25] = d().b().r()();
     
-    return nbs;
   }
   
   /*
