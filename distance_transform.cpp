@@ -21,7 +21,8 @@ distance_transform<T, M>::distance_transform(){
   dim = 1;
   size[0]=1; size[1]=1; size[2]=1;
   pix_size[0]=1; pix_size[1]=1; pix_size[2]=1;
-
+  is_periodic = false;
+  
   map = std::vector<M> (0, 0);
   mrct = std::vector<M> (0, 0);
 }
@@ -37,12 +38,13 @@ distance_transform<T, M>::distance_transform(){
  * \param[in] pixsize The size of a pixel in length units
  */
 template <class T, class M>
-distance_transform<T, M>::distance_transform( std::vector<T> data, int n, double pixsize ){
+distance_transform<T, M>::distance_transform( std::vector<T> data, int n, bool periodic, double pixsize ){
   //initialize parameters
   img = data;
   dim = 1;  
   size[0]=n; size[1]=1; size[2]=1;
   pix_size[0]=pixsize; pix_size[1]=1; pix_size[2]=1;
+  is_periodic = periodic;
   
   //allocate memory
   map = std::vector<M> (n, 0);
@@ -62,13 +64,14 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, double
  * \param[in] pixsize_y The size of a pixel in y(k) direction in length units
  */
 template <class T, class M>
-distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k, double pixsize_x, double pixsize_y ){
+distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k, bool periodic, double pixsize_x, double pixsize_y ){
   //initialize parameters
   img = data;  
   dim = 2;
   size[0]=n; size[1]=k; size[2]=1;
   pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=1;
-
+  is_periodic = periodic;
+  
   //allocate memory
   map = std::vector<M> (n*k, 0);
   mrct = std::vector<M> (n*k, 0);
@@ -91,13 +94,14 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k,
  * \param[in] pixsize_z The size of a pixel in z(l) direction in length units
  */
 template <class T, class M>
-distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k, int l, double pixsize_x, double pixsize_y, double pixsize_z ){
+distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k, int l, bool periodic, double pixsize_x, double pixsize_y, double pixsize_z ){
   //initialize parameters
   img = data;
   dim = 3;
   size[0]=n; size[1]=k; size[2]=l;
   pix_size[0]=pixsize_x; pix_size[1]=pixsize_y; pix_size[2]=pixsize_z;
-
+  is_periodic = periodic;
+  
   //allocate memory
   map = std::vector<M> (n*k*l, 0);
   mrct = std::vector<M> (n*k*l, 0);
@@ -120,11 +124,13 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k,
  */
 template<class T, class M>
 void distance_transform<T, M>::set_parameters( std::vector<T> data,
-					 std::vector<unsigned int> _dim,
-					 std::vector<double> pixsize ){
+					       std::vector<unsigned int> _dim,
+					       std::vector<double> pixsize,
+					       bool periodic ){
   
   img = data;
   dim = _dim.size();
+  is_periodic = periodic;
 
   if( _dim.size() == 1 ){
 
@@ -176,15 +182,12 @@ distance_transform<T, M>::~distance_transform(){
  * \param[in] pixsize The size of a pixel in length units
  */
 template <class T, class M>
-std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &grid, double pixsize ){
+std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &grid, bool periodic, double pixsize ){
 
   // The grid will be in length units. In it's initial call in
   // 1d/2d/3d it is just max or 0 (in both cases units don't
   // matter). After a second call in 2d/3d the units will be in length
   // units, so any grid[*] is in length units
-
-  
-  bool periodic = true;
   
   std::vector<M> transform ( grid.size(), 0 );
 
@@ -198,40 +201,88 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
   std::vector<M> z = {-static_cast<M>(pixsize)*std::numeric_limits<M>::max(), static_cast<M>(pixsize)*std::numeric_limits<M>::max()};
 
 
-  // create a twice as large to cope with periodical shit
-  std::vector<M> grid_ext (2*(grid.size()), 0);
-  std::vector<M> transform_ext ( grid_ext.size(), 0 );
-  // original grid
-  for( int ii=0; ii<grid.size(); ii++){
-    grid_ext[ii + 0.5*grid.size()] = grid[ii];
-  }
-  //front
-  for( int ii=0; ii<int(grid.size()*0.5); ii++){
-    grid_ext[ii] = grid[ ii + int(round(0.5*grid.size())) ];
-  }
-  //back
-  for( int ii=0; ii<grid.size()*0.5; ii++){
-    grid_ext[ii+int(0.5*grid.size())+grid.size()] = grid[ ii ];
+  int end;
+  if( periodic ){
+    end = 2*grid.size();
+  } else {
+    end = grid.size();
   }
 
+  //half grid size
+  int n2 = int(grid.size()/2.0);
   
   //find the envelope
-  for( int ii=1; ii<grid_ext.size(); ii++){
+  for( int ii=1; ii<end; ii++){
     //intersection of two parabolas
     
-    //the position of the index in length units
-    M ii_l = ii*pixsize;
+    /* the position of the index in length units
+     * oo, oo_vk: intermediate index for periodic boundary conditions:
+     * mapping out of bound indeces back into array limits
+     */
+    
+    M ii_l;
+    int oo, oo_vk;
+    if( periodic ){
+
+
+      ii_l = (ii - n2 ) * pixsize; 
+
+      if( ii < n2 ){
+	oo = ii - n2 + grid.size(); // this looks unecessarily
+				    // complicated but deals with the
+				    // leftovers of the integer
+				    // division in case of uneven grid
+				    // sizes
+      } else if ( ii >= n2 && ii < (n2 + grid.size()) ){
+	oo = ii - n2;
+      } else if ( ii >= ( n2 + grid.size() ) ){
+	oo = ii - grid.size() -n2;
+      }
+      
+      if( v[k] < n2 ){
+	oo_vk = v[k] - n2 + grid.size();
+      } else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
+	oo_vk = v[k] - n2;
+      } else if( v[k] >= (n2 + grid.size()) ){
+	oo_vk = v[k] - grid.size() - n2;
+      }
+            
+    } else {
+      ii_l = ii*pixsize;
+    }
     
     //this needs to be in length units already! so convert pixel
     //values to length units where neccessary
-    M s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
+    M s;
+    if( periodic ){
+      s = ( ( grid[oo] + (ii_l*ii_l) ) - (grid[ oo_vk ] + ( (v[k]-n2)*(v[k]-n2)*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*(v[k]-n2)) ) );
+    } else {
+      s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
+    }
 
     //check where the intersection is. If it is left of the previous
     //parabola, the current one is the new lowest envelope
     while( s <= z[k] ){
       k--;
-      s = ( ( grid_ext[ii] + (ii_l*ii_l) ) - (grid_ext[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / (2*(ii_l-(v[k]*pixsize)));
+
+      if( periodic ){
+
+	if( v[k] < n2 ){
+	  oo_vk = v[k] - n2 + grid.size();
+	} else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
+	  oo_vk = v[k] - n2;
+	} else if ( v[k] >= (n2 + grid.size()) ){
+	  oo_vk = v[k] - grid.size() - n2;
+	}
+	
+	s = ( ( grid[oo] + (ii_l*ii_l) ) - (grid[ oo_vk ] + ( (v[k]-n2)*(v[k]-n2)*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*(v[k]-n2)) ) );
+	
+      } else {
+	s = ( ( grid[ii] + (ii_l*ii_l) ) - (grid[ v[k] ] + (v[k]*v[k]*pixsize*pixsize)) ) / ( 2*( ii_l - (pixsize*v[k]) ) );
+      }
     }
+      
+     
 
     //found the previous lowest envelope
     k++;
@@ -240,38 +291,45 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
     } else {
       v.push_back( ii );
     }
-
+    
     if( k < z.size() ){
       z[k] = s;
     } else {
       z.push_back( s );
     }
-
+    
     if( k+1 < z.size() ){
       z[k+1] = std::numeric_limits<M>::max();
     } else {
       z.push_back( std::numeric_limits<M>::max() );
     }    
   }
-
-  
+      
+    
   //fill in the transform by evaluating the parabola envelope at the
   //grid
   k=0;
-  for(unsigned int ii=0; ii<grid_ext.size(); ii++){
+  for(unsigned int ii=0; ii<transform.size(); ii++){
     while( z[k+1] < ii*pixsize ){
       k++;
     }
-    
-    //get the "real" distances in length units by multiplying squared
-    //index distances by pixelsize
-    transform_ext[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid_ext[ v[k] ];
-  }
 
-  
-  //extract transform
-  for( unsigned int ii=0; ii<transform.size(); ii++){
-    transform[ii] = transform_ext[ int(grid.size()*0.5) + ii ];
+    if(periodic){
+      int oo_vk;    
+      if( v[k] < n2 ){
+	oo_vk = v[k] - n2 + grid.size();
+      } else if ( v[k] >= n2 && v[k] < (n2 + grid.size()) ){
+	oo_vk = v[k] - n2;
+      } else if ( v[k] >= grid.size() ){
+	oo_vk = v[k] - grid.size() - n2;
+      }
+      
+      //get the "real" distances in length units by multiplying squared
+      //index distances by pixelsize
+      transform[ii] = pixsize*pixsize*( (ii-(v[k]-n2))*(ii-(v[k]-n2)) ) + grid[ oo_vk ];
+    } else {
+      transform[ii] = pixsize*pixsize*( (ii-v[k])*(ii-v[k]) ) + grid[ v[k] ];
+    }
   }
 
 
@@ -331,7 +389,7 @@ void distance_transform<T, M>::compute_distance_map(){
     std::vector<M> grid = eval_grid_function<T>( img, max );
 
     //do the distance transform
-    map = do_distance_transform( grid, pix_size[0] );
+    map = do_distance_transform( grid, is_periodic, pix_size[0] );
   } //end dim=1 case
 
   else if ( dim == 2 ){
@@ -354,7 +412,7 @@ void distance_transform<T, M>::compute_distance_map(){
       std::vector<M> col_grid = eval_grid_function<M>( col, max );
       
       //get distance map of column
-      std::vector<M> col_map = do_distance_transform( col_grid, pix_size[1] );
+      std::vector<M> col_map = do_distance_transform( col_grid, is_periodic, pix_size[1] );
       
       //cpy preliminary map in to map vector
       memcpy( cols_map.data()+(ii*size[1]), col_map.data(), sizeof(M) * col_map.size() );
@@ -377,7 +435,7 @@ void distance_transform<T, M>::compute_distance_map(){
       }
 
       //now get the transform
-      std::vector<M> row_map = do_distance_transform( row, pix_size[0] );
+      std::vector<M> row_map = do_distance_transform( row, is_periodic, pix_size[0] );
 
       //cpy the final map data to map object
       memcpy( map.data()+(ii*size[0]), row_map.data(), sizeof(M) * row_map.size() );
@@ -412,7 +470,7 @@ void distance_transform<T, M>::compute_distance_map(){
       std::vector<M> stack_grid = eval_grid_function<M>( stack, max );
 
       // compute distance map of stack
-      std::vector<M> stack_map = do_distance_transform( stack_grid, pix_size[2] );
+      std::vector<M> stack_map = do_distance_transform( stack_grid, is_periodic, pix_size[2] );
 
       //copy stack distance into map
       memcpy( map_stacks.data() + ii*size[2], stack_map.data(), stack_map.size() * sizeof(M) );
@@ -435,7 +493,7 @@ void distance_transform<T, M>::compute_distance_map(){
       }
 
       //distance transform of columns
-      std::vector<M> col_map = do_distance_transform( col, pix_size[1] );
+      std::vector<M> col_map = do_distance_transform( col, is_periodic, pix_size[1] );
       
       //copy data
       memcpy( map_cols.data()+ii*col_map.size(), col_map.data(), sizeof(M) * col_map.size() );
@@ -459,7 +517,7 @@ void distance_transform<T, M>::compute_distance_map(){
       }
 
       //do the distance transform
-      std::vector<M> row_map = do_distance_transform( row, pix_size[0] );
+      std::vector<M> row_map = do_distance_transform( row, is_periodic, pix_size[0] );
 
       //store map in temp map
       memcpy( map_unsorted.data()+ii*row_map.size(), row_map.data(), sizeof(M) * row_map.size());

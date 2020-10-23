@@ -20,7 +20,7 @@
 #include <cmath>
 #include <algorithm>
 #include <map>
-#include <set>
+#include <unordered_set>
 
 
 /** \brief This class computes the euclidean distance map of a structure
@@ -51,13 +51,13 @@ public:
   distance_transform();
   
   /// Constructor for a 1D transform
-  distance_transform( std::vector<T> data, int n, double pixsize = 1);
+  distance_transform( std::vector<T> data, int n, bool periodic, double pixsize = 1.0);
 
   /// Constructor for a 2D transform
-  distance_transform( std::vector<T> data, int n, int k, double pixsize_x = 1, double pixsize_y = 1 );
+  distance_transform( std::vector<T> data, int n, int k, bool periodic, double pixsize_x = 1.0, double pixsize_y = 1.0 );
 
   /// Constructor for a 3D transform
-  distance_transform( std::vector<T> data, int n, int k, int l, double pixsize_x = 1, double pixsize_y = 1, double pixsize_z = 1 );  
+  distance_transform( std::vector<T> data, int n, int k, int l, bool periodic, double pixsize_x = 1.0, double pixsize_y = 1.0, double pixsize_z = 1.0 );  
 
   /// Destructor, freeing memory
   ~distance_transform();
@@ -77,7 +77,8 @@ public:
   /// Update the parameters
   void set_parameters( std::vector<T> data,
 		       std::vector<unsigned int> dim,
-		       std::vector<double> pixsize );
+		       std::vector<double> pixsize,
+		       bool periodic );
   
   /// outputs the map to console
   void print_map( std::ostream &out = std::cout ) const;
@@ -85,7 +86,7 @@ public:
 private:
 
   /// 1D distance transform
-  std::vector<M> do_distance_transform( std::vector<M> &grid, double pixsize = 1 );
+  std::vector<M> do_distance_transform( std::vector<M> &grid, bool periodic, double pixsize = 1 );
 
   /// evaluates the function on the given data
   template <class U>
@@ -111,6 +112,9 @@ private:
   unsigned int size[3];
   /// The size of a pixel in length units for each direction (x,y,z)
   double pix_size[3];
+
+  /// Is the data periodic?
+  bool is_periodic;
 };
 
 
