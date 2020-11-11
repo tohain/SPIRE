@@ -1,6 +1,5 @@
 #include "homotopic_thinning.hpp"
 
-
 /*
  * Constructor
  * \param[in] nx size of the image in x direction
@@ -9,7 +8,7 @@
  */
 template <class T>
 homotopic_thinning<T>::homotopic_thinning ( int nx, int ny, int nz, std::vector<T> image_, std::vector<float> dmap_ )  : n_points_x (nx), n_points_y (ny), n_points_z (nz), image( image_ ), dmap( dmap_ ) {
-  
+
 }
 
 /*
@@ -118,10 +117,9 @@ std::unordered_set<int> homotopic_thinning<T>::get_exterior_points( T channel_id
  */
 template <class T>
 bool homotopic_thinning<T>::point_deletable( int id, int m, int n ){
-
+    
   auto components_image = get_connected_components( id, m, true );
-  auto components_background = get_connected_components( id, n, false );  
-
+  auto components_background = get_connected_components( id, m, false );  
   //now we need to check connectivity with the components. Lets start
   //of with the image components. We can only be connected to one of
   //them
@@ -160,7 +158,8 @@ bool homotopic_thinning<T>::point_deletable( int id, int m, int n ){
     }
     
   }
- 
+
+  
   if( nr_img_connected_components == 1 &&
       nr_background_connected_components == 1){
     return true;
@@ -186,16 +185,13 @@ template <class T>
 std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
 
 
-
   //adjacency: (m, n) = (foreground, background)connectivity = (26, 6)
   int m = 26, n = 6;
 
   //get exterior points. They are 
   auto ext_points = get_exterior_points( ch_id, n );
   
-  
   std::unordered_set<int> graph;
-
 
   //label if point is already queued for processing
   std::vector<int> queued (image.size(), 0);
@@ -203,7 +199,7 @@ std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
   // add all skeleton points to the queue
   std::multimap<float, int> to_process;
   for( auto it : ext_points ){
-    to_process.emplace( dmap[it], it );
+    to_process.emplace( sqrt(dmap[it]), it );
     queued[it] = 1;
   }
 
@@ -219,10 +215,10 @@ std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
 
     //check if the point is safe to delete
     if( point_deletable( point(), m, n ) ){
-
+      
       //yes, dump it!!!
       image[point()] = 0;
-
+      
       //now add all neighbors of the point
       
       //get the neighbors
@@ -233,22 +229,18 @@ std::unordered_set<int> homotopic_thinning<T>::find_channel_skeleton( T ch_id ){
 	if( std::fabs( image[it] ) == std::fabs(ch_id)   &&
 	    queued[it] == 0 ){
 	  
-	  to_process.emplace( dmap[it], it );
+	  to_process.emplace( sqrt(dmap[it]), it );
 	  queued[it] = 1;
 	}
-
       }
       
-    } else {
+    } else {      
       graph.insert( point() );
     }
     
   }
-
-
-  return graph;  
-   
   
+  return graph;  
 }
 
 
@@ -271,7 +263,7 @@ std::vector< std::unordered_set<int> >  homotopic_thinning<T>::get_connected_com
   // at first, lets find the suitable neighborhood of center
   // labeled N*(p)
 
-
+  
   //depending on if we are working with (m,n)=(26,6) or (m,n)=(6,26)
   // the neighborhoods are defined differently
   iterable_voxel midpoint( center, n_points_x, n_points_y, n_points_z );
@@ -329,6 +321,7 @@ std::vector< std::unordered_set<int> >  homotopic_thinning<T>::get_connected_com
     
     //start somewhere
     auto find_next_point = nbs.begin();
+    //skip the point, if we already processed it
     while( visited.find( *find_next_point ) != visited.end() ){
       find_next_point++;
     }

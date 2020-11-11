@@ -608,12 +608,12 @@ void distance_transform<T, M>::compute_max_radius_covering(){
   int count = 0;
   // process all voxels in the pore space
   do {
-      
+    
     /*
      * iterate over all indeces within a sphere
      */
     int id = cur_vox->second;
-    double r = cur_vox->first;
+    double r = sqrt(cur_vox->first);
     
     // get 3d indeces
     cz = id % size[2];
@@ -662,7 +662,7 @@ void distance_transform<T, M>::compute_max_radius_covering(){
 	}
       }
     }
-               
+    
     // next voxel
     cur_vox++;
     

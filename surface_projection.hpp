@@ -114,7 +114,7 @@ public:
   std::vector<float> get_distance_map() const;
   
   /// Converts the \ref projection array in a rescaled image array
-  unsigned char* get_image(bool invert = false, std::string scaling = "lin");
+  unsigned char* get_image(bool invert = false, std::string scaling = "LIN");
 
   /// Converts the \ref projection array in a rescaled image array and
   /// adds a scale
@@ -129,6 +129,12 @@ public:
   /// Output the points making up the minimal topological network
   void print_topological_network( int which, std::string fn );
 
+  /// Output channel width distribution
+  void print_channel_width_distribution( std::string fn );
+
+  /// output the values of maximal radius covering transform
+  void print_max_rad_transform_dist( std::string fn );
+  
   /// write parameters to an ASCI file
   void write_parameters( std::string outfile );
 
@@ -290,7 +296,11 @@ protected:
   /// Nodal approximation of the level set function of a w surface with tolerance 0.1
   double level_set_wurtzite_0_1( double x, double y, double z, std::vector<double> a);
   /// Nodal approximation of the level set function of a w surface with tolerance 0.2
-  double level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> a);    
+  double level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> a);
+  /// Nodal approximation of the level set function of a
+  /// lonsdaleit/wurtzite surface, only reproducing the topology of
+  /// the surface, but not being a minimal surface
+  double level_set_wurtzite_topo( double x, double y, double z, std::vector<double> a);  
 
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, std::vector<double> a);
@@ -413,6 +423,7 @@ protected:
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
+						    "Wurtzite",
 						    "Wurtzite_0.05",
 						    "Wurtzite_0.075",
 						    "Wurtzite_0.1",
@@ -423,13 +434,14 @@ protected:
   /// unitcell dimension is set using the parameter a above, however,
   /// some membranes are non-cubic with a fixed a/b a/c ratio. This
   /// ratio needs to be supplied here so 
-  const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0},
-							   {1.0,1.0,1.0},
-							   {1.0,1.0,1.0},
-							   {2.0, sqrt(3.0), 1.732692},
-							   {2.0, sqrt(3.0), 1.732692},
-							   {2.0, sqrt(3.0), 1.732692},
-							   {2.0, sqrt(3.0), 1.732692},							   
+  const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0}, // gyr
+							   {1.0,1.0,1.0}, // dia
+							   {1.0,1.0,1.0}, // prim 
+							   {1.0, sqrt(3.0), sqrt(8.0/3.0)}, //wur_topo
+							   {2.0, sqrt(3.0), 1.732692}, //wur_0.05
+							   {2.0, sqrt(3.0), 1.732692}, //wur_0.075
+							   {2.0, sqrt(3.0), 1.732692}, //wur_0.1
+							   {1.0, sqrt(3.0), 1.732692}, //wur_0.2						   
   };
 
   /// Available image scalings

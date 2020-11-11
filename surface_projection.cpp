@@ -338,6 +338,37 @@ void surface_projection::print_topological_network( int which, std::string fn ){
 }
 
 
+void surface_projection::print_channel_width_distribution( std::string fn ){
+
+  std::ofstream out ( fn );
+
+  std::vector< std::unordered_set<int> > net_points = get_channel_network();
+  auto dmap = dt.get_distance_map();
+
+  for( auto it : net_points[0] ){
+    out << dmap[it] << std::endl;    
+  }
+  for( auto it : net_points[1] ){
+    out << dmap[it] << std::endl;    
+  }  
+
+  out.close();
+}
+
+void surface_projection::print_max_rad_transform_dist( std::string fn ){
+
+  std::ofstream out ( fn );
+  
+  auto mrct = dt.get_max_radius_covering();
+  
+  for( auto it : mrct ){
+    out << it << std::endl;    
+  }
+
+  out.close();
+}
+
+
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
@@ -442,10 +473,31 @@ double surface_projection::level_set_wurtzite_0_2( double x, double y, double z,
   double freq_y = inv_a[1];
   double freq_z = inv_a[2];  
 
-  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+  return  + 0.0005309 - 0.362586*cos(2*+freq_z*z) + 0.223975*cos(2*+freq_y*y) + 0.226369*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.448045*cos(freq_x*x)*cos(+freq_y*y) - 0.452775*cos(freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.217121*cos(freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
 
+  /*
+  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+  */
 }
 
+
+/*
+ * This one is the formula Matthias Saba derived analytically.
+ */
+double surface_projection::level_set_wurtzite_topo( double x, double y, double z, std::vector<double> inv_a){
+
+ 
+   /* we need to adapt our x,y,z coordinates, since this series is
+   * derived using hexgonal (not cubical) coordinates, so we need to
+   * transform the into the canonical hex base
+   */
+  double x_ = inv_a[0] * (x + y/sqrt(3));
+  double y_ = inv_a[0] * (2.0/sqrt(3)) * y;
+  double z_ = inv_a[2] * z;  
+  
+  return  -cos(2*z_) + cos(x_) + cos(y_) + cos(x_ - y_) + sin(z_)*(-sin(x_) + sin(y_) + sin(x_ - y_) );
+  
+}
 
 
 /**
@@ -616,7 +668,7 @@ void surface_projection::set_grid(){
   //exactly the wanted level set constraint. This is a bit iffy, since
   //the minimal thickness of the membrane is not given in length
   //units, but this level set value. However, this is the only way to do it
-  double min_width = 0.02; 
+  double min_width = 0.05; 
   
   // the level set value of the present points
   double level = 0; 
@@ -633,13 +685,15 @@ void surface_projection::set_grid(){
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 3 ){ //wurtzite_0.05
+    } else if( type == 3 ){ //wurtzite_topo
+      level = level_set_wurtzite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 4 ){ //wurtzite_0.05
       level = level_set_wurtzite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 4 ){ //wurtzite_0.075
+    } else if( type == 5 ){ //wurtzite_0.075
       level = level_set_wurtzite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 5 ){ //wurtzite_0.1
+    } else if( type == 6 ){ //wurtzite_0.1
       level = level_set_wurtzite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 6 ){ //wurtzite_0.2
+    } else if( type == 7 ){ //wurtzite_0.2
       level = level_set_wurtzite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
     
@@ -675,7 +729,7 @@ void surface_projection::set_grid(){
   progress = 0;
   // compute the distance transform of the grid
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
-		     std::vector<double> {dx, dy, dz});  
+		     std::vector<double> {dx, dy, dz}, true);  
   dt.compute_distance_map();
   std::vector<float> dmap = dt.get_distance_map();  
 
@@ -915,9 +969,16 @@ void surface_projection::compute_projection( ){
  */
 void surface_projection::compute_channel_network(){
 
-  
-  
+
+  update_containers();
+  compute_projection();  
   // bring in the homotpoic thinning code
+  dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
+		     std::vector<double> {dx, dy, dz}, true);  
+  dt.compute_distance_map();
+  
+  
+
   homotopic_thinning<short> ht ( n_points_x, n_points_y, n_points_z, channel, dt.get_distance_map() );
   
   // resize container
@@ -926,6 +987,8 @@ void surface_projection::compute_channel_network(){
   // do the work
   topological_network.at(0) = ht.find_channel_skeleton( 1 );
   topological_network.at(1) = ht.find_channel_skeleton( membranes.size()+1 );
+
+  
 }
 
 
@@ -946,6 +1009,7 @@ double surface_projection::get_minimal_channel_diameter( int channel_id ){
     
     double min = std::numeric_limits<double>::max();
     for( auto it : topological_network.at( channel_id ) ) {
+
       
       if( sqrt( dmap[it] ) < min ){
 	min = sqrt( dmap[it] );
@@ -1084,9 +1148,9 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
   //(unsigned char*) malloc( sizeof(unsigned char) * projection.size() );
   
   //find min and max value
-  double max= *std::max_element( projection.begin(), projection.end() );
-  double min= *std::min_element( projection.begin(), projection.end() );
-
+  float max= *std::max_element( projection.begin(), projection.end() );
+  float min= *std::min_element( projection.begin(), projection.end() );
+  
   if( scaling == "LOG" ){
     max = log( max + 1 );
     min = log( min + 1 );    
@@ -1096,7 +1160,7 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
   for(unsigned int ii=0; ii<projection.size(); ii++){
     //scale
     float pixel_val;
-    short u_scaled;
+    unsigned char u_scaled;
 
     if( scaling == "LIN" ){
       pixel_val = ((projection[ii] - min)/(max - min)*255);
@@ -1104,7 +1168,7 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
       pixel_val = log(projection[ii]+1);
       pixel_val = ((pixel_val - min)/(max - min))*255;
     }
-    u_scaled = static_cast<short>( pixel_val );
+    u_scaled = static_cast<unsigned char>( pixel_val );
       //invert
     if(invert)
       u_scaled = 255 - u_scaled;
@@ -1430,13 +1494,13 @@ std::vector<int> surface_projection::get_surface_points( int ch_id, int n ){
     
       iterable_voxel point ( ii, n_points_x, n_points_y, n_points_z );
       
-      std::unordered_set<int> nbs;
+      std::vector<int> nbs;
       if( n == 6 ){
-	nbs = point.get_6_neighbors();
+	point.get_6_neighbors(nbs);
       } else if( n == 18 ){
-	nbs = point.get_18_neighbors();
+	point.get_18_neighbors(nbs);
       } else if ( n == 26 ){
-	nbs = point.get_26_neighbors();
+	point.get_26_neighbors(nbs);
       } else {
 	throw std::string("no adjancy model found for n=" + std::to_string(n) );
       }

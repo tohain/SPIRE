@@ -47,7 +47,7 @@ public:
       it_begin = G_SURFACE_VOL.begin();
       it_rbegin = G_SURFACE_VOL.rbegin();
       it_end = G_SURFACE_VOL.end();
-    } else if ( surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
+    } else if ( surface == "Wurtzite" || surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
 		surface == "Wurtzite_0.1" || surface == "Wurtzite_0.2"){
       it = W_SURFACE_VOL.begin();
       it_begin = W_SURFACE_VOL.begin();
@@ -104,7 +104,7 @@ public:
       it_begin = G_SURFACE_VOL_INV.begin();
       it_rbegin = G_SURFACE_VOL_INV.rbegin();
       it_end = G_SURFACE_VOL_INV.end();
-    } else if ( surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
+    } else if ( surface == "Wurtzite" || surface == "Wurtzite_0.05" || surface == "Wurtzite_0.075" ||
 		surface == "Wurtzite_0.1" || surface == "Wurtzite_0.2"){
       it = W_SURFACE_VOL_INV.begin();
       it_begin = W_SURFACE_VOL_INV.begin();
