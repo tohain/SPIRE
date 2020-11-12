@@ -9,7 +9,7 @@
 /*
  * A quick & dirt implementation of a pixel, which can iterate thorugh
  * a 3D image. Accounts for periodic boundary conditions. The notation
- * chosen in this class is +/-x = f/b, +/-y = l/r, +/-z=u/d, where
+ * chosen in this class is +/-x = r/l, +/-y = f/b, +/-z=u/d, where
  * directions are given as the stringtripel (xyz), e.g. (111) means
  * f->l->u;
  */

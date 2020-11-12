@@ -1,7 +1,7 @@
 #include "percolation_analysis.hpp"
 
 template <class T>
-percolation_analysis<T>::percolation_analysis(std::vector<T> data, std::vector<T> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_) : sx(sx_), sy(sy_), sz(sz_), structure(data), dmap (distance_map ), it( 0, sx_, sy_, sz_ ) {
+percolation_analysis<T>::percolation_analysis(std::vector<T> data, std::vector<T> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool is_periodic) : sx(sx_), sy(sy_), sz(sz_), periodic( is_periodic), structure(data), dmap (distance_map ), it( 0, sx_, sy_, sz_ ) {
 
   cluster_labels.resize( structure.size(), -1 );
   cluster_sizes.clear();
@@ -18,27 +18,56 @@ void percolation_analysis<T>::get_nbs( int id, int ch_id, std::vector<int> &nbs 
 
   it.set(id);
   nbs.clear();
-  
-  // get 6 neighbors, but only backwards directions where we already
-  // labeled paritcles!
-  if( cluster_labels[ it.d()() ] >= 0 ){
-    nbs.push_back( it.d()() );
+
+  if( periodic ){
+    // get 6 neighbors, but only backwards directions where we already
+    // labeled paritcles!
+    if( cluster_labels[ it.d()() ] >= 0 ){
+      nbs.push_back( it.d()() );
+    }
+    if( cluster_labels[ it.l()() ] >= 0 ){
+      nbs.push_back( it.l()() );
+    }
+    if( cluster_labels[ it.b()() ] >= 0 ){
+      nbs.push_back( it.b()() );
+    }
+    if( cluster_labels[ it.u()() ] >= 0 ){
+      nbs.push_back( it.u()() );
+    }
+    if( cluster_labels[ it.r()() ] >= 0 ){
+      nbs.push_back( it.r()() );
+    }
+    if( cluster_labels[ it.f()() ] >= 0 ){
+      nbs.push_back( it.f()() );
+    }
+  } else {
+
+    int x, y, z, c;
+    z = id % sz;
+    c = int( id / sz );
+    y = int( c / sx );
+    x = c % sx ;
+    
+    if( z != 0 ){ // if at lower border, don't add neighbor to avoid
+		  // pbcs
+      if( cluster_labels[ it.d()() ] >= 0 ){
+	nbs.push_back( it.d()() );
+      }
+    }
+
+    if( x != 0 ){
+      if( cluster_labels[ it.l()() ] >= 0 ){
+	nbs.push_back( it.l()() );
+      }
+    }
+
+    if( y != 0 ){
+      if( cluster_labels[ it.b()() ] >= 0 ){
+	nbs.push_back( it.b()() );
+      }
+    }
+
   }
-  if( cluster_labels[ it.l()() ] >= 0 ){
-    nbs.push_back( it.l()() );
-  }
-  if( cluster_labels[ it.b()() ] >= 0 ){
-    nbs.push_back( it.b()() );
-  }
-  if( cluster_labels[ it.u()() ] >= 0 ){
-    nbs.push_back( it.u()() );
-  }
-  if( cluster_labels[ it.r()() ] >= 0 ){
-    nbs.push_back( it.r()() );
-  }
-  if( cluster_labels[ it.f()() ] >= 0 ){
-    nbs.push_back( it.f()() );
-  }    
 }
 
 

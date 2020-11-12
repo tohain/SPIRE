@@ -19,7 +19,7 @@ class percolation_analysis {
 
 public:
 
-  percolation_analysis( std::vector<T> data, std::vector<T> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_);
+  percolation_analysis( std::vector<T> data, std::vector<T> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool periodic);
 
   /// Using Hoshen-Kopelmann to find clusters
   void find_clusters();
@@ -48,9 +48,13 @@ private:
   std::vector<int> cluster_labels;
   std::vector<int> cluster_sizes;
   
-  // size of the simbox
-  unsigned int sx, sy, sz;
 
+
+  /// size of the simbox
+  unsigned int sx, sy, sz;
+  /// is it periodic
+  bool periodic;
+  
   iterable_voxel it;
   
 };
