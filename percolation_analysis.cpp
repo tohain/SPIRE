@@ -1,7 +1,18 @@
 #include "percolation_analysis.hpp"
 
-template <class T>
-percolation_analysis<T>::percolation_analysis(std::vector<T> data, std::vector<T> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool is_periodic) : sx(sx_), sy(sy_), sz(sz_), periodic( is_periodic), structure(data), dmap (distance_map ), it( 0, sx_, sy_, sz_ ) {
+
+/**
+ * Constructor
+ *
+ * \param[in] data The input grid to analyse
+ * \param[in] distance_map The distance map of the input grid
+ * \param[in] sx The dimension (nr of pixels) of input grid in x direction
+ * \param[in] sy The dimension (nr of pixels) of input grid in y direction
+ * \param[in] sz The dimension (nr of pixels) of input grid in z direction
+ * \param[in] is_periodic Is the input grid periodic
+ */
+template <class T, class M>
+percolation_analysis<T, M>::percolation_analysis(std::vector<T> data, std::vector<M> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool is_periodic) : sx(sx_), sy(sy_), sz(sz_), periodic( is_periodic), structure(data), dmap (distance_map ), it( 0, sx_, sy_, sz_ ) {
 
   cluster_labels.resize( structure.size(), -1 );
   cluster_sizes.clear();
@@ -13,8 +24,8 @@ percolation_analysis<T>::percolation_analysis(std::vector<T> data, std::vector<T
  * \param[in] ch_id The id of the channel currently considered
  * \param[in] nbs The vector to write the id's of neighbors into
  */
-template <class T>
-void percolation_analysis<T>::get_nbs( int id, int ch_id, std::vector<int> &nbs ){
+template <class T, class M>
+void percolation_analysis<T, M>::get_nbs( int id, int ch_id, std::vector<int> &nbs ){
 
   it.set(id);
   nbs.clear();
@@ -74,32 +85,42 @@ void percolation_analysis<T>::get_nbs( int id, int ch_id, std::vector<int> &nbs 
 /**
  * Implementation of Hoshen-Koppelmann algorithm to find clusters in
  * the structure
+ *
+ * \param[in] ch_id The value of the 'occupied' sites, thus the sites to assume to belong to clusters
+ *
  */
-template <class T>
-void percolation_analysis<T>::find_clusters(){
+template <class T, class M>
+void percolation_analysis<T, M>::find_clusters( int ch_id ){
 
-  int ch_id = 1;
+  // reset the label map and sizes array
+  memset( cluster_labels.data(), -1, sizeof(int) * cluster_labels.size() );
+  cluster_sizes.clear();
 
+  
   unsigned int id = 0;
   std::vector<int> nbs;
 
   // max label
   int k = -1; //start at -1, since increment is 1, so first cluster will have label 0
-  
+
+
+  // iterate over all voxels
   while( id < structure.size()  ){
-
-
+    // only consider occupied sites of correct ch_id
     if( std::fabs( structure[id] ) == std::fabs( ch_id ) ){
 	    
       // get neighbors
       it.set(id);
       get_nbs( id, ch_id, nbs );
 
+      // no neighbor, create new cluster
       if( nbs.size() == 0 ){
 
 	// increase label
 	k++;
+	// assigne label
 	cluster_labels[id] = k;
+	// initialise cluster size
 	cluster_sizes.push_back( 1 );
 	
       } else if ( nbs.size() == 1 ){
@@ -130,7 +151,7 @@ void percolation_analysis<T>::find_clusters(){
 	  true_labels[ii] = true_label;
 	}
 
-	// find minimum label
+	// find minimum label, this is the new true label of merged cluster
 	int min_label = *std::min_element( true_labels.begin(), true_labels.end() );
 
 	// now we can assign the new label
@@ -146,7 +167,6 @@ void percolation_analysis<T>::find_clusters(){
 	for(unsigned int ii=0; ii<true_labels.size(); ii++){	  
 	  if( true_labels[ii] != min_label ){
 
-	    // in case, we are 
 	    if( std::find( already_added.begin(), already_added.end(), true_labels[ii] ) == already_added.end() ){
 	      cluster_sizes[ min_label ] += cluster_sizes[ true_labels[ii] ];
 	      already_added.push_back( true_labels[ii] );
@@ -165,9 +185,12 @@ void percolation_analysis<T>::find_clusters(){
 }
 
 
-
-template <class T>
-void percolation_analysis<T>::assign_true_labels(){
+/** 
+ * Iterates over cluster map and assigns each site its true
+ * label. This is more a cosmetic thing.
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::assign_true_labels(){
 
   for( unsigned int ii=0; ii < cluster_labels.size(); ii++){
 
@@ -188,9 +211,12 @@ void percolation_analysis<T>::assign_true_labels(){
 }
   
 
-
-template <class T>
-std::vector<unsigned int> percolation_analysis<T>::get_cluster_sizes() const {
+/**
+ * Returns an array containing the masses of the clusters. Essentially
+ * picks out the non-negative values from the \ref cluster_sizes array
+ */
+template <class T, class M>
+std::vector<unsigned int> percolation_analysis<T, M>::get_cluster_sizes() const {
   std::vector<unsigned int> ret;
   for( auto it : cluster_sizes ){
     if( it >= 1 ){
@@ -200,8 +226,12 @@ std::vector<unsigned int> percolation_analysis<T>::get_cluster_sizes() const {
   return ret;
 }
 
-template <class T>
-unsigned int percolation_analysis<T>::get_nr_clusters() const {
+/**
+ * Returns the number of clusters found, by counting non-negative
+ * entries in \ref cluster_sizes
+ */
+template <class T, class M>
+unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
 
   unsigned int count = 0;
   for( auto it : cluster_sizes ){
@@ -213,25 +243,35 @@ unsigned int percolation_analysis<T>::get_nr_clusters() const {
 }
 
 
-template <class T>
-void percolation_analysis<T>::print( std::string out ){
+/**
+ * Prints label map to a file. Wrapper around \ref print function
+ * \param[in] out The filename to write to
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::print( std::string out ){
   std::ofstream fout ( out );
   print( fout );
   fout.close();  
 }
 
 
-template <class T>
-void percolation_analysis<T>::print( std::ostream &out) {
+/*
+ *
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::print( std::ostream &out) {
+
+  int max = *std::max_element( cluster_labels.begin(), cluster_labels.end() );
+  
+  int nr_digits = int( log( float(max) ) / log (10.0) );
   
   for( unsigned int ii=0; ii < sz; ii++){ //layers
-    //out << "Layer " << ii << std::endl;
     for( unsigned int jj=0; jj < sy; jj++){ //columns
       for( unsigned int kk=0; kk< sx; kk++){ //rows
 
 	int ind = ii + kk * sz + jj * sz*sx;	
 	
-	out << " " << std::setw(4) << cluster_labels[ind] << " ";	  
+	out << std::setw(nr_digits + 1) << cluster_labels[ind] << " ";	  
       }
       out << std::endl;
     }
@@ -239,7 +279,27 @@ void percolation_analysis<T>::print( std::ostream &out) {
   }
 }
 
-template class percolation_analysis<int>;
-template class percolation_analysis<unsigned int>;
-template class percolation_analysis<float>;
-template class percolation_analysis<double>;
+
+template class percolation_analysis<short, int>;
+template class percolation_analysis<int, int>;
+template class percolation_analysis<unsigned int, int>;
+template class percolation_analysis<float, int>;
+template class percolation_analysis<double, int>;
+
+template class percolation_analysis<short, unsigned int>;
+template class percolation_analysis<int, unsigned int>;
+template class percolation_analysis<unsigned int, unsigned int>;
+template class percolation_analysis<float, unsigned int>;
+template class percolation_analysis<double, unsigned int>;
+
+template class percolation_analysis<short, float>;
+template class percolation_analysis<int, float>;
+template class percolation_analysis<unsigned int, float>;
+template class percolation_analysis<float, float>;
+template class percolation_analysis<double, float>;
+
+template class percolation_analysis<short, double>;
+template class percolation_analysis<int, double>;
+template class percolation_analysis<unsigned int, double>;
+template class percolation_analysis<float, double>;
+template class percolation_analysis<double, double>;
