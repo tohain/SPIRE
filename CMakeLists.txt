@@ -14,7 +14,7 @@ option(USE_CGAL "Includes CGAL to compute the surface area of the membranes" OFF
 option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channel proportions" OFF)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp vec_mat_math.cpp)
+SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp vec_mat_math.cpp percolation_analysis.cpp)
 
 #the source files for the wxWidgets gui
 SET(SRC_WX_GUI sp_app.cpp sp_gui.cpp sp_gui_imp.cpp)
@@ -75,6 +75,8 @@ if(BUILD_QT_GUI)
   target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
   
+
+add_executable(minimal_terminal ${SRC_BASE} ${SRC_TER})
 
 
 if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)

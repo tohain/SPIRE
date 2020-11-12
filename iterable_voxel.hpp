@@ -25,7 +25,11 @@ public:
   }
 
 
+  inline void set( int id_ ){
+    id = id_;
+  }
 
+  
 
   /// one voxel to the right
   inline iterable_voxel r(){
@@ -85,6 +89,69 @@ public:
       return iterable_voxel(id + (x * z), x, y, z);
     }
   }
+
+
+    /// one voxel to the right
+  inline void rr(){
+    int m = id % (x*z);
+    if( (x*z) - z <= m &&
+	m < (x*z) ){
+      id -= (( x - 1) * z);
+    } else {
+      id += z;
+    }
+  }
+
+  /// one voxel to the left
+  inline void ll(){
+    int m = id % (x*z);
+    if( 0 <= m && m < z ){
+      id += ((x - 1) * z);
+    } else {
+      id -= z;
+    }
+  }
+  
+
+  /// one voxel up
+  inline void uu(){
+    if(id % z == z - 1){
+      id-=(z-1);
+    } else {
+      id+=1;
+    }  
+  }
+
+  /// one voxel down
+  inline void dd(){
+    if( id % z == 0 ){
+      id+=(z-1);
+    } else {
+      id -= 1, x, y, z;
+    }
+  }
+  
+
+  /// one voxel backwards
+  inline void bb(){
+    if( id < x * z ){
+      id+= x * z * (y-1);
+    } else {
+      id-= (x * z);
+    }
+  }
+
+  /// one voxel forward
+  inline void ff(){
+    if( id >= (y-1) * x * z ){
+      id -= x * z * (y-1);
+    } else {
+      id += x * z;
+    }
+  }
+
+
+  /// just the next voxel, moves to next col, row automatically
   
   
   inline void get_6_neighbors( std::vector<int> &nbs ){
