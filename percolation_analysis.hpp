@@ -8,7 +8,9 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
-#include <cstring>
+#include <cstring>  //memset
+#include <unordered_set>
+#include <set>
 
 #include "iterable_voxel.hpp"
 
@@ -25,22 +27,26 @@ public:
   percolation_analysis( std::vector<T> data, std::vector<M> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool periodic);
 
   /// Using Hoshen-Kopelmann to find clusters
-  void find_clusters( int ch_id );
+  void find_clusters( int ch_id_ );
 
   /// makes the cluster map a bit nicer
   void assign_true_labels();
   
-  /// prints the cluster map to a file
-  void print( std::ostream &out );
-  void print( std::string out );
+  /// Checks, if clusters are percolating
+  std::unordered_set<int> get_percolating_clusters( bool in_x, bool in_y, bool in_z);
 
+  /// Get the percolation threshold
+  std::vector<M> get_percolation_threshold();
+  
   /// retrieves all the cluster sizes from \ref cluster_sizes
   std::vector<unsigned int> get_cluster_sizes() const;
 
   /// returns the number of clusters found
   unsigned int get_nr_clusters() const;
 
-  
+  /// prints the cluster map to a file
+  void print( std::ostream &out );
+  void print( std::string out );
   
 private:
 
@@ -56,8 +62,13 @@ private:
   std::vector<int> cluster_labels;
   /// an array keeping track of true labels as well as cluster sizes
   std::vector<int> cluster_sizes;
-  
 
+
+  /// dilutes the surface on pixel
+  void dilute_surface( M threshold, T marker = 1 );
+  
+  /// The ch_id of the latest cluster analysis
+  int ch_id;
 
   /// size of the simbox
   unsigned int sx, sy, sz;

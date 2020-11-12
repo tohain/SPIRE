@@ -90,8 +90,11 @@ void percolation_analysis<T, M>::get_nbs( int id, int ch_id, std::vector<int> &n
  *
  */
 template <class T, class M>
-void percolation_analysis<T, M>::find_clusters( int ch_id ){
+void percolation_analysis<T, M>::find_clusters( int ch_id_ ) {
 
+  // update ch_id
+  ch_id = ch_id_;
+  
   // reset the label map and sizes array
   memset( cluster_labels.data(), -1, sizeof(int) * cluster_labels.size() );
   cluster_sizes.clear();
@@ -187,7 +190,7 @@ void percolation_analysis<T, M>::find_clusters( int ch_id ){
 
 /** 
  * Iterates over cluster map and assigns each site its true
- * label. This is more a cosmetic thing.
+ * label. 
  */
 template <class T, class M>
 void percolation_analysis<T, M>::assign_true_labels(){
@@ -209,7 +212,147 @@ void percolation_analysis<T, M>::assign_true_labels(){
     }
   }
 }
+
+
+
+template <class U>
+std::unordered_set<U> intersection( std::unordered_set<U> &l, std::unordered_set<U> &r){
+
+  std::unordered_set<U> ret;
+  for( auto it_l : l ){
+    for( auto it_r : r ){
+      if( it_l == it_r ){
+	ret.insert( it_l );
+      }
+    }
+  }
+
+  return ret;
+}
+
+
+/**
+ * Checks if clusters are percolating. In this implementation, a call
+ * of \ref assign_true_labels is needed!
+ *
+ * \param[in] in_x cluster needs to percolate in x direction to pass
+ * \param[in] in_x cluster needs to percolate in y direction to pass
+ * \param[in] in_x cluster needs to percolate in z direction to pass
+ */
+template <class T, class M>
+std::unordered_set<int> percolation_analysis<T, M>::get_percolating_clusters( bool in_x, bool in_y, bool in_z ) {
+
+  std::unordered_set<int> percolating_in_x;
+  std::unordered_set<int> percolating_in_y;
+  std::unordered_set<int> percolating_in_z;  
+  int ind;
   
+  if( in_x ){
+    // find all clusters which have a site in the x=0 plane
+    int xx=0;
+    std::unordered_set<int> base;
+    for( unsigned int yy=0; yy<sy; yy++){
+      for( unsigned int zz=0; zz<sz; zz++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	  base.insert( cluster_labels[ind] );
+	}
+      }
+    }
+
+    //now check if we find a cluster which also connects in the x=sx-1 plane
+    xx=sx-1;
+    for( unsigned int yy=0; yy<sy; yy++){
+      for( unsigned int zz=0; zz<sz; zz++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( base.find( cluster_labels[ind] ) != base.end() ){
+	  // found cluster, it is percolating!
+	  if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	    percolating_in_x.insert( cluster_labels[ind] );
+	  }
+	}	
+      }
+    }    
+  } // end in_x
+
+  if( in_y ){
+    // find all clusters which have a site in the y=0 plane
+    int yy = 0;
+    std::unordered_set<int> base;
+    for( unsigned int xx=0; xx<sx; xx++){
+      for( unsigned int zz=0; zz<sz; zz++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	  base.insert( cluster_labels[ind] );
+	}
+      }
+    }
+
+    //now check if we find a cluster which also connects in the x=sx-1 plane
+    yy=sy-1;
+    for( unsigned int xx=0; xx<sx; xx++){
+      for( unsigned int zz=0; zz<sz; zz++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( base.find( cluster_labels[ind] ) != base.end() ){
+	  // found cluster, it is percolating!
+	  if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	    percolating_in_y.insert( cluster_labels[ind] );
+	  }
+	}	
+      }
+    }    
+  } // end in_y
+
+
+
+  if( in_z ){
+    // find all clusters which have a site in the y=0 plane
+    int zz = 0;
+    std::unordered_set<int> base;
+    for( unsigned int yy=0; yy<sy; yy++){
+      for( unsigned int xx=0; xx<sx; xx++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	  base.insert( cluster_labels[ind] );
+	}
+      }
+    }
+
+    //now check if we find a cluster which also connects in the x=sx-1 plane
+    zz=sz-1;
+    for( unsigned int yy=0; yy<sy; yy++){
+      for( unsigned int xx=0; xx<sx; xx++){
+	ind = zz + xx * sz + yy * sz * sx;
+	if( base.find( cluster_labels[ind] ) != base.end() ){
+	  // found cluster, it is percolating!
+	  if( std::fabs( structure[ind] ) == std::fabs( ch_id ) ){
+	    percolating_in_z.insert( cluster_labels[ind] );
+	  }
+	}	
+      }
+    }    
+  } // end in_z
+
+  
+  if( in_x && !in_y && !in_z ){
+    return percolating_in_x;
+  } else if( !in_x && in_y && !in_z ){
+    return percolating_in_y;
+  } else if( !in_x && !in_y && in_z ){
+    return percolating_in_z;
+  } else if( in_x && in_y && !in_z ){
+    return intersection( percolating_in_x, percolating_in_y );
+  } else if( in_x && !in_y && in_z ){
+    return intersection( percolating_in_x, percolating_in_z );
+  } else if( !in_x && in_y && in_z ){
+    return intersection( percolating_in_y, percolating_in_z );
+  } else if( in_x && in_y && in_z ){
+    auto tmp = intersection( percolating_in_x, percolating_in_y );
+    return intersection( tmp, percolating_in_z );
+  } else {
+    return std::unordered_set<int>();
+  }  
+}
 
 /**
  * Returns an array containing the masses of the clusters. Essentially
@@ -244,6 +387,73 @@ unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
 
 
 /**
+ * Dilutes the membranes. Meaning all pixels with a value in the
+ * distance map lower than the threshold are marked as parte of the
+ * membrane. This lets the membrane grow step by step
+ *
+ * \param[in] threshold The distance the membrane is grown in length units (same as the distance map)
+ * \param[in] marker The value of the membrane
+ *
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::dilute_surface( M threshold, T marker ) {
+  for( unsigned int ii=0; ii<structure.size(); ii++){
+    if( sqrt(dmap[ii]) <= threshold && structure[ii] != 1 ){
+      structure[ii] = marker;
+    }    
+  }
+}
+
+
+template <class T, class M>
+std::vector<M> percolation_analysis<T, M>::get_percolation_threshold(){
+
+
+  std::vector<M> percolation_thresholds;
+  std::unordered_set<int> percolating_clusters;
+  
+  // sort the distances in the map
+  std::set<M> distances;
+  for( auto it : dmap ){
+    if ( it > 0 )
+      distances.insert( sqrt(it) );
+  }
+
+  M threshold;
+  unsigned old_size, new_size;
+  
+  // start, get the percolating clusters
+  percolating_clusters = get_percolating_clusters( true, true, true );
+  old_size = percolating_clusters.size();
+  
+  // iterate whil we still have a percolating cluster!
+  while( percolating_clusters.size() > 0 && distances.size() > 0){
+
+    // pop first element
+    threshold = *distances.begin();
+    distances.erase( distances.begin() );    
+
+    //dilute surface
+    dilute_surface( threshold, 3 );
+
+    // recompute clusters
+    find_clusters( 0 );
+    assign_true_labels();
+    
+    percolating_clusters = get_percolating_clusters( true, true, true );
+    new_size = percolating_clusters.size();
+
+    if( new_size != old_size ){
+      percolation_thresholds.push_back( threshold );  
+    }
+    old_size = new_size;
+  }
+
+  return percolation_thresholds;
+}
+
+
+/**
  * Prints label map to a file. Wrapper around \ref print function
  * \param[in] out The filename to write to
  */
@@ -268,10 +478,8 @@ void percolation_analysis<T, M>::print( std::ostream &out) {
   for( unsigned int ii=0; ii < sz; ii++){ //layers
     for( unsigned int jj=0; jj < sy; jj++){ //columns
       for( unsigned int kk=0; kk< sx; kk++){ //rows
-
-	int ind = ii + kk * sz + jj * sz*sx;	
-	
-	out << std::setw(nr_digits + 1) << cluster_labels[ind] << " ";	  
+	int ind = ii + kk * sz + jj * sz*sx;		
+	out << std::setw(nr_digits + 1) << cluster_labels[ind] << " ";
       }
       out << std::endl;
     }

@@ -818,6 +818,12 @@ void surface_projection::set_grid(){
 
     progress = 0.5 + (ii/double(grid.size()));
   }
+
+  // update the distance map, since it changed after more pixels turned "white"
+  dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
+		     std::vector<double> {dx, dy, dz}, true);  
+  dt.compute_distance_map();
+
   
 }
 
