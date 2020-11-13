@@ -36,7 +36,7 @@ public:
   std::unordered_set<int> get_percolating_clusters( bool in_x, bool in_y, bool in_z);
 
   /// Get the percolation threshold
-  std::vector<M> get_percolation_threshold();
+  M get_percolation_threshold( int ch_id );
   
   /// retrieves all the cluster sizes from \ref cluster_sizes
   std::vector<unsigned int> get_cluster_sizes() const;
@@ -47,6 +47,12 @@ public:
   /// prints the cluster map to a file
   void print( std::ostream &out );
   void print( std::string out );
+
+  /// more for debugging
+  void print_points( std::ostream &out );
+  void print_points( std::string out );
+
+  
   
 private:
 

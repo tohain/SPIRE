@@ -406,11 +406,15 @@ void percolation_analysis<T, M>::dilute_surface( M threshold, T marker ) {
 
 
 template <class T, class M>
-std::vector<M> percolation_analysis<T, M>::get_percolation_threshold(){
+M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
 
 
   std::vector<M> percolation_thresholds;
   std::unordered_set<int> percolating_clusters;
+
+  // create a backup, so we can restore the initial structure after
+  // everything is done!
+  std::vector<T> structure_backup = structure;
   
   // sort the distances in the map
   std::set<M> distances;
@@ -420,11 +424,18 @@ std::vector<M> percolation_analysis<T, M>::get_percolation_threshold(){
   }
 
   M threshold;
-  unsigned old_size, new_size;
   
-  // start, get the percolating clusters
+  // start by getting the cluster
+  find_clusters( ch_id );
+  assign_true_labels();  
   percolating_clusters = get_percolating_clusters( true, true, true );
-  old_size = percolating_clusters.size();
+
+  // in this specific case, there should be only one percolating
+  // cluster, so if we found anything else, something went wrong!
+  if( percolating_clusters.size() != 1 ){
+    std::cerr << "get_percolation_threshold: something went wrong"
+	      << ", found more than 1 percolating cluster" << std::endl;
+  }
   
   // iterate whil we still have a percolating cluster!
   while( percolating_clusters.size() > 0 && distances.size() > 0){
@@ -432,24 +443,23 @@ std::vector<M> percolation_analysis<T, M>::get_percolation_threshold(){
     // pop first element
     threshold = *distances.begin();
     distances.erase( distances.begin() );    
-
-    //dilute surface
-    dilute_surface( threshold, 3 );
+    
+    //dilute surface. In general it would be nice to write the same
+    //voxel value as the membrane channel, but we can not know that
+    //for sure, and in the end it doesn't matter as long as it is
+    //different from ch_id
+    dilute_surface( threshold, ch_id + 1 );
 
     // recompute clusters
-    find_clusters( 0 );
+    find_clusters( ch_id );
     assign_true_labels();
-    
     percolating_clusters = get_percolating_clusters( true, true, true );
-    new_size = percolating_clusters.size();
-
-    if( new_size != old_size ){
-      percolation_thresholds.push_back( threshold );  
-    }
-    old_size = new_size;
   }
 
-  return percolation_thresholds;
+  //revert the backup
+  structure = structure_backup;
+
+  return threshold;
 }
 
 
@@ -484,6 +494,38 @@ void percolation_analysis<T, M>::print( std::ostream &out) {
       out << std::endl;
     }
     out << std::endl << std::endl;
+  }
+}
+
+
+
+/**
+ * Prints label map to a file. Wrapper around \ref print function
+ * \param[in] out The filename to write to
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::print_points( std::string out ){
+  std::ofstream fout ( out );
+  print_points( fout );
+  fout.close();  
+}
+
+
+/*
+ *
+ */
+template <class T, class M>
+void percolation_analysis<T, M>::print_points( std::ostream &out) {
+
+  for( unsigned int ii=0; ii < sz; ii++){ //layers
+    for( unsigned int jj=0; jj < sy; jj++){ //columns
+      for( unsigned int kk=0; kk< sx; kk++){ //rows
+	int ind = ii + kk * sz + jj * sz*sx;		
+	out << kk << " " << jj << " " << ii << " "
+	    << ind << " " << structure[ind] << " "
+	    << cluster_labels[ind] << std::endl;
+      }      
+    }
   }
 }
 
