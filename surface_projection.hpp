@@ -15,6 +15,8 @@
 #include "auxiliary.hpp"
 #include "vec_mat_math.hpp"
 
+
+
 #ifdef USE_CGAL
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Advancing_front_surface_reconstruction.h>
@@ -50,6 +52,7 @@ public:
 #include "distance_transform.hpp"
 #include "homotopic_thinning.hpp"
 #include "surface_tables.hpp"
+#include "percolation_analysis.hpp"
 
 
 /** \brief The computational core class of this code. Computes the projection calculations and stores al * l parameters.
@@ -103,6 +106,9 @@ public:
   /// Computes the minimal channel diameter of the given channel
   void compute_channel_network();
 
+  /// Computes the largest sphere that fits through the strucutre
+  double compute_percolation_threshold() const;
+  
   /// computes the minimal diamter of a channel.
   double get_minimal_channel_diameter( int channel_id );
   
@@ -185,11 +191,11 @@ public:
   /// Return surface areas of the membranes
   std::vector<double> get_membrane_surface_area() const;
   /// Returns the width of the slice
-  double get_slice_width() const;
+  double get_slice_thickness() const;
   /// Returns the height of the slice
   double get_slice_height() const;
   /// Returns the length of the slice
-  double get_slice_length() const;  
+  double get_slice_width() const;  
   /// Returns the position of the slice along its normal vector
   double get_slice_position() const;
   /// Returns theta of the current orientation
@@ -218,11 +224,11 @@ public:
   /// Sets the type of the surface to be projected
   void set_type( int val );
   /// Sets the slice width // z 
-  void set_slice_width( double val );
+  void set_slice_thickness( double val );
   /// Sets the slice heigth // y
   void set_slice_height( double val );
   /// Sets the slice length // x
-  void set_slice_length( double val );
+  void set_slice_width( double val );
 
 
   /// Sets the position of the slice along ints normal vector

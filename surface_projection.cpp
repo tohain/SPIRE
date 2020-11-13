@@ -997,8 +997,6 @@ void surface_projection::compute_channel_network(){
   
 }
 
-
-
 /**
  * Computes the minimal diameter of the provided channel. Make sure
  * the distance map is up to date!
@@ -1027,6 +1025,18 @@ double surface_projection::get_minimal_channel_diameter( int channel_id ){
 }
 
 
+
+/**
+ * Performs a percolation threshold analysis in order to find the
+ * thinnest channel diameter
+ */
+double surface_projection::compute_percolation_threshold( int ch_id ) const {
+  
+  percolation_analysis<short, float> perc ( get_channel(), get_distance_map(), n_points_x, n_points_y, n_points_z, false );
+  float threshold = perc.get_percolation_threshold( ch_id );
+  
+  return threshold;
+}
 
 /** 
  * Computes the normal vector of the given orientation. In principle
@@ -1625,7 +1635,7 @@ double surface_projection::get_channel_prop() const {
   return val;
 }
 
-double surface_projection::get_slice_width() const {
+double surface_projection::get_slice_thickness() const {
   return L[2];
 }
 
@@ -1633,7 +1643,7 @@ double surface_projection::get_slice_height() const {
   return L[1];
 }
 
-double surface_projection::get_slice_length() const {
+double surface_projection::get_slice_width() const {
   return L[0];
 }
 
@@ -1763,7 +1773,7 @@ void surface_projection::set_type(int val ){
   }
 }
 
-void surface_projection::set_slice_width ( double val ){
+void surface_projection::set_slice_thickness ( double val ){
   if( val <= 0 ){
     throw invalid_parameter_exception("Slice width can't be negative or zero");
   } else {
@@ -1772,7 +1782,7 @@ void surface_projection::set_slice_width ( double val ){
 }
 
 
-void surface_projection::set_slice_length ( double val ){
+void surface_projection::set_slice_width ( double val ){
   if( val <= 0 ){
     throw invalid_parameter_exception("Slice length can't be negative or zero");
   } else {

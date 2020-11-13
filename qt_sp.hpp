@@ -23,6 +23,13 @@ public:
   sp_qt( const sp_qt& ) = default;
   
 private:
+
+  /// We need to temporarly store this, since the computation takes a
+  /// couple of seconds and would freeze the ui other wise. So we need
+  /// to compute it using a signal (running it in the background
+  /// thread), then we can directly access this value updating the UI
+  double perc_thres;
+
   
 signals:
   
@@ -42,7 +49,9 @@ signals:
 
 
 					
-public slots:
+public slots:  
+
+  double get_percolation_threshold();
   
   void update_geometry_();  
   void compute_projection();
@@ -61,9 +70,9 @@ public slots:
   void change_xy_points( int val );
   void change_z_points( int val );
   void change_hkl( int h, int k, int l );
-  void change_slice_width( double val );
+  void change_slice_thickness( double val );
   void change_slice_height( double val );
-  void change_slice_length( double val );  
+  void change_slice_width( double val );  
   void change_slice_position( double val );  
   void change_membranes( std::vector<double> val );
 

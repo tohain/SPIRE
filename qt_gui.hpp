@@ -198,8 +198,8 @@ private:
 
 
   // slice parameters control
+  QT_h_labeled_obj<QDoubleSpinBox> *slice_thickness_control;
   QT_h_labeled_obj<QDoubleSpinBox> *slice_width_control;
-  QT_h_labeled_obj<QDoubleSpinBox> *slice_length_control;
   QT_h_labeled_obj<QDoubleSpinBox> *slice_height_control;  
   QT_h_labeled_obj<QDoubleSpinBox> *slice_position_control;
 
@@ -231,6 +231,9 @@ private:
   
   QPushButton *button_measure_vol_area;
   QPushButton *button_measure_network;
+
+  QPushButton *button_measure_max_rad_dist;
+  QPushButton *button_measure_channel_width_dist;  
 
   //status bar
   QStatusBar *status_bar;

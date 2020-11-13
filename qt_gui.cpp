@@ -38,7 +38,10 @@ void GUI::set_up_ui(){
   button_write_pars = new QPushButton("Write parameters", controls_basic );  
 
   button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
-  button_measure_network = new QPushButton("Measure Network", controls_basic);    
+  button_measure_network = new QPushButton("Measure Network", controls_basic);
+
+  button_measure_max_rad_dist = new QPushButton("Max. Rad. Dist.", controls_basic);
+  button_measure_channel_width_dist = new QPushButton("Ch. width Dist.", controls_basic);  
   
   /*
    * structure control
@@ -107,22 +110,22 @@ void GUI::set_up_ui(){
    * Slice control 
    */
 
-  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice width", controls_basic);
+  slice_thickness_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Thickness", controls_basic);
+  slice_thickness_control->object()->setRange(0.001,1000);
+  slice_thickness_control->object()->setSingleStep(0.001);
+  slice_thickness_control->object()->setDecimals( 3 );
+
+  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Width", controls_basic);
   slice_width_control->object()->setRange(0.001,1000);
   slice_width_control->object()->setSingleStep(0.001);
   slice_width_control->object()->setDecimals( 3 );
 
-  slice_length_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice length", controls_basic);
-  slice_length_control->object()->setRange(0.001,1000);
-  slice_length_control->object()->setSingleStep(0.001);
-  slice_length_control->object()->setDecimals( 3 );
-
-  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice height", controls_basic);
+  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Height", controls_basic);
   slice_height_control->object()->setRange(0.001,1000);
   slice_height_control->object()->setSingleStep(0.001);
   slice_height_control->object()->setDecimals( 3 );
   
-  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice position", controls_basic);    
+  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Position", controls_basic);    
   slice_position_control->object()->setSingleStep(0.01);
   slice_position_control->object()->setRange( -1000, 1000 );
   slice_position_control->object()->setDecimals( 3 );
@@ -217,7 +220,9 @@ void GUI::set_up_ui(){
   controls_measurement_layout->addWidget( detailled_stats );
 
   controls_measurement_buttons_layout->addWidget( button_measure_vol_area );
-  controls_measurement_buttons_layout->addWidget( button_measure_network );  
+  controls_measurement_buttons_layout->addWidget( button_measure_network );
+  controls_measurement_buttons_layout->addWidget( button_measure_max_rad_dist );
+  controls_measurement_buttons_layout->addWidget( button_measure_channel_width_dist );
   
   controls_measurement_layout->addLayout( controls_measurement_buttons_layout );
   
@@ -255,9 +260,9 @@ void GUI::set_up_ui(){
 
   slice_settings->addItem( h_spacer );
   
-  slice_dimension_layout->addLayout( slice_width_control->layout() );
+  slice_dimension_layout->addLayout( slice_thickness_control->layout() );
   slice_dimension_layout->addLayout( slice_height_control->layout() );
-  slice_dimension_layout->addLayout( slice_length_control->layout() );  
+  slice_dimension_layout->addLayout( slice_width_control->layout() );  
   slice_dimension_layout->addLayout( slice_position_control->layout() );
 
   slice_settings->addLayout( slice_dimension_layout );
@@ -316,8 +321,8 @@ void GUI::set_up_tooltips(){
    
    surface_type_control->object()->setToolTip( QString( ttips.type_tooltip.c_str() ) );
 
-   slice_width_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
-   slice_length_control->object()->setToolTip( QString( ttips.slicelength_tooltip.c_str() ) );
+   slice_thickness_control->object()->setToolTip( QString( ttips.slicewidth_tooltip.c_str() ) );
+   slice_width_control->object()->setToolTip( QString( ttips.slicelength_tooltip.c_str() ) );
    slice_height_control->object()->setToolTip( QString( ttips.sliceheight_tooltip.c_str() ) );   
    slice_position_control->object()->setToolTip( QString( ttips.sliceposition_tooltip.c_str() ) );   
    
@@ -387,9 +392,9 @@ void GUI::set_up_signals_and_slots(){
 	  this, &GUI::change_surface_par_type);
 
   // slice dimensions
-  connect( slice_width_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);
+  connect( slice_thickness_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);
   connect( slice_height_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);
-  connect( slice_length_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);  
+  connect( slice_width_control->object(), &QDoubleSpinBox::editingFinished, this, &GUI::set_parameter);  
   // slice position
   connect( slice_position_control->object(), &QDoubleSpinBox::editingFinished,
 	   this, &GUI::set_parameter );
@@ -417,7 +422,8 @@ void GUI::set_up_signals_and_slots(){
 
   connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
   connect( button_measure_network, SIGNAL( clicked() ), this, SLOT( measure_network() ) );  
-
+  connect( button_measure_channel_width_dist, SIGNAL( clicked() ), sp, SLOT( do_something() ) );
+  
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
   
@@ -485,18 +491,16 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   
   //initialize surface projection
   sp = new sp_qt( progress, status );
-  sp->set_n_points_x( 200 );
-  sp->set_n_points_y( 200 );
-  sp->set_n_points_z( 150 );  
+  sp->set_n_points_x( 150 );
+  sp->set_n_points_z( 75 );  
   sp->update_geometry();
   sp->update_containers();
 
   //initialize surface projection
   
   sp_stats = new sp_qt( progress_stats, status_stats );
-  sp_stats->set_n_points_x( 50 );
-  sp_stats->set_n_points_y( 50 );
-  sp_stats->set_n_points_z( 50 );  
+  sp_stats->set_n_points_x( 76 );  
+  sp_stats->set_n_points_z( 76 );  
   sp_stats->update_geometry();
   sp_stats->update_containers();
 
@@ -610,9 +614,9 @@ void GUI::update_gui_from_sp(){
   z_points_control->object()->setValue( sp->get_depth() );
   x_points_control->object()->setValue( sp->get_width() );
 
-  slice_width_control->object()->setValue( sp->get_slice_width() );
+  slice_thickness_control->object()->setValue( sp->get_slice_thickness() );
   slice_height_control->object()->setValue( sp->get_slice_height() );
-  slice_length_control->object()->setValue( sp->get_slice_length() );  
+  slice_width_control->object()->setValue( sp->get_slice_width() );  
   slice_position_control->object()->setValue( sp->get_slice_position() );  
   
   miller_h_control->object()->setValue( sp->get_h() );
@@ -927,9 +931,9 @@ void GUI::request_compute_projection(){
 void GUI::measure_vol_area(){
   sp_stats->copy_parameters( sp );
 
-  sp_stats->set_n_points_x( 76 );
+  //sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
-  sp_stats->set_n_points_z_to_unitcell();
+  //sp_stats->set_n_points_z_to_unitcell();
   
   emit call_update_stats( QString( "Volumes" ) );
   emit call_update_stats( QString( "Areas" ) );  
@@ -938,9 +942,9 @@ void GUI::measure_vol_area(){
 void GUI::measure_network(){
   sp_stats->copy_parameters( sp );
 
-  sp_stats->set_n_points_x( 76 );
+  //sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
-  sp_stats->set_n_points_z_to_unitcell();
+  //sp_stats->set_n_points_z_to_unitcell();
 
   
   emit call_update_stats( QString("Networks" ));
@@ -1263,11 +1267,11 @@ void GUI::set_parameter(){
     emit request_parameter_change( x_points_control->object()->value() );
     disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_xy_points );
     
-  } else if ( sender == slice_width_control->object() ){
+  } else if ( sender == slice_thickness_control->object() ){
     // connect signal to right slot
-    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
-    emit request_parameter_change( slice_width_control->object()->value() );
-    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_thickness );
+    emit request_parameter_change( slice_thickness_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_thickness );
     
   } else if ( sender == slice_height_control->object() ){
     // connect signal to right slot
@@ -1275,11 +1279,11 @@ void GUI::set_parameter(){
     emit request_parameter_change( slice_height_control->object()->value() );
     disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_height );
     
-  } else if ( sender == slice_length_control->object() ){
+  } else if ( sender == slice_width_control->object() ){
     // connect signal to right slot
-    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_length );
-    emit request_parameter_change( slice_length_control->object()->value() );
-    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_length );
+    connect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
+    emit request_parameter_change( slice_width_control->object()->value() );
+    disconnect( this, &GUI::request_parameter_change, sp, &sp_qt::change_slice_width );
     
   } else if ( sender == slice_position_control->object() ){
     // connect signal to right slot

@@ -120,9 +120,9 @@ void sp_qt::change_hkl( int _h, int _k, int _l ){
 }
 
 
-void sp_qt::change_slice_width( double val ){
+void sp_qt::change_slice_thickness( double val ){
   try {
-    set_slice_width( val );
+    set_slice_thickness( val );
   } catch ( invalid_parameter_exception e ){
     emit send_message( e.what() );
   }
@@ -130,9 +130,9 @@ void sp_qt::change_slice_width( double val ){
   emit parameter_changed();
 }
 
-void sp_qt::change_slice_length( double val ){
+void sp_qt::change_slice_width( double val ){
   try {
-    set_slice_length( val );
+    set_slice_width( val );
   } catch ( invalid_parameter_exception e ){
     emit send_message( e.what() );
   }
@@ -206,8 +206,71 @@ void sp_qt::compute_projection(){
 
 
 void sp_qt::do_something(){
-  std::cout << "Doing something" << std::endl;
+
+  std::cout << "doing something" << std::endl;
+
+  dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
+		     std::vector<double> {dx, dy, dz}, true);  
+  dt.compute_distance_map();
+  dt.compute_max_radius_covering();
+  
+
+  //print_channel_width_distribution( "channel_width_dist.dat" );
+  print_max_rad_transform_dist( "mrct.dat" );
+
+  std::vector<float> mrct = dt.get_max_radius_covering();
+  std::vector<float> dmap = dt.get_distance_map();  
+  
+  // print out slices
+  double min = 0;
+  double mrct_max = *std::max_element( mrct.begin(), mrct.end() );
+  double dmap_max = *std::max_element( dmap.begin(), dmap.end() );  
+
+  unsigned char *img_data = new unsigned char[ n_points_x * n_points_y ];
+  unsigned char *dmap_data = new unsigned char[ n_points_x * n_points_y ];  
+  
+  for( int zz = 0; zz < n_points_z; zz++){
+    std::ofstream data_out ("mrct_" + std::to_string(zz) + ".dat" );
+    std::ofstream dmap_out ("dmap_" + std::to_string(zz) + ".dat" );
+    std::ofstream grid_out ("grid_" + std::to_string(zz) + ".dat" );
+    for( int yy = 0; yy < n_points_y; yy++){      
+      for( int xx = 0; xx < n_points_x; xx++ ){
+
+	int ind = zz + xx * n_points_z + yy*n_points_z*n_points_x;
+
+	double mrct_val = (mrct[ind] / mrct_max) * 255.0;
+	unsigned char val_c_mrct = static_cast<unsigned char> (mrct_val);
+
+	double dmap_val = (dmap[ind] / dmap_max) * 255.0;
+	unsigned char val_c_dmap = static_cast<unsigned char> (dmap_val);
+	
+	int img_ind = xx + yy*n_points_x;
+	
+	img_data[img_ind] = val_c_mrct;
+	dmap_data[img_ind] = val_c_dmap;
+
+	data_out << std::setprecision(3) << std::setw(6) << mrct[ind] << " ";
+	dmap_out << std::setprecision(3) << std::setw(6) << sqrt(dmap[ind]) << " ";
+	grid_out << std::setw(1) << std::setprecision(1) << grid[ind] << " ";
+      }
+      data_out << std::endl;
+      dmap_out << std::endl;
+      grid_out << std::endl;
+    }
+
+    data_out.close();
+    dmap_out.close();
+    
+    write_image( "layer_" + std::to_string(zz) + ".ppm", img_data, n_points_x, n_points_y );
+    write_image( "dmap_" + std::to_string(zz) + ".ppm", dmap_data, n_points_x, n_points_y );    
+    
+    
+  }
+
+  std::cout << "done" << std::endl;
+  
 }
+
 
 
 void sp_qt::copy_parameters( sp_qt *source ){
@@ -221,11 +284,15 @@ void sp_qt::copy_parameters( sp_qt *source ){
   set_orientation_from_hkl();  
 
   // slice
-  set_slice_width( source->get_slice_width() );
+  set_slice_thickness( source->get_slice_thickness() );
   set_slice_height( source->get_slice_height() );
-  set_slice_length( source->get_slice_length() );
+  set_slice_width( source->get_slice_width() );
   set_slice_position( source->get_slice_position() );
 
+  // points
+  set_n_points_x( source->get_width() );
+  set_n_points_y( source->get_height() );
+  set_n_points_z( source->get_depth() );
   
   // uc scale
   set_uc_scale_ab( source->get_uc_scale_ab() );
@@ -285,6 +352,9 @@ void sp_qt::update_measurements( QString what ){
   emit measurements_updated();
 }
 
+double sp_qt::get_percolation_threshold(){
+  return perc_thres;
+}
 
 void sp_qt::save_grid( QString fn ){
 
@@ -310,11 +380,11 @@ void sp_qt::save_surface_points( int id, QString fn ){
 void sp_qt::set_slice_dim_to_uc(){
 
   if( uc_dim_in_orientation[0] > 0 )
-    set_slice_length( uc_dim_in_orientation[0] );
+    set_slice_width( uc_dim_in_orientation[0] );
   if( uc_dim_in_orientation[1] > 0 )
     set_slice_height( uc_dim_in_orientation[1] );
   if( uc_dim_in_orientation[2] > 0 )
-    set_slice_width( uc_dim_in_orientation[2] );
+    set_slice_thickness( uc_dim_in_orientation[2] );
 
   emit geometry_changed();
   emit parameter_changed();
