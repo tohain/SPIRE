@@ -19,9 +19,9 @@ int main(int argc, char* argv[])
   surface_projection sp (progress, status);
 
   //the entire cube
-  sp.set_slice_length( 1 );
-  sp.set_slice_height( 1 );
   sp.set_slice_width( 1 );
+  sp.set_slice_height( 1 );
+  sp.set_slice_thickness( 1 );
   sp.set_slice_position( 0 );
 
   // unit unit cell
@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
   sp.compute_uc_dim_in_orientation();
   auto dim = sp.get_uc_dim_in_orientation();
   
-  sp.set_slice_length( dim[0] );
+  sp.set_slice_width( dim[0] );
   sp.set_slice_height( dim[1] );
-  sp.set_slice_width( dim[2] );  
+  sp.set_slice_thickness( dim[2] );  
   
   // at lower resolution the membrane isn't that thick.
   int res = 200;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   sp.set_n_points_z_to_unitcell();
 
   // iterate over all available surfaces
-  for(unsigned int ii=3; ii < sp.get_surface_choices().size(); ii++){
+  for(unsigned int ii=0; ii < sp.get_surface_choices().size(); ii++){
 
     // open the outputfile
     std::ofstream volumes_out ("vols_"+sp.get_surface_choices()[ii]+".dat");
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     
     
     for( unsigned int jj=0; jj<levels.size(); jj++){
-      volumes_out << "{" << vol_container[jj][0] + (vol_container[jj][1]*0.5)
+      volumes_out << "{" << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
 		  << ", " << levels[jj] << "}";
 
       if( jj+1 < levels.size() ){
@@ -127,7 +127,8 @@ int main(int argc, char* argv[])
     for( unsigned int jj=0; jj<levels.size(); jj++){
       
       volumes_out << "{" << levels[jj] << ", "
-		  << vol_container[jj][0] + (vol_container[jj][1]*0.5) << "}"; 
+		  << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
+		  << "}"; 
       if( jj+1 < levels.size() ){
 	volumes_out << ", ";
       }
