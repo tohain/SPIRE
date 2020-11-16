@@ -46,7 +46,7 @@ class tooltips {
   const std::string button_save = "Save the currentyl displayed image to a PNG file";
   const std::string button_quit = "Closes this window and quits the application";
   const std::string button_measure_va = "Measures volume and areas of channels and membranes. This may take up to several minutes. Wait for the status indicator to turn green.";
-  const std::string button_measure_network = "Computes the topoligically irreducible network of the strucutre. This may take up to several minutes. Wait for the status indicator to turn green.";  
+  const std::string button_measure_percthres = "Computes the topoligically irreducible network of the strucutre. This may take up to several minutes. Wait for the status indicator to turn green.";  
   const std::string button_render = "Computes and displays the projection for the current parameters. This may take up to several minutes. Wait for the status indicator to turn green";
 
   const std::string button_write_pars = "Writes the current parameters in an ASCI file";

@@ -15,6 +15,7 @@
 #include <QPixmap>
 #include <QApplication>
 #include <QTableWidget>
+#include <QHeaderView>
 #include <QStatusBar>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -143,7 +144,8 @@ protected:
 private:
 
   int sp_state, sp_stat_state;
-  
+
+  const unsigned int space_between_items = 20;
   
   // locale
   QLocale *def_locale;
@@ -170,7 +172,8 @@ private:
   QPlainTextEdit *manual;
 
   // stats tab
-  QLabel *detailled_stats;
+  //QLabel *detailled_stats;
+  QTableWidget *detailled_stats;
 
   // save tab
   QPushButton *choose_path_prefix;
@@ -192,8 +195,7 @@ private:
   QT_v_labeled_obj<QSpinBox> *z_points_control;
   QT_v_labeled_obj<QSpinBox> *x_points_control;
   QT_v_labeled_obj<QComboBox> *image_scaling_control;  
-  QLabel *pix_size_indicator;
-  QCheckBox *invert_control;  
+  QT_v_labeled_obj<QCheckBox> *invert_control;  
   QCheckBox *autoupdate_control;  
 
 
@@ -215,6 +217,7 @@ private:
   QPushButton *add_membrane_control;
   QPushButton *rm_membrane_control;
 
+  QLabel *fill_channels_label;
   QScrollArea *fill_channels_control_container;
   QWidget *fill_channels_control_content;
   QVBoxLayout *fill_channels_container_layout;
@@ -230,7 +233,7 @@ private:
   QPushButton *button_read_pars;
   
   QPushButton *button_measure_vol_area;
-  QPushButton *button_measure_network;
+  QPushButton *button_measure_percthres;
 
   QPushButton *button_measure_max_rad_dist;
   QPushButton *button_measure_channel_width_dist;  
@@ -259,16 +262,20 @@ private:
   
   // holds the tab bar and the drawing area
   QHBoxLayout *sub_main_layout;
-
-
+  
+  // hold draw area and status bar
+  QVBoxLayout *draw_and_status_layout;
   
   QHBoxLayout *buttons_layout;
+  QVBoxLayout *buttons_savewrite;
+  QVBoxLayout *buttons_projection;
   
   QHBoxLayout *structure_settings;
+  QHBoxLayout *surface_level_settings;
   QHBoxLayout *resolution_settings;
 
   QHBoxLayout *membrane_settings;
-  QVBoxLayout *membrane_buttons_layout;
+  QHBoxLayout *membrane_buttons_layout;
   
   QVBoxLayout *controls_basic_layout;
   QVBoxLayout *controls_measurement_layout;
@@ -279,7 +286,7 @@ private:
 
   QSpacerItem *v_spacer;
   QSpacerItem *h_spacer;  
-
+  QFrame *h_line_1, *h_line_2, *h_line_3;
 
   //
   // background members
@@ -359,6 +366,7 @@ public slots:
 
   void measure_vol_area();
   void measure_network();
+  void measure_percolation();
 
   void choose_export_prefix();
   std::string get_prefix();

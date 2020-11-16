@@ -24,11 +24,6 @@ public:
   
 private:
 
-  /// We need to temporarly store this, since the computation takes a
-  /// couple of seconds and would freeze the ui other wise. So we need
-  /// to compute it using a signal (running it in the background
-  /// thread), then we can directly access this value updating the UI
-  double perc_thres;
 
   
 signals:
@@ -50,8 +45,6 @@ signals:
 
 					
 public slots:  
-
-  double get_percolation_threshold();
   
   void update_geometry_();  
   void compute_projection();

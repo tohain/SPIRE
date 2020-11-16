@@ -320,7 +320,8 @@ void sp_qt::copy_parameters( sp_qt *source ){
 
 
 void sp_qt::update_measurements( QString what ){  
-  
+
+  // set "measurement" (first digit) to "busy" (second digits)
   emit set_status( 1, 1 );
 
   try {
@@ -346,15 +347,16 @@ void sp_qt::update_measurements( QString what ){
     compute_channel_network();
   }
 
+  if( what == "Percolation" ){
+    compute_percolation_threshold();
+  }
+
   emit send_message("Measurement Done");
   emit set_status( 1, 0 );
 
   emit measurements_updated();
 }
 
-double sp_qt::get_percolation_threshold(){
-  return perc_thres;
-}
 
 void sp_qt::save_grid( QString fn ){
 

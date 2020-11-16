@@ -107,7 +107,7 @@ public:
   void compute_channel_network();
 
   /// Computes the largest sphere that fits through the strucutre
-  double compute_percolation_threshold() const;
+  void compute_percolation_threshold();
   
   /// computes the minimal diamter of a channel.
   double get_minimal_channel_diameter( int channel_id );
@@ -186,6 +186,8 @@ public:
   std::vector<double> get_membranes() const;
   /// Return channel volumes
   std::vector<double> get_channel_volumes() const;
+  /// Return the percolation thresholds
+  std::vector<double> get_percolation_thresholds() const;
   /// Return the topological network of the channels
   std::vector< std::unordered_set<int> > get_channel_network() const;
   /// Return surface areas of the membranes
@@ -424,16 +426,19 @@ protected:
 
   /// The surface area of the membranes
   std::vector<double> surface_area;
+
+  /// The percolation thresholds of the channels
+  std::vector<double> percolation_thresholds;
   
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
-						    "Wurtzite",
-						    "Wurtzite_0.05",
-						    "Wurtzite_0.075",
-						    "Wurtzite_0.1",
-						    "Wurtzite_0.2",						    
+						    //"Wurtzite",
+						    //"Wurtzite_0.05",
+						    //"Wurtzite_0.075",
+						    //"Wurtzite_0.1",
+						    "Wurtzite"	    
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -443,11 +448,11 @@ protected:
   const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0}, // gyr
 							   {1.0,1.0,1.0}, // dia
 							   {1.0,1.0,1.0}, // prim 
-							   {1.0, sqrt(3.0), sqrt(8.0/3.0)}, //wur_topo
-							   {2.0, sqrt(3.0), 1.732692}, //wur_0.05
-							   {2.0, sqrt(3.0), 1.732692}, //wur_0.075
-							   {2.0, sqrt(3.0), 1.732692}, //wur_0.1
-							   {1.0, sqrt(3.0), 1.732692}, //wur_0.2						   
+							   //{1.0, sqrt(3.0), sqrt(8.0/3.0)}, //wur_topo
+							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.05
+							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.075
+							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.1
+							   {1.0, sqrt(3.0), 1.732692}, //wur_0.2
   };
 
   /// Available image scalings

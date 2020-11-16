@@ -685,7 +685,10 @@ void surface_projection::set_grid(){
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ //primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 3 ){ //wurtzite_topo
+    }
+
+    /*
+    else if( type == 3 ){ //wurtzite_topo
       level = level_set_wurtzite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 4 ){ //wurtzite_0.05
       level = level_set_wurtzite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
@@ -693,7 +696,10 @@ void surface_projection::set_grid(){
       level = level_set_wurtzite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 6 ){ //wurtzite_0.1
       level = level_set_wurtzite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 7 ){ //wurtzite_0.2
+    }
+    */
+
+    else if( type == 3 ){ //wurtzite_0.2
       level = level_set_wurtzite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
     
@@ -1030,12 +1036,18 @@ double surface_projection::get_minimal_channel_diameter( int channel_id ){
  * Performs a percolation threshold analysis in order to find the
  * thinnest channel diameter
  */
-double surface_projection::compute_percolation_threshold( int ch_id ) const {
+void surface_projection::compute_percolation_threshold() {
+
+  // get number of channels
+  int ch_nr = int( get_membranes().size() / 2 ) + 1;
+  percolation_thresholds.resize( ch_nr, 0 );
   
   percolation_analysis<short, float> perc ( get_channel(), get_distance_map(), n_points_x, n_points_y, n_points_z, false );
-  float threshold = perc.get_percolation_threshold( ch_id );
-  
-  return threshold;
+
+  for( unsigned int ii=0; ii<ch_nr; ii++ ){
+    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );
+  }
+
 }
 
 /** 
@@ -1558,6 +1570,10 @@ std::vector<double> surface_projection::get_channel_volumes() const {
   return volumes;
 }
 
+std::vector<double> surface_projection::get_percolation_thresholds() const {
+  return percolation_thresholds;
+}
+
 std::vector< std::unordered_set<int> > surface_projection::get_channel_network() const {
   return topological_network;
 }
@@ -1720,7 +1736,7 @@ void surface_projection::delete_membrane( int id ){
   } else {
     membranes.erase( membranes.begin() + 2*id, membranes.begin()+(2*id+2) );
   }
-
+  
 }
 
 void surface_projection::set_membranes( std::vector<double> mems ){

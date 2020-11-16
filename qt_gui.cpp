@@ -20,8 +20,16 @@ void GUI::set_up_ui(){
   manual->setPlainText( QString( ttips.manual.c_str() ) );
   
   // stats tab
-  detailled_stats = new QLabel( controls_save );
-
+  //detailled_stats = new QLabel( controls_save );
+  detailled_stats = new QTableWidget( controls_save );
+  detailled_stats->insertColumn(0);
+  detailled_stats->insertColumn(1);
+  detailled_stats->insertColumn(2);
+  QStringList detailled_stats_header;
+  detailled_stats_header << "Volume" << "Area" << "Perc. threshold";
+  detailled_stats->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  detailled_stats->setHorizontalHeaderLabels( detailled_stats_header );
+  
   // save tab
   choose_path_prefix = new QPushButton( "Choose location and prefix", controls_save );
   save_grid_control = new QPushButton( "Save grid", controls_save );
@@ -30,7 +38,7 @@ void GUI::set_up_ui(){
   path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
   
   // buttons for controls_basic
-  button_quit = new QPushButton("Quit", controls_basic);
+  //button_quit = new QPushButton("Quit", controls_basic);
   button_save = new QPushButton("Save Image", controls_basic);
   button_render = new QPushButton("Compute Projection", controls_basic);
 
@@ -38,7 +46,7 @@ void GUI::set_up_ui(){
   button_write_pars = new QPushButton("Write parameters", controls_basic );  
 
   button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
-  button_measure_network = new QPushButton("Measure Network", controls_basic);
+  button_measure_percthres = new QPushButton("Comp. perc. threshold", controls_basic);
 
   button_measure_max_rad_dist = new QPushButton("Max. Rad. Dist.", controls_basic);
   button_measure_channel_width_dist = new QPushButton("Ch. width Dist.", controls_basic);  
@@ -47,11 +55,11 @@ void GUI::set_up_ui(){
    * structure control
    */ 
   
-  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (xy)", controls_basic );
+  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor (xy)", controls_basic );
   uc_size_control_a->object()->setMinimum(0.001);
   uc_size_control_a->object()->setSingleStep(0.01);
   uc_size_control_a->object()->setDecimals( 3 );
-  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "UC scale (z)", controls_basic );
+  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor  (z)", controls_basic );
   uc_size_control_c->object()->setMinimum(0.001);
   uc_size_control_c->object()->setSingleStep(0.01);
   uc_size_control_c->object()->setDecimals( 3 );
@@ -59,9 +67,9 @@ void GUI::set_up_ui(){
   channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", controls_basic );
   channel_prop_control->object()->setSingleStep(0.01);  
 
-  level_par_type = new QT_v_labeled_obj<QComboBox> ( "", controls_basic );
-  level_par_type->object()->insertItem( 0, "Vol. prop." );
-  level_par_type->object()->insertItem( 1, "lvl. set" );
+  level_par_type = new QT_v_labeled_obj<QComboBox> ( "Surface control parameter", controls_basic );
+  level_par_type->object()->insertItem( 0, "Volume proportion" );
+  level_par_type->object()->insertItem( 1, "Level Set" );
   
   surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", controls_basic );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
@@ -78,13 +86,9 @@ void GUI::set_up_ui(){
   z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
   z_points_control->object()->setRange(1, 250);
 
-  pix_size_indicator = new QLabel("");
-  pix_size_indicator->setWordWrap( true );
-  pix_size_indicator->setAlignment(Qt::AlignCenter);
-  pix_size_indicator->setTextFormat(Qt::PlainText);
 
-  invert_control = new QCheckBox( controls_basic );
-  invert_control->setText( "Invert colors" );
+  invert_control = new QT_v_labeled_obj<QCheckBox>( "", controls_basic );
+  invert_control->object()->setText( "Invert image" );
 
   autoupdate_control = new QCheckBox( controls_basic );
   autoupdate_control->setText( "Autoupdate" );  
@@ -152,12 +156,14 @@ void GUI::set_up_ui(){
   QStringList table_header;
   table_header << "Distance" << "Width";
   membranes_control->setHorizontalHeaderLabels( table_header );
+  membranes_control->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   
   add_membrane_control = new QPushButton ( "Add" );
   rm_membrane_control = new QPushButton( "Remove" );
 
   membranes_label = new QLabel( "Membranes", controls_basic );
 
+  fill_channels_label = new QLabel( "Fill in projection:", controls_basic );
   fill_channels_control_container = new QScrollArea( controls_basic );
   fill_channels_control_content = new QWidget();
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
@@ -168,10 +174,21 @@ void GUI::set_up_ui(){
    * Layout
    */
   
-  //set up spacers
+  //set up spacers and lines
   v_spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
   h_spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
+  h_line_1 = new QFrame();
+  h_line_1->setFrameShape( QFrame::HLine );
+  h_line_1->setFrameShadow( QFrame::Sunken );
+
+  h_line_2 = new QFrame();
+  h_line_2->setFrameShape( QFrame::HLine );
+  h_line_2->setFrameShadow( QFrame::Sunken );
+
+  h_line_3 = new QFrame();
+  h_line_3->setFrameShape( QFrame::HLine );
+  h_line_3->setFrameShadow( QFrame::Sunken );
 
   // status bar
   status_bar = new QStatusBar();
@@ -198,29 +215,39 @@ void GUI::set_up_ui(){
   sub_main_layout = new QHBoxLayout();
   sub_main_layout->addWidget( controls);
 
-
-  sub_main_layout->addWidget( draw_area );
-
   status_bar_layout = new QHBoxLayout();
   status_bar_layout->addWidget( status_bar );
+
+  draw_and_status_layout = new QVBoxLayout();
+  draw_and_status_layout->addWidget( draw_area );
+  draw_and_status_layout->addLayout( status_bar_layout );
+  
+  sub_main_layout->addLayout( draw_and_status_layout );
+
+
   
   main_layout->addLayout( sub_main_layout );
-  main_layout->addLayout( status_bar_layout );
+  //main_layout->addLayout( status_bar_layout );
   
   // the layout of the buttons
   buttons_layout = new QHBoxLayout();
+  buttons_savewrite = new QVBoxLayout();
+  buttons_projection = new QVBoxLayout();  
+
   // the layout of the tabs
   controls_basic_layout = new QVBoxLayout( controls_basic );
+  //controls_basic_layout->setSpacing(0);
+
   controls_save_layout = new QVBoxLayout( controls_save );
   controls_measurement_layout = new QVBoxLayout( controls_measurement );
   controls_measurement_buttons_layout = new QHBoxLayout( );    
   manual_widget_layout = new QVBoxLayout( manual_widget );
-
+  
 
   controls_measurement_layout->addWidget( detailled_stats );
 
   controls_measurement_buttons_layout->addWidget( button_measure_vol_area );
-  controls_measurement_buttons_layout->addWidget( button_measure_network );
+  controls_measurement_buttons_layout->addWidget( button_measure_percthres );
   controls_measurement_buttons_layout->addWidget( button_measure_max_rad_dist );
   controls_measurement_buttons_layout->addWidget( button_measure_channel_width_dist );
   
@@ -237,26 +264,27 @@ void GUI::set_up_ui(){
   manual_widget_layout->addWidget( manual );
   
   structure_settings = new QHBoxLayout();
+  surface_level_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();
   slice_orientation_layout = new QVBoxLayout();
   slice_dimension_layout = new QVBoxLayout();
   slice_settings = new QHBoxLayout();  
   membrane_settings = new QHBoxLayout();
-  membrane_buttons_layout = new QVBoxLayout();
+  membrane_buttons_layout = new QHBoxLayout();
   
+  structure_settings->addLayout( surface_type_control->layout() );  
   structure_settings->addLayout( uc_size_control_a->layout() );
   structure_settings->addLayout( uc_size_control_c->layout() );  
-  structure_settings->addLayout( channel_prop_control->layout() );
-  structure_settings->addLayout( level_par_type->layout() );  
-  structure_settings->addLayout( surface_type_control->layout() );  
+
+  surface_level_settings->addLayout( level_par_type->layout() );
+  surface_level_settings->addLayout( channel_prop_control->layout() );
+  surface_level_settings->addItem( h_spacer );
 
   resolution_settings->addLayout( x_points_control->layout() );
   resolution_settings->addLayout( z_points_control->layout() );
   resolution_settings->addLayout( image_scaling_control->layout() );
-  resolution_settings->addWidget( invert_control );
-  resolution_settings->addWidget( autoupdate_control );
-
-
+  resolution_settings->addLayout( invert_control->layout() );
+  
 
   slice_settings->addItem( h_spacer );
   
@@ -273,7 +301,8 @@ void GUI::set_up_ui(){
   
   slice_orientation_layout->addLayout( miller_h_control->layout() );
   slice_orientation_layout->addLayout( miller_k_control->layout() );
-  slice_orientation_layout->addLayout( miller_l_control->layout() );    
+  slice_orientation_layout->addLayout( miller_l_control->layout() );
+  slice_orientation_layout->addItem( v_spacer );
 
   slice_settings->addLayout( slice_orientation_layout );  
 
@@ -286,26 +315,57 @@ void GUI::set_up_ui(){
   membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
   membrane_buttons_layout->addWidget( rm_membrane_control );
+  membrane_buttons_layout->addItem( h_spacer );
+  membrane_buttons_layout->addWidget( fill_channels_label );
 
-  membrane_settings->addLayout( membrane_buttons_layout );
+  //membrane_settings->addLayout( membrane_buttons_layout );
   membrane_settings->addWidget( membranes_control );
   membrane_settings->addWidget( fill_channels_control_container );
-  
+
+
+
+  // put it all together into the main layout
   controls_basic_layout->addLayout( structure_settings );
+  controls_basic_layout->addLayout( surface_level_settings );
+
+
   controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
+  controls_basic_layout->addWidget( h_line_1 );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
+
   controls_basic_layout->addLayout( slice_settings );
+
   controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
+  controls_basic_layout->addWidget( h_line_2 );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
+  
+  controls_basic_layout->addLayout( membrane_buttons_layout );
   controls_basic_layout->addLayout( membrane_settings );
-  controls_basic_layout->addItem( v_spacer );  
-  controls_basic_layout->addLayout( resolution_settings );
+
   controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
+  controls_basic_layout->addWidget( h_line_3 );
+  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
+  
+  controls_basic_layout->addLayout( resolution_settings );
+
+  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->insertSpacing( -1, space_between_items );
+  
   controls_basic_layout->addLayout( buttons_layout );
     
-  buttons_layout->addWidget( button_render );
-  buttons_layout->addWidget( button_read_pars );
-  buttons_layout->addWidget( button_write_pars );
-  buttons_layout->addWidget( button_save );
-  buttons_layout->addWidget( button_quit );
+  buttons_projection->addWidget( button_render );
+  buttons_projection->addWidget( autoupdate_control );
+
+  buttons_savewrite->addWidget( button_write_pars );
+  buttons_savewrite->addWidget( button_read_pars );
+  buttons_savewrite->addWidget( button_save );
+
+  buttons_layout->addLayout( buttons_savewrite );
+  buttons_layout->addItem( h_spacer );
+  buttons_layout->addLayout( buttons_projection );
 
 }
 
@@ -335,7 +395,7 @@ void GUI::set_up_tooltips(){
    x_points_control->object()->setToolTip( QString( ttips.nr_points_xy_tooltip.c_str() ) );
    z_points_control->object()->setToolTip( QString( ttips.nr_points_z_tooltip.c_str() ) );
 
-   invert_control->setToolTip( QString( ttips.invert_tooltip.c_str() ) );
+   invert_control->object()->setToolTip( QString( ttips.invert_tooltip.c_str() ) );
    autoupdate_control->setToolTip( QString( ttips.autoupdate_tooltip.c_str() ) );
    image_scaling_control->object()->setToolTip( QString( ttips.image_scaling_tooltip.c_str() ) );
 
@@ -345,9 +405,9 @@ void GUI::set_up_tooltips(){
 
    fill_channels_control_container->setToolTip( QString( ttips.channel_fill_tooltip.c_str() ) );
 
-   button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
+   //button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
    button_measure_vol_area->setToolTip( QString( ttips.button_measure_va.c_str() ) );
-   button_measure_network->setToolTip( QString( ttips.button_measure_network.c_str() ) );
+   button_measure_percthres->setToolTip( QString( ttips.button_measure_percthres.c_str() ) );
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );
    button_read_pars->setToolTip( QString( ttips.button_read_pars.c_str() ) );
@@ -421,13 +481,13 @@ void GUI::set_up_signals_and_slots(){
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
 
   connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
-  connect( button_measure_network, SIGNAL( clicked() ), this, SLOT( measure_network() ) );  
+  connect( button_measure_percthres, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
   connect( button_measure_channel_width_dist, SIGNAL( clicked() ), sp, SLOT( do_something() ) );
   
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
   
-  connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
+  //connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
 
 
   connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
@@ -449,7 +509,7 @@ void GUI::set_up_signals_and_slots(){
   connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
 
   //invert or not
-  connect( invert_control, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );  
+  connect( invert_control->object(), SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );  
 
   // scaling
   connect(image_scaling_control->object(), QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -559,7 +619,7 @@ void GUI::update_view(){
   if( img_data != NULL ){
     delete( img_data );
   }
-  img_data = sp->get_image( invert_control->isChecked(), image_scaling_control->object()->currentText().toStdString() );
+  img_data = sp->get_image( invert_control->object()->isChecked(), image_scaling_control->object()->currentText().toStdString() );
 
   // this does *NOT* seem to copy the img_data into its own object, so
   // keep that img_data array around!
@@ -763,7 +823,7 @@ void GUI::output_message( QString msg, int type ){
     status_bar->showMessage( msg );
   } else if( type == 3 ){
     text.str("");
-    text << "Measurement:" << std::endl << std::endl << msg.toStdString();
+    text << "Measurement" << std::endl << std::endl << msg.toStdString();
     status_bar_status_m->setText( text.str().c_str() );
   }
 
@@ -783,42 +843,23 @@ void GUI::change_orientation( int val ){
 void GUI::update_stats(){
   
   auto uc_dim = sp->get_uc_dim_in_orientation();
-  std::stringstream uc_orient_info;  
-
+  std::stringstream uc_orient_info, orient_info, pix_info, uc_dim_info;
+  
   uc_orient_info << "UC in orientation" << std::endl;
   uc_orient_info << "X:  " << uc_dim[0] << std::endl;
   uc_orient_info << "Y:  " << uc_dim[1] << std::endl;  
   uc_orient_info << "Z:  " << uc_dim[2] << std::endl;  
-  
-  status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
-
-
-  std::stringstream orient_info, pix_info, uc_dim_info;
-
-
-  /*
-  vols << "Volumes" << std::endl;
-  std::vector<double> vol_data = sp_stats->get_channel_volumes();
-  double tmp1 = (vol_data.size()>0) ? vol_data[0] : -1;
-  double tmp2 = (vol_data.size()>0) ? vol_data[vol_data.size() - 1] : -1;
-  vols << tmp1 << std::endl;
-  vols << tmp2;
-  */
-
-  /*
-
-  areas << "Areas" << std::endl;
-  std::vector<double> area_data = sp_stats->get_membrane_surface_area();
-  tmp1 = (area_data.size()>0) ? area_data[0] : -1;
-  tmp2 = (area_data.size()>0) ? area_data[area_data.size() - 1] : -1;
-  areas << tmp1 << std::endl;
-  areas << tmp2;  
-  */
 
   pix_info << "Resolution (pixel size)" << std::endl;
-  pix_info << "X: " << std::setw(5) << sp->get_width()  << " (" << std::setprecision(2) << sp->get_dx() << ")" << std::endl;
-  pix_info << "Y: " << std::setw(5) << sp->get_height() << " (" << std::setprecision(2) << sp->get_dy() << ")" << std::endl;
-  pix_info << "Z: " << std::setw(5) << sp->get_depth()  << " (" << std::setprecision(2) << sp->get_dz() << ")" << std::endl;  
+  pix_info << "X: " << std::setw(5) << sp->get_width()
+	   << " (" << std::setprecision(2) << sp->get_dx()
+	   << ")" << std::endl;
+  pix_info << "Y: " << std::setw(5) << sp->get_height()
+	   << " (" << std::setprecision(2) << sp->get_dy()
+	   << ")" << std::endl;
+  pix_info << "Z: " << std::setw(5) << sp->get_depth()
+	   << " (" << std::setprecision(2) << sp->get_dz()
+	   << ")" << std::endl;  
 
 
   uc_dim_info << "Unitcell [001]" << std::endl;
@@ -826,63 +867,70 @@ void GUI::update_stats(){
   uc_dim_info << "Y: " << sp->get_a()[1] << std::endl;
   uc_dim_info << "Z: " << sp->get_a()[2] << std::endl;
   
-  /*
-  
-  // channel diameters
-  double inner_min = sp_stats->get_minimal_channel_diameter( 0 );
-  double outer_min = sp_stats->get_minimal_channel_diameter( 1 );  
-  mins << "Min. channel diameter" << std::endl;
-  mins << "Inner membrane: " << inner_min << std::endl;
-  mins << "Outer membrane: " << outer_min;
-
-  */
 
   orient_info << "Orientation     " << std::endl;
   orient_info << "Phi=" << std::setw(5) << sp->get_phi() << std::endl;
   orient_info << "Ttheta=" << std::setw(5) << sp->get_theta() << std::endl;
 
+  status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
   status_bar_mins->setText( QString( uc_dim_info.str().c_str() ) );
   status_bar_vols->setText( QString( orient_info.str().c_str() ) );
   status_bar_areas->setText( QString( pix_info.str().c_str() ) );
 
-  
 }
 
 
 
 void GUI::update_detailled_stats(){
 
-  std::stringstream out;
+  // reset table view
+  detailled_stats->setRowCount( 0 );
 
+  QStringList vertical_labels;
 
-  out << "Volumes:" << std::endl << std::endl;
+  std::vector<double> mems = sp->get_membranes();
+  // create table
+  int mem_count=0, ch_count=0;
+  for( unsigned int ii=0; ii<mems.size()+1; ii++){
+    detailled_stats->insertRow( ii );
+    if( ii % 2 == 0 ){
+      vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
+    } else {
+      vertical_labels << QString("Membrane " ) + def_locale->toString( (ii+1)/2 );
+    }	
+  }
+
+  for( int r=0; r<detailled_stats->rowCount(); r++){
+    for( int c=0; c<detailled_stats->columnCount(); c++){
+      detailled_stats->setItem( r, c, new QTableWidgetItem() );
+      detailled_stats->item( r, c )->setFlags( Qt::ItemIsEnabled );
+    }
+  }
+  
+  detailled_stats->setVerticalHeaderLabels( vertical_labels );
+
+  
+
+  /* now fill it with the data */
+
+  // get it first
   std::vector<double> vol_data = sp_stats->get_channel_volumes();
-  for( unsigned int ii=0; ii<vol_data.size(); ii+=2){
-    out << "Channel " << (ii+2)/2 << ": " << vol_data.at(ii) << std::endl;
-  }
-  out << std::endl;
-  for( unsigned int ii=1; ii<vol_data.size(); ii+=2){
-    out << "Membrane " << (ii+1)/2 << ": " << vol_data.at(ii) << std::endl;
-  }  
-  
-
-  out << std::endl << std::endl << "Areas:" << std::endl << std::endl;
   std::vector<double> area_data = sp_stats->get_membrane_surface_area();
-  for( unsigned int ii=0; ii < area_data.size(); ii++){
-    out << "Membrane " << ii+1 << ": " << area_data.at(ii) << std::endl;
-  }
+  std::vector<double> perc_thres = sp_stats->get_percolation_thresholds();
 
-
-  // channel diameters
-  double inner_min = sp_stats->get_minimal_channel_diameter( 0 );
-  double outer_min = sp_stats->get_minimal_channel_diameter( 1 );  
-  out << std::endl << std::endl;
-  out << "Min. channel diameter" << std::endl << std::endl;
-  out << "Inner membrane: " << inner_min << std::endl;
-  out << "Outer membrane: " << outer_min;
   
-
-  detailled_stats->setText( out.str().c_str() );
+  // vols
+  for( unsigned int ii=0; ii<vol_data.size(); ii++ ){
+    detailled_stats->item( ii, 0)->setText( def_locale->toString( vol_data[ii] ) );
+  }
+  // areas
+  for( unsigned int ii=0; ii<area_data.size(); ii++ ){    
+    detailled_stats->item( (ii*2)+1, 1 )->setText( def_locale->toString( area_data[ii] ) );
+  }
+  // percolation
+  for( unsigned int ii=0; ii<perc_thres.size(); ii++){
+    detailled_stats->item( 2*ii, 2)->setText( def_locale->toString( perc_thres[ii] ) );
+  }
   
 }
 
@@ -928,12 +976,16 @@ void GUI::request_compute_projection(){
 }
 
 
+/*
+ * Think if we want to make the resolution here a user parameter
+ */
+
 void GUI::measure_vol_area(){
   sp_stats->copy_parameters( sp );
 
-  //sp_stats->set_n_points_x( 76 );
+  sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
-  //sp_stats->set_n_points_z_to_unitcell();
+  sp_stats->set_n_points_z_to_unitcell();
   
   emit call_update_stats( QString( "Volumes" ) );
   emit call_update_stats( QString( "Areas" ) );  
@@ -942,12 +994,24 @@ void GUI::measure_vol_area(){
 void GUI::measure_network(){
   sp_stats->copy_parameters( sp );
 
-  //sp_stats->set_n_points_x( 76 );
+  sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
-  //sp_stats->set_n_points_z_to_unitcell();
+  sp_stats->set_n_points_z_to_unitcell();
 
   
   emit call_update_stats( QString("Networks" ));
+}
+
+
+void GUI::measure_percolation(){
+  sp_stats->copy_parameters( sp );
+
+  sp_stats->set_n_points_x( 36 );
+  sp_stats->set_n_points_y_to_unitcell();
+  sp_stats->set_n_points_z_to_unitcell();
+
+  
+  emit call_update_stats( QString("Percolation" ));
 }
 
 
