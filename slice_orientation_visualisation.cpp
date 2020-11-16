@@ -11,7 +11,7 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
   double a = 50;
 
   // cuttin plane
-  point n {h, k, l};
+  point n {static_cast<double>(h), static_cast<double>(k), static_cast<double>(l)};
   auto base = VEC_MAT_MATH::get_orthogonal_base( n );
   auto unit_normal = VEC_MAT_MATH::get_unit( n );
 

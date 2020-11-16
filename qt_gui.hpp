@@ -179,7 +179,6 @@ private:
   QPushButton *choose_path_prefix;
   QPushButton *save_grid_control;
   QPushButton *save_surface_points_control;
-  QPushButton *save_topological_network_control;
 
   QT_v_labeled_obj<QLineEdit> *path_prefix_control;
   
@@ -234,9 +233,6 @@ private:
   
   QPushButton *button_measure_vol_area;
   QPushButton *button_measure_percthres;
-
-  QPushButton *button_measure_max_rad_dist;
-  QPushButton *button_measure_channel_width_dist;  
 
   //status bar
   QStatusBar *status_bar;

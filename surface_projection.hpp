@@ -51,7 +51,7 @@ public:
 #include "img_out.hpp"
 #include "distance_transform.hpp"
 #include "homotopic_thinning.hpp"
-#include "surface_tables.hpp"
+#include "surface_areas_tables.hpp"
 #include "percolation_analysis.hpp"
 
 
@@ -460,7 +460,7 @@ protected:
 							"LOG"};
 
   /// Lookup tables for surface properties
-  SURFACE_TABLES s_tables;
+  SURFACE_AREAS_TABLES s_tables;
   
   /******************************************************************
    * data, do not access manually unless you know what you're doing

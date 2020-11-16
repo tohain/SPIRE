@@ -1426,15 +1426,6 @@ void surface_projection::compute_surface_area(){
     // get all the points making  up the membrane
     auto membrane_points = get_surface_points( (2*ii)+1, 6 );
     
-    /*
-    std::ofstream p_out ( "surface_points_" + std::to_string( ii ) + ".dat" );
-    for( auto it : membrane_points ){
-      p_out << points[3*it] << " " << points[3*it+1] << " " << points[3*it+2] << std::endl;
-    }
-    p_out.close();
-    */
-
-
     //bring in some random numbers!
     double rand_mag = 1e-4;
     std::mt19937 rand_gen;
@@ -1498,13 +1489,67 @@ void surface_projection::compute_surface_area(){
     
   }
 
+#else  
+
+  iterable_voxel p ( 0, get_width(), get_height(), get_depth() );
+  
+  // iterate over all cells, and check if they are adjacent to a cell
+  // of different channel. Always check front, up, and right
+  for( unsigned int ii=0; ii<grid.size(); ii++){
+
+    //only check membrane channels
+    int ch_id = channel.at( ii );
+    if( ch_id < 0 ) ch_id*=-1;
+    if( ch_id % 2 == 0 ){
+
+      p.set( ii );
+      
+      int u = channel.at( p.u()()  );
+      int f = channel.at( p.f()() );
+      int r = channel.at( p.r()() );
+      int d = channel.at( p.d()()  );
+      int b = channel.at( p.b()() );
+      int l = channel.at( p.l()() );    
+      
+      if( u < 0) u *= -1;
+      if( f < 0) f *= -1;
+      if( r < 0) r *= -1;
+      if( d < 0) d *= -1;
+      if( b < 0) b *= -1;
+      if( l < 0) l *= -1;           
+      
+
+      int ind = (ch_id - 2) / 2;
+      
+      if( ch_id > u ){
+	surface_area.at( ind ) += dx*dy;
+      }
+      if( ch_id > f ){
+	surface_area.at( ind ) += dx*dz;
+      }
+      if( ch_id > r ){
+	surface_area.at( ind ) += dy*dz;
+      }    
+      if( ch_id > d ){
+	surface_area.at( ind ) += dx*dy;
+      }
+      if( ch_id > b ){
+	surface_area.at( ind ) += dx*dz;
+      }
+      if( ch_id > l ){
+	surface_area.at( ind ) += dy*dz;
+      }     
+
+    }
+
+
+  }
+#endif
 
 
   status = "Ready";
   progress = 1;
-
-#endif
-
+  
   
 }
 

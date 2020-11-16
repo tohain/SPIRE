@@ -120,8 +120,7 @@ public:
 class svg_object {
 
 public:
-  virtual std::string to_string(){
-  }
+  virtual std::string to_string() = 0;
 
   svg_object ( std::string color_ = "black", double stroke_ = 1, std::string fill_ = "black" ) : color(color_), stroke(stroke_), fill(fill_){
   }

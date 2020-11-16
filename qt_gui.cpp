@@ -34,7 +34,6 @@ void GUI::set_up_ui(){
   choose_path_prefix = new QPushButton( "Choose location and prefix", controls_save );
   save_grid_control = new QPushButton( "Save grid", controls_save );
   save_surface_points_control = new QPushButton( "Save membrane points", controls_save );
-  save_topological_network_control = new QPushButton( "Save network", controls_save );
   path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
   
   // buttons for controls_basic
@@ -46,10 +45,7 @@ void GUI::set_up_ui(){
   button_write_pars = new QPushButton("Write parameters", controls_basic );  
 
   button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
-  button_measure_percthres = new QPushButton("Comp. perc. threshold", controls_basic);
-
-  button_measure_max_rad_dist = new QPushButton("Max. Rad. Dist.", controls_basic);
-  button_measure_channel_width_dist = new QPushButton("Ch. width Dist.", controls_basic);  
+  button_measure_percthres = new QPushButton("Compute percolation threshold", controls_basic);
   
   /*
    * structure control
@@ -248,8 +244,6 @@ void GUI::set_up_ui(){
 
   controls_measurement_buttons_layout->addWidget( button_measure_vol_area );
   controls_measurement_buttons_layout->addWidget( button_measure_percthres );
-  controls_measurement_buttons_layout->addWidget( button_measure_max_rad_dist );
-  controls_measurement_buttons_layout->addWidget( button_measure_channel_width_dist );
   
   controls_measurement_layout->addLayout( controls_measurement_buttons_layout );
   
@@ -258,7 +252,6 @@ void GUI::set_up_ui(){
   controls_save_layout->addItem( v_spacer );  
   controls_save_layout->addWidget( save_grid_control );
   controls_save_layout->addWidget( save_surface_points_control );
-  controls_save_layout->addWidget( save_topological_network_control );
     
 
   manual_widget_layout->addWidget( manual );
@@ -415,7 +408,7 @@ void GUI::set_up_tooltips(){
 
    save_grid_control->setToolTip( QString( ttips.button_save_grid.c_str() ) );
    save_surface_points_control->setToolTip( QString( ttips.button_save_membranes.c_str() ) );
-   save_topological_network_control->setToolTip( QString( ttips.button_save_network.c_str() ) );   
+   
 
    path_prefix_control->object()->setToolTip( QString( ttips.save_prefix_tooltip.c_str() ) );
    
@@ -482,7 +475,6 @@ void GUI::set_up_signals_and_slots(){
 
   connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
   connect( button_measure_percthres, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
-  connect( button_measure_channel_width_dist, SIGNAL( clicked() ), sp, SLOT( do_something() ) );
   
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
@@ -536,7 +528,7 @@ void GUI::set_up_signals_and_slots(){
   connect( choose_path_prefix, &QPushButton::clicked, this, &GUI::choose_export_prefix );
   connect( save_grid_control, &QPushButton::clicked, this, &GUI::save_grid );
   connect( save_surface_points_control, &QPushButton::clicked, this, &GUI::save_surface_points );
-  connect( save_topological_network_control, &QPushButton::clicked, this, &GUI::save_network );
+
 
   connect( this, &GUI::call_save_grid, sp, &sp_qt::save_grid );
   connect( this, &GUI::call_save_surface, sp, &sp_qt::save_surface_points );
@@ -986,6 +978,14 @@ void GUI::measure_vol_area(){
   sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
   sp_stats->set_n_points_z_to_unitcell();
+
+#ifndef USE_CGAL
+  auto reply = QMessageBox::warning( this, "Area mesaurement", "You are not using CGAL to "
+				     "compute membrane surface area. Please note that the "
+				     "implementation used instead is only a crude "
+				     "approximation and may vary significantly from "
+				     "the real values!" );
+#endif
   
   emit call_update_stats( QString( "Volumes" ) );
   emit call_update_stats( QString( "Areas" ) );  
@@ -1006,7 +1006,7 @@ void GUI::measure_network(){
 void GUI::measure_percolation(){
   sp_stats->copy_parameters( sp );
 
-  sp_stats->set_n_points_x( 36 );
+  sp_stats->set_n_points_x( 76 );
   sp_stats->set_n_points_y_to_unitcell();
   sp_stats->set_n_points_z_to_unitcell();
 

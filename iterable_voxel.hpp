@@ -127,7 +127,7 @@ public:
     if( id % z == 0 ){
       id+=(z-1);
     } else {
-      id -= 1, x, y, z;
+      id -= 1;
     }
   }
   
