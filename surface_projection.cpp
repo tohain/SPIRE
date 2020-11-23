@@ -1477,6 +1477,7 @@ void surface_projection::compute_surface_area(){
     
     
     // for debugging: output surfaces
+    /*
     std::ofstream triang_out ( "membrane_" + std::to_string(ii) + ".off" );
     triang_out << "OFF\n" << CGAL_membrane_points.size() << " " << facets.size() << " 0\n";
     std::copy(CGAL_membrane_points.begin(),
@@ -1486,6 +1487,7 @@ void surface_projection::compute_surface_area(){
 	      facets.end(),
 	      std::ostream_iterator<Facet>(triang_out, "\n"));
     triang_out.close();
+    */
     
   }
 
