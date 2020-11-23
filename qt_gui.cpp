@@ -4,10 +4,10 @@ void GUI::set_up_ui(){
 
   // the widgets for the tabs
   controls = new QTabWidget( this );
-  controls_basic = new QWidget();
-  controls_save = new QWidget();
-  controls_measurement = new QWidget();
-  manual_widget = new QWidget();
+  controls_basic = new QWidget( controls );
+  controls_save = new QWidget( controls );
+  controls_measurement = new QWidget( controls );
+  manual_widget = new QWidget( controls );
 
   controls->addTab( controls_basic, "Parameters" );
   controls->addTab( controls_measurement, "Measurements" );
@@ -20,7 +20,6 @@ void GUI::set_up_ui(){
   manual->setPlainText( QString( ttips.manual.c_str() ) );
   
   // stats tab
-  //detailled_stats = new QLabel( controls_save );
   detailled_stats = new QTableWidget( controls_save );
   detailled_stats->insertColumn(0);
   detailled_stats->insertColumn(1);
@@ -37,7 +36,6 @@ void GUI::set_up_ui(){
   path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
   
   // buttons for controls_basic
-  //button_quit = new QPushButton("Quit", controls_basic);
   button_save = new QPushButton("Save Image", controls_basic);
   button_render = new QPushButton("Compute Projection", controls_basic);
 
@@ -96,13 +94,13 @@ void GUI::set_up_ui(){
   }
   
   //Set up the draw area
-  draw_area = new QLabel();
+  draw_area = new QLabel( this );
   draw_area->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
   draw_area->setMinimumSize(500,500);
   draw_area->setSizePolicy(QSizePolicy::MinimumExpanding,
                      QSizePolicy::MinimumExpanding);
 
-  orientation_visualisation = new QSvgWidget();
+  orientation_visualisation = new QSvgWidget( controls_basic );
   orientation_visualisation->setSizePolicy(QSizePolicy::MinimumExpanding,
                      QSizePolicy::MinimumExpanding);
   orientation_visualisation->setMinimumSize(120,120);
@@ -130,7 +128,7 @@ void GUI::set_up_ui(){
   slice_position_control->object()->setRange( -1000, 1000 );
   slice_position_control->object()->setDecimals( 3 );
 
-  button_set_to_uc_dim = new QPushButton ("Set to UC");
+  button_set_to_uc_dim = new QPushButton ("Set to UC", controls_basic );
   
   miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
   miller_h_control->object()->setRange(-100, 100);
@@ -154,14 +152,14 @@ void GUI::set_up_ui(){
   membranes_control->setHorizontalHeaderLabels( table_header );
   membranes_control->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   
-  add_membrane_control = new QPushButton ( "Add" );
-  rm_membrane_control = new QPushButton( "Remove" );
+  add_membrane_control = new QPushButton ( "Add", controls_basic );
+  rm_membrane_control = new QPushButton( "Remove", controls_basic );
 
   membranes_label = new QLabel( "Membranes", controls_basic );
 
   fill_channels_label = new QLabel( "Fill in projection:", controls_basic );
   fill_channels_control_container = new QScrollArea( controls_basic );
-  fill_channels_control_content = new QWidget();
+  fill_channels_control_content = new QWidget( fill_channels_control_container );
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
 
   fill_channels_control_container->setWidget( fill_channels_control_content );  
@@ -171,32 +169,39 @@ void GUI::set_up_ui(){
    */
   
   //set up spacers and lines
-  v_spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  h_spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-  h_line_1 = new QFrame();
+  // 6 vspacer
+  // 7 hspacer
+  for( unsigned int ii=0; ii<6; ii++){
+    v_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding) );
+  }
+  for( unsigned int ii=0; ii<7; ii++){
+    h_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+  }
+
+  h_line_1 = new QFrame( controls_basic );
   h_line_1->setFrameShape( QFrame::HLine );
   h_line_1->setFrameShadow( QFrame::Sunken );
 
-  h_line_2 = new QFrame();
+  h_line_2 = new QFrame( controls_basic );
   h_line_2->setFrameShape( QFrame::HLine );
   h_line_2->setFrameShadow( QFrame::Sunken );
 
-  h_line_3 = new QFrame();
+  h_line_3 = new QFrame( controls_basic );
   h_line_3->setFrameShape( QFrame::HLine );
   h_line_3->setFrameShadow( QFrame::Sunken );
 
   // status bar
-  status_bar = new QStatusBar();
-  status_bar_status_m = new QLabel();
+  status_bar = new QStatusBar( this );
+  status_bar_status_m = new QLabel( status_bar );
   status_bar_status_m->setAlignment(Qt::AlignCenter);
-  status_bar_status_p = new QLabel();
+  status_bar_status_p = new QLabel( status_bar );
   status_bar_status_p->setAlignment(Qt::AlignCenter);  
   
-  status_bar_vols = new QLabel();
-  status_bar_areas = new QLabel();  
-  status_bar_pixs = new QLabel();
-  status_bar_mins = new QLabel();
+  status_bar_vols = new QLabel( status_bar );
+  status_bar_areas = new QLabel( status_bar );
+  status_bar_pixs = new QLabel( status_bar );
+  status_bar_mins = new QLabel( status_bar );
   status_bar->addPermanentWidget( status_bar_mins );  
   status_bar->addPermanentWidget( status_bar_vols );
   status_bar->addPermanentWidget( status_bar_areas );  
@@ -206,24 +211,15 @@ void GUI::set_up_ui(){
 
   
   //the main layout of the form
-  main_layout = new QVBoxLayout( this );
+  main_layout = new QHBoxLayout( this );
   
-  sub_main_layout = new QHBoxLayout();
-  sub_main_layout->addWidget( controls);
-
-  status_bar_layout = new QHBoxLayout();
-  status_bar_layout->addWidget( status_bar );
-
   draw_and_status_layout = new QVBoxLayout();
   draw_and_status_layout->addWidget( draw_area );
-  draw_and_status_layout->addLayout( status_bar_layout );
+  draw_and_status_layout->addWidget( status_bar );
   
-  sub_main_layout->addLayout( draw_and_status_layout );
+  main_layout->addWidget( controls );
+  main_layout->addLayout( draw_and_status_layout );
 
-
-  
-  main_layout->addLayout( sub_main_layout );
-  //main_layout->addLayout( status_bar_layout );
   
   // the layout of the buttons
   buttons_layout = new QHBoxLayout();
@@ -232,11 +228,10 @@ void GUI::set_up_ui(){
 
   // the layout of the tabs
   controls_basic_layout = new QVBoxLayout( controls_basic );
-  //controls_basic_layout->setSpacing(0);
 
   controls_save_layout = new QVBoxLayout( controls_save );
   controls_measurement_layout = new QVBoxLayout( controls_measurement );
-  controls_measurement_buttons_layout = new QHBoxLayout( );    
+  controls_measurement_buttons_layout = new QHBoxLayout();
   manual_widget_layout = new QVBoxLayout( manual_widget );
   
 
@@ -249,7 +244,7 @@ void GUI::set_up_ui(){
   
   controls_save_layout->addLayout( path_prefix_control->layout() );
   controls_save_layout->addWidget( choose_path_prefix );
-  controls_save_layout->addItem( v_spacer );  
+  controls_save_layout->addItem( v_spacer[0] );  
   controls_save_layout->addWidget( save_grid_control );
   controls_save_layout->addWidget( save_surface_points_control );
     
@@ -271,7 +266,7 @@ void GUI::set_up_ui(){
 
   surface_level_settings->addLayout( level_par_type->layout() );
   surface_level_settings->addLayout( channel_prop_control->layout() );
-  surface_level_settings->addItem( h_spacer );
+  surface_level_settings->addItem( h_spacer[0] );
 
   resolution_settings->addLayout( x_points_control->layout() );
   resolution_settings->addLayout( z_points_control->layout() );
@@ -279,7 +274,7 @@ void GUI::set_up_ui(){
   resolution_settings->addLayout( invert_control->layout() );
   
 
-  slice_settings->addItem( h_spacer );
+  slice_settings->addItem( h_spacer[1] );
   
   slice_dimension_layout->addLayout( slice_thickness_control->layout() );
   slice_dimension_layout->addLayout( slice_height_control->layout() );
@@ -290,25 +285,25 @@ void GUI::set_up_ui(){
 
   slice_settings->addWidget( button_set_to_uc_dim );
   
-  slice_settings->addItem( h_spacer );
+  slice_settings->addItem( h_spacer[2] );
   
   slice_orientation_layout->addLayout( miller_h_control->layout() );
   slice_orientation_layout->addLayout( miller_k_control->layout() );
   slice_orientation_layout->addLayout( miller_l_control->layout() );
-  slice_orientation_layout->addItem( v_spacer );
+  slice_orientation_layout->addItem( v_spacer[1] );
 
   slice_settings->addLayout( slice_orientation_layout );  
 
-  slice_settings->addItem( h_spacer );
+  slice_settings->addItem( h_spacer[3] );
 
   slice_settings->addWidget( orientation_visualisation );
 
-  slice_settings->addItem( h_spacer );
+  slice_settings->addItem( h_spacer[4] );
   
   membrane_buttons_layout->addWidget( membranes_label );
   membrane_buttons_layout->addWidget( add_membrane_control );
   membrane_buttons_layout->addWidget( rm_membrane_control );
-  membrane_buttons_layout->addItem( h_spacer );
+  membrane_buttons_layout->addItem( h_spacer[5] );
   membrane_buttons_layout->addWidget( fill_channels_label );
 
   //membrane_settings->addLayout( membrane_buttons_layout );
@@ -322,14 +317,14 @@ void GUI::set_up_ui(){
   controls_basic_layout->addLayout( surface_level_settings );
 
 
-  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addItem( v_spacer[2] );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
   controls_basic_layout->addWidget( h_line_1 );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
 
   controls_basic_layout->addLayout( slice_settings );
 
-  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addItem( v_spacer[3] );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
   controls_basic_layout->addWidget( h_line_2 );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
@@ -337,14 +332,14 @@ void GUI::set_up_ui(){
   controls_basic_layout->addLayout( membrane_buttons_layout );
   controls_basic_layout->addLayout( membrane_settings );
 
-  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addItem( v_spacer[4] );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
   controls_basic_layout->addWidget( h_line_3 );
   controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
   
   controls_basic_layout->addLayout( resolution_settings );
 
-  controls_basic_layout->addItem( v_spacer );
+  controls_basic_layout->addItem( v_spacer[5] );
   controls_basic_layout->insertSpacing( -1, space_between_items );
   
   controls_basic_layout->addLayout( buttons_layout );
@@ -357,7 +352,7 @@ void GUI::set_up_ui(){
   buttons_savewrite->addWidget( button_save );
 
   buttons_layout->addLayout( buttons_savewrite );
-  buttons_layout->addItem( h_spacer );
+  buttons_layout->addItem( h_spacer[6] );
   buttons_layout->addLayout( buttons_projection );
 
 }
@@ -398,7 +393,7 @@ void GUI::set_up_tooltips(){
 
    fill_channels_control_container->setToolTip( QString( ttips.channel_fill_tooltip.c_str() ) );
 
-   //button_quit->setToolTip( QString( ttips.button_quit.c_str() ) );
+
    button_measure_vol_area->setToolTip( QString( ttips.button_measure_va.c_str() ) );
    button_measure_percthres->setToolTip( QString( ttips.button_measure_percthres.c_str() ) );
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
@@ -479,7 +474,7 @@ void GUI::set_up_signals_and_slots(){
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
   
-  //connect( button_quit, SIGNAL( clicked() ), this, SLOT( quit_app() ) );
+
 
 
   connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
@@ -571,7 +566,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   img_pix->convertFromImage( *image );
   
 
-
+  
   thread = new QThread();
   sp->moveToThread(thread);
   thread->start();
@@ -579,7 +574,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   t_stats = new QThread();
   sp_stats->moveToThread( t_stats );
   t_stats->start();
-
+  
   
   set_up_signals_and_slots();
   
@@ -588,7 +583,23 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
 }
 
 
+GUI::~GUI(){
 
+  // close the threads and wait for them to finish
+  thread->exit();
+  t_stats->exit();
+  thread->wait();
+  t_stats->wait();
+  
+  delete( thread );
+  delete( t_stats );  
+  delete( sp );
+  delete( sp_stats );
+  delete[]( img_data );
+  delete( image );
+  delete (img_pix );
+
+}
 
 void GUI::quit_app(){
 
@@ -609,7 +620,7 @@ void GUI::update_view(){
 
   // delete old img_data if existant.
   if( img_data != NULL ){
-    delete( img_data );
+    delete[]( img_data );
   }
   img_data = sp->get_image( invert_control->object()->isChecked(), image_scaling_control->object()->currentText().toStdString() );
 
@@ -1159,7 +1170,7 @@ void GUI::update_fill_channels(){
   
   // recreate them
 
-  fill_channels_control_content = new QWidget( );
+  fill_channels_control_content = new QWidget( controls_basic );
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
   // assign the new QWidget
   fill_channels_control_container->setWidget( fill_channels_control_content );
@@ -1177,7 +1188,7 @@ void GUI::update_fill_channels(){
       mem_cnt++;
     }
     
-    fill_channels.push_back( new QCheckBox( lab.c_str() ) );
+    fill_channels.push_back( new QCheckBox( lab.c_str(), fill_channels_control_content ) );
     fill_channels_container_layout->addWidget( fill_channels[ii] );
     
     connect( fill_channels[ii], SIGNAL( stateChanged(int) ), this, SLOT( check_channel_color() ) );

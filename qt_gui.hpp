@@ -40,7 +40,6 @@
 
 
 
-
 template <class QT_O>
 class QT_v_labeled_obj {
 
@@ -73,9 +72,7 @@ public:
 private:
   QT_O *obj;
   QLabel *lbl;
-
   QVBoxLayout *lyt;
-  
 };
 
 template <class QT_O>
@@ -119,8 +116,7 @@ private:
 
   bool left; // is label left or right?
   
-  QHBoxLayout *lyt;
-  
+  QHBoxLayout *lyt;  
 };
 
 
@@ -134,6 +130,8 @@ public:
   explicit GUI( QApplication *app, QLocale *def_locale_, QWidget *parent = 0 );
 
 
+  ~GUI();
+  
   double progress, progress_stats;
   std::string status, status_stats;
   
@@ -224,7 +222,6 @@ private:
   std::vector<bool> channel_states;
   
   //basic buttons
-  QPushButton *button_quit;
   QPushButton *button_render;
   QPushButton *button_save;
 
@@ -246,18 +243,12 @@ private:
   // layouts
 
   // the main layout, holds status bar and sub_main_layout
-  QVBoxLayout *main_layout;
-
-  // the status bar at the bottom of the window
-  QHBoxLayout *status_bar_layout;
+  QHBoxLayout *main_layout;
   
   // slice properties
   QHBoxLayout *slice_settings;
   QVBoxLayout *slice_orientation_layout;
   QVBoxLayout *slice_dimension_layout;
-  
-  // holds the tab bar and the drawing area
-  QHBoxLayout *sub_main_layout;
   
   // hold draw area and status bar
   QVBoxLayout *draw_and_status_layout;
@@ -280,8 +271,8 @@ private:
 
   QVBoxLayout *manual_widget_layout;
 
-  QSpacerItem *v_spacer;
-  QSpacerItem *h_spacer;  
+  std::vector< QSpacerItem* > v_spacer;
+  std::vector< QSpacerItem* > h_spacer;  
   QFrame *h_line_1, *h_line_2, *h_line_3;
 
   //

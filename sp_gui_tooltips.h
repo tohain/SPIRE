@@ -5,7 +5,8 @@
 class tooltips {
  public:
   tooltips(){}
-
+  ~tooltips(){}
+  
   //const std::string ntucs_tooltip = "The number of translational unit cells to put in the projection box.";
 
   const std::string aa_tooltip = "The unitcell size in x and y direction in absolute length units.";
