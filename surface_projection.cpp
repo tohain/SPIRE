@@ -735,7 +735,7 @@ void surface_projection::set_grid(){
   progress = 0;
   // compute the distance transform of the grid
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
-		     std::vector<double> {dx, dy, dz}, true);  
+		     std::vector<double> {dx, dy, dz}, false);
   dt.compute_distance_map();
   std::vector<float> dmap = dt.get_distance_map();  
 
@@ -827,7 +827,7 @@ void surface_projection::set_grid(){
 
   // update the distance map, since it changed after more pixels turned "white"
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
-		     std::vector<double> {dx, dy, dz}, true);  
+		     std::vector<double> {dx, dy, dz}, false);
   dt.compute_distance_map();
 
   
@@ -986,7 +986,7 @@ void surface_projection::compute_channel_network(){
   compute_projection();  
   // bring in the homotpoic thinning code
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
-		     std::vector<double> {dx, dy, dz}, true);  
+		     std::vector<double> {dx, dy, dz}, true);
   dt.compute_distance_map();
   
   
@@ -1402,9 +1402,10 @@ int surface_projection::p_for( int val ){
 
 /**
  * computes the surface area of the membranes. Uses CGAL, in CASE
- * that's not found, don't do anything. This works best - or rather
- * works only if the voxels are cubes, i.e. are having the same length
- * in all three spatial dimensions.
+ * that's not found, it's counting voxel faces - a indeed crude
+ * approximation. This works best - or rather works only if the voxels
+ * are cubes, i.e. are having the same length in all three spatial
+ * dimensions.
  *
  * In future I will probably implement a lookup table, if CGAL is not
  * available
@@ -1420,9 +1421,10 @@ void surface_projection::compute_surface_area(){
   surface_area = std::vector<double> ( int( 0.5*membranes.size() ), 0 );
 
 #ifdef USE_CGAL
-  
-  for( unsigned int ii=0; ii<int(0.5*membranes.size()); ii++){
 
+
+  for( unsigned int ii=0; ii<int(0.5*membranes.size()); ii++){
+    
     // get all the points making  up the membrane
     auto membrane_points = get_surface_points( (2*ii)+1, 6 );
     
@@ -1438,28 +1440,25 @@ void surface_projection::compute_surface_area(){
     for(int jj=0; jj<membrane_points.size(); jj++){
       double x = points.at( 3 * membrane_points.at(jj) );
       double y = points.at( 3 * membrane_points.at(jj) + 1 );
-      double z = points.at( 3 * membrane_points.at(jj) + 2 );
-  
+      double z = points.at( 3 * membrane_points.at(jj) + 2 );      
+      
       // since the Delauny triangulation doesn't like regularily space
       // points, we will give disperse all of them a tiny bit
       x += rand_dist_x( rand_gen );
       y += rand_dist_y( rand_gen );
       z += rand_dist_z( rand_gen );
-
       
       CGAL_membrane_points.push_back( Point_3( x, y, z) );
     }
-
     
     // get the surface triangulation
     std::vector<Facet> facets;
-    Perimeter perimeter( 0.5 );
+    Perimeter perimeter( 0.5 * uc_scale_ab );
     CGAL::advancing_front_surface_reconstruction(CGAL_membrane_points.begin(),
 						 CGAL_membrane_points.end(),
 						 std::back_inserter(facets),
 						 perimeter);
     
-
     //compute surface area from triangulation
     double total_area = 0;
     
@@ -1487,8 +1486,7 @@ void surface_projection::compute_surface_area(){
 	      facets.end(),
 	      std::ostream_iterator<Facet>(triang_out, "\n"));
     triang_out.close();
-    */
-    
+    */    
   }
 
 #else  

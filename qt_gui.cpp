@@ -51,10 +51,12 @@ void GUI::set_up_ui(){
   
   uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor (xy)", controls_basic );
   uc_size_control_a->object()->setMinimum(0.001);
+  uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_a->object()->setSingleStep(0.01);
   uc_size_control_a->object()->setDecimals( 3 );
   uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor  (z)", controls_basic );
   uc_size_control_c->object()->setMinimum(0.001);
+  uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_c->object()->setSingleStep(0.01);
   uc_size_control_c->object()->setDecimals( 3 );
   
@@ -109,17 +111,17 @@ void GUI::set_up_ui(){
    */
 
   slice_thickness_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Thickness", controls_basic);
-  slice_thickness_control->object()->setRange(0.001,1000);
+  slice_thickness_control->object()->setRange(0.001,10000);
   slice_thickness_control->object()->setSingleStep(0.001);
   slice_thickness_control->object()->setDecimals( 3 );
 
   slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Width", controls_basic);
-  slice_width_control->object()->setRange(0.001,1000);
+  slice_width_control->object()->setRange(0.001,10000);
   slice_width_control->object()->setSingleStep(0.001);
   slice_width_control->object()->setDecimals( 3 );
 
   slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Height", controls_basic);
-  slice_height_control->object()->setRange(0.001,1000);
+  slice_height_control->object()->setRange(0.001,10000);
   slice_height_control->object()->setSingleStep(0.001);
   slice_height_control->object()->setDecimals( 3 );
   
