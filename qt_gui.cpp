@@ -1,3 +1,22 @@
+/* Projection tool - compute planar projection of triply periodic
+ * minimal surfaces 
+ * Copyright (C) 2020 Tobias Hain
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see https://www.gnu.org/licenses.
+ */
+
+
 #include "qt_gui.hpp"
 
 void GUI::set_up_ui(){
@@ -240,8 +259,10 @@ void GUI::set_up_ui(){
 
 
   about_us = new QLabel( about_widget );
-  about_us->setText("Created by Tobias Hain<br/>"
-		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a>");
+  about_us->setText("Projection tool"
+		    "Created by Tobias Hain<br/>"
+		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a>"
+		    "based on the idea and tool from Mark Mieczkowski");
   about_us->setTextFormat(Qt::RichText);
   about_us->setTextInteractionFlags(Qt::TextBrowserInteraction);
   about_us->setOpenExternalLinks(true);
