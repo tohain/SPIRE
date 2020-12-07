@@ -165,6 +165,7 @@ private:
   QWidget *controls_measurement;
   QWidget *controls_save;
   QWidget *manual_widget;
+  QWidget *about_widget;
 
   // manual tab
   QPlainTextEdit *manual;
@@ -240,6 +241,11 @@ private:
   QLabel *status_bar_areas;
   QLabel *status_bar_mins;
 
+
+  //about
+  QLabel *qt_logo, *qt_text;
+
+  
   // layouts
 
   // the main layout, holds status bar and sub_main_layout
@@ -271,10 +277,14 @@ private:
 
   QVBoxLayout *manual_widget_layout;
 
+  QVBoxLayout *about_widget_layout;
+  QHBoxLayout *about_qt_layout;
+  
   std::vector< QSpacerItem* > v_spacer;
   std::vector< QSpacerItem* > h_spacer;  
   QFrame *h_line_1, *h_line_2, *h_line_3;
 
+  
   //
   // background members
   //

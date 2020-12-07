@@ -8,11 +8,13 @@ void GUI::set_up_ui(){
   controls_save = new QWidget( controls );
   controls_measurement = new QWidget( controls );
   manual_widget = new QWidget( controls );
+  about_widget = new QWidget( controls );
 
   controls->addTab( controls_basic, "Parameters" );
   controls->addTab( controls_measurement, "Measurements" );
   controls->addTab( controls_save, "Export" );
   controls->addTab( manual_widget, "Manual" );
+  controls->addTab( about_widget, "About" );
 
 
   //manual tab
@@ -133,13 +135,13 @@ void GUI::set_up_ui(){
   button_set_to_uc_dim = new QPushButton ("Set to UC", controls_basic );
   
   miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
-  miller_h_control->object()->setRange(-100, 100);
+  miller_h_control->object()->setRange(-500, 500);
   
   miller_k_control = new QT_h_labeled_obj<QSpinBox> ("k", controls_basic );
-  miller_k_control->object()->setRange(-100, 100);
+  miller_k_control->object()->setRange(-500, 500);
   
   miller_l_control = new QT_h_labeled_obj<QSpinBox> ("l", controls_basic );  
-  miller_l_control->object()->setRange(-100, 100);
+  miller_l_control->object()->setRange(-500, 500);
 
   /*
    * membrane control
@@ -211,6 +213,17 @@ void GUI::set_up_ui(){
   status_bar->addPermanentWidget( status_bar_status_m );
   status_bar->addPermanentWidget( status_bar_status_p );  
 
+
+  // about widget
+
+  qt_logo = new QLabel( about_widget );
+  qt_text = new QLabel( qt_text );
+
+
+  qt_logo->setPixmap( QPixmap( ":/resources/logos/qt.png" ) );
+  qt_text->setText("This software is created using QT libraries.\nhttps://www.qt.io/");
+  
+  
   
   //the main layout of the form
   main_layout = new QHBoxLayout( this );
@@ -356,6 +369,18 @@ void GUI::set_up_ui(){
   buttons_layout->addLayout( buttons_savewrite );
   buttons_layout->addItem( h_spacer[6] );
   buttons_layout->addLayout( buttons_projection );
+
+
+  about_widget_layout = new QVBoxLayout( about_widget );
+  
+  
+  about_qt_layout = new QHBoxLayout();
+
+  about_qt_layout->addWidget( qt_logo );
+  about_qt_layout->addWidget( qt_text );
+
+  about_widget_layout->addLayout( about_qt_layout );
+
 
 }
 
