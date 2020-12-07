@@ -261,14 +261,17 @@ void GUI::set_up_ui(){
   about_us = new QLabel( about_widget );
   about_us->setText("Projection tool"
 		    "Created by Tobias Hain<br/>"
-		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a>"
-		    "based on the idea and tool from Mark Mieczkowski");
+		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a><br/>"
+		    "based on the idea by Mark Mieczkowski");
   about_us->setTextFormat(Qt::RichText);
   about_us->setTextInteractionFlags(Qt::TextBrowserInteraction);
   about_us->setOpenExternalLinks(true);
 
   refs_ack = new QLabel( about_widget );
-  refs_ack->setText("Using work from<br/>"
+  refs_ack->setText("published under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\"> GPLv3 library</a><br/>"
+		    "<br/>"
+		    "<br/>"
+		    "Using work from<br/>"
 		    "Pedro F. Felzenszwalb and Daniel P. Huttenlocher<br/>"
 		    "<a href=\"http://dx.doi.org/10.4086/toc.2012.v008a019\">"
 		    " DOI: 10.4086/toc.2012.v008a019 </a><br/>"
