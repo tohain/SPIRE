@@ -2,5 +2,6 @@
 <qresource>
   <file>resources/icon/icon.ico</file>
   <file>resources/logos/qt.png</file>
+  <file>resources/logos/cgal.png</file>  
 </qresource>
 </RCC>

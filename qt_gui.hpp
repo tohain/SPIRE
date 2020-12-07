@@ -244,8 +244,13 @@ private:
 
   //about
   QLabel *qt_logo, *qt_text;
-
-  
+#ifdef USE_CGAL
+  QLabel *cgal_logo, *cgal_text;
+  QHBoxLayout *about_cgal_layout;
+#endif
+  QLabel *about_us;
+  QLabel *refs_ack;
+    
   // layouts
 
   // the main layout, holds status bar and sub_main_layout

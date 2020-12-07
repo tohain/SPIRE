@@ -174,11 +174,11 @@ void GUI::set_up_ui(){
   
   //set up spacers and lines
 
-  // 6 vspacer
-  // 7 hspacer
-  for( unsigned int ii=0; ii<6; ii++){
+  // 7 vspacer
+  for( unsigned int ii=0; ii<7; ii++){
     v_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding) );
   }
+  // 7 hspacer
   for( unsigned int ii=0; ii<7; ii++){
     h_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum) );
   }
@@ -217,13 +217,49 @@ void GUI::set_up_ui(){
   // about widget
 
   qt_logo = new QLabel( about_widget );
-  qt_text = new QLabel( qt_text );
-
-
   qt_logo->setPixmap( QPixmap( ":/resources/logos/qt.png" ) );
-  qt_text->setText("This software is created using QT libraries.\nhttps://www.qt.io/");
-  
-  
+
+  qt_text = new QLabel( about_widget );
+  qt_text->setText("This software is created using QT libraries<br/>"
+		   "<a href=\"https://www.qt.io/\">Homepage</a>");
+  qt_text->setTextFormat(Qt::RichText);
+  qt_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  qt_text->setOpenExternalLinks(true);
+
+#ifdef USE_CGAL
+  cgal_logo = new QLabel( about_widget );
+  cgal_logo->setPixmap( QPixmap( ":/resources/logos/cgal.png" ) );
+
+  cgal_text = new QLabel( about_widget );
+  cgal_text->setText("This software is created using CGAL<br/>"
+		   "<a href=\"https://www.cgal.org/index.html\">Homepage</a>");
+  cgal_text->setTextFormat(Qt::RichText);
+  cgal_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  cgal_text->setOpenExternalLinks(true);
+#endif
+
+
+  about_us = new QLabel( about_widget );
+  about_us->setText("Created by Tobias Hain<br/>"
+		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a>");
+  about_us->setTextFormat(Qt::RichText);
+  about_us->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  about_us->setOpenExternalLinks(true);
+
+  refs_ack = new QLabel( about_widget );
+  refs_ack->setText("Using work from<br/>"
+		    "Pedro F. Felzenszwalb and Daniel P. Huttenlocher<br/>"
+		    "<a href=\"http://dx.doi.org/10.4086/toc.2012.v008a019\">"
+		    " DOI: 10.4086/toc.2012.v008a019 </a><br/>"
+		    "Chris Pudney<br/>"
+		    "<a href=\"https://doi.org/10.1006/cviu.1998.0680\">"
+		    " DOI: https://doi.org/10.1006/cviu.1998.0680 </a><br/>"
+		    "J. Hoshen and R. Kopelman<br/>"
+		    "<a href=\"https://doi.org/10.1103/PhysRevB.14.3438\">"
+		    " DOI: https://doi.org/10.1103/PhysRevB.14.3438 </a><br/>");
+  refs_ack->setTextFormat(Qt::RichText);
+  refs_ack->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  refs_ack->setOpenExternalLinks(true);    
   
   //the main layout of the form
   main_layout = new QHBoxLayout( this );
@@ -372,14 +408,23 @@ void GUI::set_up_ui(){
 
 
   about_widget_layout = new QVBoxLayout( about_widget );
-  
+
+  about_widget_layout->addWidget( about_us );
+  about_widget_layout->addItem( v_spacer[6] );
+
+  about_widget_layout->addWidget( refs_ack );
   
   about_qt_layout = new QHBoxLayout();
-
   about_qt_layout->addWidget( qt_logo );
   about_qt_layout->addWidget( qt_text );
-
   about_widget_layout->addLayout( about_qt_layout );
+  
+#ifdef USE_CGAL
+  about_cgal_layout = new QHBoxLayout();
+  about_cgal_layout->addWidget( cgal_logo );
+  about_cgal_layout->addWidget( cgal_text );
+  about_widget_layout->addLayout( about_cgal_layout );
+#endif
 
 
 }
@@ -900,7 +945,7 @@ void GUI::update_stats(){
 
   orient_info << "Orientation     " << std::endl;
   orient_info << "Phi=" << std::setw(5) << sp->get_phi() << std::endl;
-  orient_info << "Ttheta=" << std::setw(5) << sp->get_theta() << std::endl;
+  orient_info << "Theta=" << std::setw(5) << sp->get_theta() << std::endl;
 
   status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
   status_bar_mins->setText( QString( uc_dim_info.str().c_str() ) );
