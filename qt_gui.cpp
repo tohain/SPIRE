@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -268,7 +268,7 @@ void GUI::set_up_ui(){
   about_us->setOpenExternalLinks(true);
 
   refs_ack = new QLabel( about_widget );
-  refs_ack->setText("published under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\"> GPLv3 library</a><br/>"
+  refs_ack->setText("published under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\"> GPLv3 license</a><br/>"
 		    "<br/>"
 		    "<br/>"
 		    "Using work from<br/>"
@@ -791,7 +791,8 @@ void GUI::update_gui_from_sp(){
   read_membranes();
 
 
-  std::string hkl_visual = draw_slice_orientation( sp->get_h(), sp->get_k(), sp->get_l(), sp->get_theta(), sp->get_phi() );
+  std::vector<double> uc_dim = sp->get_ucdim();
+  std::string hkl_visual = draw_slice_orientation( sp->get_h(), sp->get_k(), sp->get_l(), sp->get_theta(), sp->get_phi(), uc_dim[0], uc_dim[1], uc_dim[2] );
   QByteArray tmp_arr ( hkl_visual.c_str(), -1 );  
   orientation_visualisation->load( tmp_arr );
   

@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,7 +34,21 @@ void Matrix::print(){
 }
 
 /**
- * Quick and dirty dot product between two vectors
+ * Quick and dirty scalar product between scalar and vector
+ */
+std::vector<double> VEC_MAT_MATH::s_prod ( double s, std::vector<double> w ){
+  return std::vector<double> { s*w[0], s*w[1], s*w[2] };  
+}
+
+/**
+ * Quick and dirty sum of two vectors
+ */
+std::vector<double> VEC_MAT_MATH::vec_add ( std::vector<double> v, std::vector<double> w ){
+  return std::vector<double> { v[0]+w[0], v[1]+w[1], v[2]+w[2] };  
+}
+
+/**
+ *  Quick and dirty dot product between two vectors
  */
 double VEC_MAT_MATH::dot_prod ( std::vector<double> v, std::vector<double> w ){
 

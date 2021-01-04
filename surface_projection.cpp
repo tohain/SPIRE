@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -509,8 +509,26 @@ double surface_projection::level_set_wurtzite_topo( double x, double y, double z
  */
 void surface_projection::set_orientation_from_hkl(){
 
+
+  // get reciprocal lattice vectors without 2*pi / V_E factor since we
+  // are going to normalise the normal vector later on anyways
+
+  std::vector<double> a_star =
+    VEC_MAT_MATH::cross_prod( std::vector<double> {0, unitcell_dim[type][1], 0 },
+			      std::vector<double> {0, 0, unitcell_dim[type][2] } );
+
+  std::vector<double> b_star =
+    VEC_MAT_MATH::cross_prod( std::vector<double> {0, 0, unitcell_dim[type][2] },
+			      std::vector<double> {unitcell_dim[type][0], 0, 0 } );
+
+  std::vector<double> c_star =
+    VEC_MAT_MATH::cross_prod( std::vector<double> { unitcell_dim[type][0], 0, 0 },
+			      std::vector<double> {0, unitcell_dim[type][1], 0 } );  
+
   // Normal vector of the plane given by Miller indeces
-  std::vector<double> n = {double(h), double(k), double(l)};
+  std::vector<double> n = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod(double(h), a_star),
+						 VEC_MAT_MATH::s_prod(double(k), b_star) );
+  n = VEC_MAT_MATH::vec_add( n, VEC_MAT_MATH::s_prod( double(l), c_star ) );
 
   //make it unit length
   double norm_scale = sqrt( n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
@@ -1999,6 +2017,9 @@ void surface_projection::set_l( int val ){
   l = val;
 }
 
+std::vector<double> surface_projection::get_ucdim() const{
+  return unitcell_dim[type];
+}
 
 std::vector<int> surface_projection::get_channel_fill() const{
   return channel_filled;

@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,6 @@
 
 #include "drawme.hpp"
 
-std::string draw_slice_orientation( int h, int k, int l, double theta, double phi );
+std::string draw_slice_orientation( int h, int k, int l, double theta, double phi, double Lx = 1.0, double Ly = 1.0, double Lz = 1.0 );
 
 #endif

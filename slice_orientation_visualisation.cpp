@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,8 +19,16 @@
 
 #include "slice_orientation_visualisation.hpp"
 
-std::string draw_slice_orientation( int h, int k, int l, double theta, double phi ){
+std::string draw_slice_orientation( int h, int k, int l, double theta, double phi, double Lx, double Ly, double Lz ){
 
+
+  double max_L = std::max( Lx, std::max( Ly, Lz ) );
+  Lx /= max_L;
+  Ly /= max_L;
+  Lz /= max_L;
+
+  double min_L = std::min( Lx, std::min( Ly, Lz ) );
+  
   // the orientation of the projection plane
   double phi_proj = 5.061455, theta_proj = 3.49066;
 
@@ -36,7 +44,7 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
 
   
   // initialize the plane, centered about origin
-  point r1{-a, -a, 0}, r2{-a, a, 0}, r3{a, a, 0}, r4{a, -a, 0};
+  point r1{-min_L*a, -min_L*a, 0}, r2{-min_L*a, min_L*a, 0}, r3{min_L*a, min_L*a, 0}, r4{min_L*a, -min_L*a, 0};
 
   // rotate the initial plane to match the plane indicated by miller indeces
   Matrix R1 = VEC_MAT_MATH::get_y_rot_m(theta), R2 = VEC_MAT_MATH::get_z_rot_m(phi);
@@ -47,8 +55,8 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
 
    // draw a cube  
   // cube centered around origin
-  point c1 {-a,-a,-a}, c2{-a, a, -a}, c3{a, a, -a}, c4{a,-a,-a};
-  point c5 {-a,-a,a}, c6{-a, a, a}, c7{a, a, a}, c8{a,-a,a};  
+  point c1 {-Lx*a,-Ly*a,-Lz*a}, c2{-Lx*a, Ly*a, -Lz*a}, c3{Lx*a, Ly*a, -Lz*a}, c4{Lx*a,-Ly*a,-Lz*a};
+  point c5 {-Lx*a,-Ly*a,Lz*a}, c6{-Lx*a, Ly*a, Lz*a}, c7{Lx*a, Ly*a, Lz*a}, c8{Lx*a,-Ly*a,Lz*a};  
 
 
   // draw the background of the cube

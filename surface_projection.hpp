@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -227,6 +227,8 @@ public:
   double get_dy() const;
   /// Returns the distance between two points in z direction  
   double get_dz() const;
+  /// Returns the unit cell size in [100] direction (length of UC base vectors)
+  std::vector<double> get_ucdim() const;
   /// Returns the unit cell size (periodicity length) in the current orientation
   std::vector<double> get_uc_dim_in_orientation() const;
   /// Returns the slice dimensions
