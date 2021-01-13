@@ -10,10 +10,22 @@ option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
 option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channel proportions" OFF)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp vec_mat_math.cpp percolation_analysis.cpp)
+SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp)
 
 #the source files for the QT gui
 SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp slice_orientation_visualisation.cpp drawme.cpp)
+
+#
+# external libraries
+#
+SET(IML_DIR ./ext_libs/iml-1.0.5/src/)
+SET(SRC_IML ${IML_DIR}/nullspace.c ${IML_DIR}/basisop.c /
+  ${IML_DIR}/certsolve.c ${IML_DIR}/error.c /
+  ${IML_DIR}/latreduce.c ${IML_DIR}/memalloc.c /
+  ${IML_DIR}/mtrans.c ${IML_DIR}/nonsysolve.c /
+  ${IML_DIR}/nullspace.c ${IML_DIR}/padiclift.c /
+  ${IML_DIR}/reconsolu.c ${IML_DIR}/RNSop.c )
+include_directories(./ext_libs/iml-1.0.5/src)
 
 if(BUILD_QT_GUI)
   #build the gui, bring in all necessary libraries
@@ -23,8 +35,10 @@ if(BUILD_QT_GUI)
   set(CMAKE_AUTOUIC ON)
 
   find_package(Qt5 COMPONENTS Widgets Gui Svg REQUIRED)
+  find_library(gmp gmp)
+  find_package(BLAS)  
   
-  add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI} resources.qrc)
+  add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI} ${SRC_IML} resources.qrc)
 
 
   #check if we have CGAL
@@ -34,13 +48,14 @@ if(BUILD_QT_GUI)
     target_link_libraries(projection_tool_qt CGAL::CGAL)
   endif()
 
+  target_link_libraries(projection_tool_qt BLAS::BLAS)
+  target_link_libraries(projection_tool_qt gmp gmpxx)
+  
   target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
 
 
 if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
-    add_executable(get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
+  add_executable(get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
 endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
-
-      
 

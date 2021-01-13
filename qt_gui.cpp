@@ -661,8 +661,6 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   img_pix = new QPixmap();
   img_pix->convertFromImage( *image );
   
-
-  
   thread = new QThread();
   sp->moveToThread(thread);
   thread->start();
@@ -725,10 +723,71 @@ void GUI::update_view(){
   image = new QImage( img_data, sp->get_width(), sp->get_height(), sp->get_width(), QImage::Format_Grayscale8 );
 
   img_pix->convertFromImage( *image );
-  draw_area->setPixmap( *img_pix);
 
+  //draw the unit cell if desired
+  draw_unitcell();
+  
+  draw_area->setPixmap( *img_pix);
 }
 
+
+void GUI::draw_unitcell(){
+
+  // get a new painter
+
+  uc_artist = new QPainter( img_pix );
+  uc_artist->setBrush( Qt::magenta );
+  uc_artist->setPen( Qt::magenta );  
+  
+  
+  // compute the pixles to draw the line
+  
+  // get the base vectors already in euclidean base
+  std::vector<double> base = sp->get_uc_base();
+  std::vector<double> a = {base[0], base[1], base[2]};
+  std::vector<double> b = {base[3], base[4], base[5]};
+  std::vector<double> c = {base[6], base[7], base[8]};  
+
+  // get an orhto-normal base vector system
+  std::vector<double> x = VEC_MAT_MATH::get_unit( a );
+  std::vector<double> z = VEC_MAT_MATH::get_unit( c );
+  std::vector<double> y = VEC_MAT_MATH::cross_prod( z, x );
+
+  // express the base vectors a,b in terms of the new base
+  double x_len = VEC_MAT_MATH::dot_prod( a, x);
+  double yx = VEC_MAT_MATH::dot_prod( b, x );
+  double yy = VEC_MAT_MATH::dot_prod( b, y );
+  double yz = VEC_MAT_MATH::dot_prod( b, z );
+  
+  int mid_x = int( 0.5 * sp->get_width() );
+  int mid_y = int( 0.5 * sp->get_height() );  
+  
+  //convert length to pixel
+  int ax = int( x_len / sp->get_dx() );
+  int bx = int( yx / sp->get_dx() );
+  int by = int( yy / sp->get_dy() );
+
+  // get the corner points of the unit cell centered around the origin
+  int tl_x = mid_x - int(0.5*ax) + int(0.5*bx);
+  int tl_y = mid_y + int(0.5*by);
+
+  int tr_x = tl_x + ax;
+  int tr_y = tl_y;
+
+  int br_x = tr_x - bx;
+  int br_y = tr_y - by;
+
+  int bl_x = br_x - ax;
+  int bl_y = br_y;
+
+  // draw the line
+  uc_artist->drawLine( tl_x, tl_y, tr_x, tr_y );
+  uc_artist->drawLine( tr_x, tr_y, br_x, br_y );
+  uc_artist->drawLine( br_x, br_y, bl_x, bl_y );
+  uc_artist->drawLine( bl_x, bl_y, tl_x, tl_y );
+  delete( uc_artist );
+  
+}
 
 void GUI::paintEvent( QPaintEvent * event ){
 
@@ -782,7 +841,8 @@ void GUI::update_gui_from_sp(){
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
 
-  sp->compute_uc_dim_in_orientation();
+  //sp->compute_uc_dim_in_orientation();
+  sp->compute_smallest_uc();
 
   update_fill_channels();
   
@@ -900,7 +960,8 @@ void GUI::save_image_to_file(){
     filename.append(".png");
   } 
   
-  image->save( filename );
+  //image->save( filename );
+  img_pix->save( filename );
 }
 
 
@@ -941,7 +1002,8 @@ void GUI::change_orientation( int val ){
 }
 
 void GUI::update_stats(){
-  
+
+  sp->compute_smallest_uc();
   auto uc_dim = sp->get_uc_dim_in_orientation();
   std::stringstream uc_orient_info, orient_info, pix_info, uc_dim_info;
   

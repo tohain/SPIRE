@@ -377,6 +377,14 @@ void surface_projection::print_max_rad_transform_dist( std::string fn ){
  */
 surface_projection::surface_projection( double &p, std::string &stat) : slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
 
+
+  // init the base vectors
+  b1 = {1,0,0};
+  b2 = {0,1,0};
+  alpha=M_PI/2.0;
+
+  update_a();
+  
   //set the channel proportion to 0.5
   set_channel_vol_prop( 0.5 );
   
@@ -384,9 +392,8 @@ surface_projection::surface_projection( double &p, std::string &stat) : slice_po
   //sets theta,phi
   set_orientation_from_hkl();
   
-  //periodicity
-  //sets periodicty length
-  compute_uc_dim_in_orientation();
+  // compute unit cell
+  compute_smallest_uc();
 
   //update geometry
   //sets dx,dy,dz, L
@@ -509,80 +516,43 @@ double surface_projection::level_set_wurtzite_topo( double x, double y, double z
  */
 void surface_projection::set_orientation_from_hkl(){
 
+  std::vector<int> ni = {h, k, l};
+  std::vector<double> n = VEC_MAT_MATH::get_unit( VEC_MAT_MATH::dot_prod( A_rec, ni ) );
 
-  // get reciprocal lattice vectors without 2*pi / V_E factor since we
-  // are going to normalise the normal vector later on anyways
+  // get the euclidean coordinate system
+  std::vector<double> x = {1.0, 0.0, 0.0};
+  std::vector<double> y = {0.0, 1.0, 0.0};
+  std::vector<double> z = {0.0, 0.0, 1.0};
 
-  std::vector<double> a_star =
-    VEC_MAT_MATH::cross_prod( std::vector<double> {0, unitcell_dim[type][1], 0 },
-			      std::vector<double> {0, 0, unitcell_dim[type][2] } );
+  // the projection of n into the xy plane
+  std::vector<double> n_xy = {n[0], n[1], 0};
 
-  std::vector<double> b_star =
-    VEC_MAT_MATH::cross_prod( std::vector<double> {0, 0, unitcell_dim[type][2] },
-			      std::vector<double> {unitcell_dim[type][0], 0, 0 } );
+  if( n[0] == 0 && n[1] == 0 ){
+    phi = 0;
+  } else {
+    phi = acos( VEC_MAT_MATH::dot_prod( n_xy, x ) / sqrt(n[0]*n[0] + n[1]*n[1]) );
+  }
 
-  std::vector<double> c_star =
-    VEC_MAT_MATH::cross_prod( std::vector<double> { unitcell_dim[type][0], 0, 0 },
-			      std::vector<double> {0, unitcell_dim[type][1], 0 } );  
-
-  // Normal vector of the plane given by Miller indeces
-  std::vector<double> n = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod(double(h), a_star),
-						 VEC_MAT_MATH::s_prod(double(k), b_star) );
-  n = VEC_MAT_MATH::vec_add( n, VEC_MAT_MATH::s_prod( double(l), c_star ) );
-
-  //make it unit length
-  double norm_scale = sqrt( n[0]*n[0] + n[1]*n[1] + n[2]*n[2] );
-  n[0]/=norm_scale;n[1]/=norm_scale;n[2]/=norm_scale;  
+  // make it between 0 and 360
+  if( n[1] < 0 ){
+    phi = 2*M_PI - phi;
+  }
   
-  //get angle for rotation in xy plane
-  double _phi;
-  if( k == 0 ){
-    if( h < 0)
-        _phi = M_PI;
-    else
-        _phi = 0;
-  } else {
-    if( h == 0 ){
-      if( k >= 0 ){
-	_phi = 0.5*M_PI;
-      } else {
-	_phi = 1.5*M_PI;
-      }
-    } else if( h > 0){
-        if (k >= 0)
-            _phi = atan2( n[1], n[0] ) ;
-        else 
-            _phi = 2*M_PI - atan2( -n[1], n[0] ) ;
-    } else{
-        if (k > 0)
-            _phi = M_PI - atan2( n[1], -n[0] ) ;
-        else 
-            _phi = M_PI + atan2( -n[1], -n[0] ) ;
-    }
-  }
-
-
-  //get length of projection of normal vector in xy plane
-  double n_xy = sqrt(n[0]*n[0]+n[1]*n[1]);
-   
-  //get angle to rotate around x axis to align vector with {0, 0, 1}  
-  double _theta;
-  if( l == 0 ){
-    _theta = M_PI/2.;
-  } else {
-      if(l > 0)
-        _theta = atan2( n_xy, n[2] );
-      else
-        _theta = M_PI - atan2( n_xy, -n[2] );
-  }
-
-  //set the angles
-  theta = _theta; phi = _phi;
+  theta = acos( VEC_MAT_MATH::dot_prod( n, z) );  
 }
 
 
-
-void surface_projection::set_up_points(){
+/**
+ *  This function set ups the points array, i.e. determines the
+ *  positions of the voxels. It does that by rotating the base so that
+ *  nz is parallel to n and then put a grid along these rotated base
+ *  vectors.
+ *
+ *  If a minimal base is computed, detected if b1 and b2 have non-zero
+ *  length, the system is further rotated, so that the rotated x axes
+ *  matches either b1 or b2, whichever is longer
+ */
+void surface_projection::set_up_points( ){
   
   //vectors of slice
   std::vector<double> nx = {1, 0, 0};
@@ -593,13 +563,40 @@ void surface_projection::set_up_points(){
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
   //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
-  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
-
-  //rotate
+  Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
+  
+  //rotate so nz is aligned with the normal vector
   nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
   ny = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, ny));
   nz = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nz));  
+
+  // now get the final touch by rotation the vectors around the z axis
+  // into a nice direction
+  std::vector<double> true_b1 = VEC_MAT_MATH::dot_prod( A_dir, b1 );
   
+  // get the angle between b1 and x, they already are in the same
+  // plane, so this angle is also in-plane
+  double ang = acos( VEC_MAT_MATH::dot_prod( nx, true_b1 ) /
+		     sqrt(VEC_MAT_MATH::dot_prod( true_b1, true_b1 ) )
+		     );
+  
+  // still do not know which direction to rotate, there must be a
+  // better way, but for now, I'll just guess and try the other way if
+  // the first guess was incorrect
+  
+  Matrix<double> rot_inplane = VEC_MAT_MATH::get_rot_n( nz, ang );
+  nx = VEC_MAT_MATH::dot_prod( rot_inplane, nx );
+  ny = VEC_MAT_MATH::dot_prod( rot_inplane, ny );
+  nz = VEC_MAT_MATH::dot_prod( rot_inplane, nz );
+  
+  // correct if rotated in the wrong directon
+  if( std::fabs( VEC_MAT_MATH::dot_prod( nx, VEC_MAT_MATH::get_unit(true_b1) ) - 1.0 ) > 1e-15 ){
+    rot_inplane = VEC_MAT_MATH::get_rot_n( nz, -2*ang );
+    nx = VEC_MAT_MATH::dot_prod( rot_inplane, nx );
+    ny = VEC_MAT_MATH::dot_prod( rot_inplane, ny );
+    nz = VEC_MAT_MATH::dot_prod( rot_inplane, nz );
+  }
+
   long max_points = n_points_x*n_points_y*n_points_z;
   
   //the total index of that particle in the array
@@ -649,6 +646,8 @@ void surface_projection::set_up_points(){
  * current structure in the current orientation. Basically just a
  * wrapper around the \ref compute_periodicity function.
  */
+
+/*
 void surface_projection::compute_uc_dim_in_orientation(){
  
   // base vectors of slice
@@ -660,7 +659,7 @@ void surface_projection::compute_uc_dim_in_orientation(){
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
   //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
-  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
+  Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
 
   //rotate
   nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
@@ -673,7 +672,7 @@ void surface_projection::compute_uc_dim_in_orientation(){
   uc_dim_in_orientation[2] = compute_periodicity( nz );
 
 }
-
+*/
 
 /**
  * Evalutes the voxels in the level set. Sets the "colors" of the
@@ -910,9 +909,9 @@ void surface_projection::update_containers(){
  */
 void surface_projection::update_geometry(){
 
-  set_orientation_from_hkl();
-  compute_uc_dim_in_orientation();
   update_a();
+  set_orientation_from_hkl();
+  compute_smallest_uc();
   
   L_2[0] = L[0]/2.0;
   L_2[1] = L[1]/2.0;
@@ -943,9 +942,8 @@ void surface_projection::compute_projection( ){
   
   //get the points in the slice  
   status = "Computing the points";
+
   set_up_points();
-
-
 
   progress = 0.3;
   
@@ -1075,6 +1073,12 @@ void surface_projection::compute_percolation_threshold() {
  * Computes the normal vector of the given orientation. In principle
  * this is equivalent to computing hkl, except we're not making even
  * numbers
+ *
+ *
+ *
+ * not used anywhere, delete in future commit!
+ *
+ *
  */
 std::vector<double> surface_projection::get_normal() {
 
@@ -1083,7 +1087,7 @@ std::vector<double> surface_projection::get_normal() {
   //rotation matrices
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
-  Matrix Ry = VEC_MAT_MATH::get_y_rot_m(2*M_PI - theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
+  Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(2*M_PI - theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
 
   //rotate
   n = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, n));  
@@ -1116,7 +1120,94 @@ inline double surface_projection::mod( double lhs, double rhs ){
 }
 
 
-/*
+
+/**
+ * This function computes two additional base vectors which together
+ * with the normal vector on the currenty hkl plane build up the
+ * smalles possible unit cell given the current orientation
+ *
+ * A nifty way to do this is to interpret the normal vector on the
+ * hkl-plane, as a 1x3 matrix:
+ * 
+ * <A*.n, A.xi> = 0 must hold, so that the xi's are in the hkl=plane
+ * A made up of base vectors of direct lattice
+ * A* made up of base vectors of reciprocal lattice
+ * n^T A*^T A xi = n^T xi = 0 with A*^TA=1 (definition of reciprocal lattice)
+ * 
+ * then the two base vectors we are looking for is just the integer
+ * kernel of the 1x3 matrix n^T
+ *
+ * This function is using the Integer Matrix Library, which computes
+ * the kernel of a matrix and uses lattice reduction to find a
+ * smallest, nearly orthogonal base.
+ */
+void surface_projection::compute_smallest_uc( int reduce ){
+
+  std::vector<long> n = { get_h(), get_k(), get_l() };
+
+  // a pointer to write the result in as GMP datatyp
+  mpz_t *kernel;
+
+  // get the kernel base
+  long kernel_dim = kernelLong( 1, 3, n.data(), &kernel, reduce );
+
+  std::vector<int> x (3, 0), y (3, 0);
+  
+  // get the two base vectors
+  x[0] = mpz_get_si( kernel[0] );
+  x[1] = mpz_get_si( kernel[2] );
+  x[2] = mpz_get_si( kernel[4] );
+
+  y[0] = mpz_get_si( kernel[1] );
+  y[1] = mpz_get_si( kernel[3] );
+  y[2] = mpz_get_si( kernel[5] );
+
+  free( kernel );
+
+  // find true length and the longer vector
+  std::vector<double> true_x = VEC_MAT_MATH::dot_prod( A_dir, x ); // direct lattice
+  std::vector<double> true_y = VEC_MAT_MATH::dot_prod( A_dir, y ); // direct lattice
+  std::vector<double> true_n = VEC_MAT_MATH::dot_prod( A_rec, n ); // reciprocal lattice!
+  double len_x = sqrt( VEC_MAT_MATH::dot_prod( true_x, true_x ) );
+  double len_y = sqrt( VEC_MAT_MATH::dot_prod( true_y, true_y ) );
+  double len_n = sqrt( VEC_MAT_MATH::dot_prod( true_n, true_n ) );
+  
+  // get the angle bewteen the two in-plane vectors. Must use vectors in euclidead base!
+  alpha = acos( VEC_MAT_MATH::dot_prod( true_x, true_y ) / (len_x * len_y) );
+  
+  // assign the longer base vector to b1, the shorter to b2
+  if( len_x > len_y ){
+    b1 = x; len_b1 = len_x;
+    b2 = y; len_b2 = len_y;
+  } else {
+    b1 = y; len_b1 = len_y;
+    b2 = x; len_b2 = len_x;
+  }
+
+  uc_dim_in_orientation[0] = len_b1; // periodicity length along longer in-plane vector
+  uc_dim_in_orientation[1] = len_b2; // periodicity length along shorter in-plane vector
+  uc_dim_in_orientation[2] = len_n; // periodicity length along normal vector
+}
+
+/**
+ * This functions sets appropriate slice dimensions which accomodate
+ * one unit cell plus some margin so that the unit cell markings are
+ * clearly visible
+ */
+void surface_projection::set_slice_to_uc( double margin ){
+
+  // b2 is not orthogonal to b1 so compute the lenght orthogonal to b1
+  double b2_x = std::fabs( cos(alpha) * uc_dim_in_orientation[1] );
+  double b2_y = std::fabs( sin(alpha) * uc_dim_in_orientation[1] );
+
+  // set unit cell dimensions plus the margin
+  set_slice_thickness( uc_dim_in_orientation[2] );
+  set_slice_width( (1.0+margin) * ( uc_dim_in_orientation[0] + b2_x ) );
+  set_slice_height( (1.0+margin) * b2_y );  
+}
+
+
+/**
  * This function computes the periodicity length in a given
  * direction. That means, how far must the current plane (given by the
  * normal vector n) be moven along its normal vector n so it will
@@ -1910,13 +2001,48 @@ void surface_projection::set_uc_scale_c( double val ){
   uc_scale_c = val;
 }
 
+
+/** 
+ * updates the size of the unitcell given in length units as well as
+ * the matrices holding the base vectors for the direct and reciprocal
+ * lattice
+ *
+ * Todo: right now only rectangluar unitcells are allowed, in which
+ * case the row and column vectors are identical, which is used down
+ * here. For a general base we need to change the appropriate lines
+ * below
+ */
 void surface_projection::update_a(){
     a[0] = uc_scale_ab * unitcell_dim[type][0];
     a[1] = uc_scale_ab * unitcell_dim[type][1];
     a[2] = uc_scale_c * unitcell_dim[type][2];
     inv_a[0] = 2*M_PI/(a[0]); // period for nodal representations
     inv_a[1] = 2*M_PI/(a[1]); // period for nodal representations        
-    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations  
+    inv_a[2] = 2*M_PI/(a[2]); // period for nodal representations
+
+
+    /*
+     * Update base vector matrices
+     */
+    
+    // matrix for direct lattice
+    A_dir.v = { a[0],    0,    0 };
+    A_dir.w = {    0, a[1],    0 };
+    A_dir.z = {    0,    0, a[2] };
+
+    double scale = (1.0 / VEC_MAT_MATH::dot_prod( A_dir.v, VEC_MAT_MATH::cross_prod(A_dir.w, A_dir.z) ) );
+    
+    //update matrices
+    std::vector<double> a_star = VEC_MAT_MATH::cross_prod( A_dir.w, A_dir.z );
+    std::vector<double> b_star = VEC_MAT_MATH::cross_prod( A_dir.z, A_dir.v );
+    std::vector<double> c_star = VEC_MAT_MATH::cross_prod( A_dir.v, A_dir.w );
+    a_star = VEC_MAT_MATH::s_prod( scale, a_star );
+    b_star = VEC_MAT_MATH::s_prod( scale, b_star );
+    c_star = VEC_MAT_MATH::s_prod( scale, c_star );    
+
+    A_rec.v = a_star;
+    A_rec.w = b_star;
+    A_rec.z = c_star;
 }
 
 
@@ -2023,4 +2149,18 @@ std::vector<double> surface_projection::get_ucdim() const{
 
 std::vector<int> surface_projection::get_channel_fill() const{
   return channel_filled;
+}
+
+/**
+ * Returns the base vectors of the unit cell in Euclidean base as a 1d
+ * array in column-major order.
+ */
+std::vector<double> surface_projection::get_uc_base() const {
+
+  std::vector<int> n = {h, k ,l};
+  std::vector<double> a = VEC_MAT_MATH::dot_prod( A_dir, b1 );
+  std::vector<double> b = VEC_MAT_MATH::dot_prod( A_dir, b2 );
+  std::vector<double> c = VEC_MAT_MATH::dot_prod( A_rec, n );
+
+  return std::vector<double> {a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]};
 }

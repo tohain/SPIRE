@@ -40,7 +40,8 @@ void sp_qt::update_geometry_(){
     emit send_message( e.what() );
   }
     set_orientation_from_hkl();
-    compute_uc_dim_in_orientation();
+    //compute_uc_dim_in_orientation();
+    compute_smallest_uc();
 
 }
 
@@ -400,12 +401,16 @@ void sp_qt::save_surface_points( int id, QString fn ){
 
 void sp_qt::set_slice_dim_to_uc(){
 
+  set_slice_to_uc( 0.1 );
+
+  /*
   if( uc_dim_in_orientation[0] > 0 )
     set_slice_width( uc_dim_in_orientation[0] );
   if( uc_dim_in_orientation[1] > 0 )
     set_slice_height( uc_dim_in_orientation[1] );
   if( uc_dim_in_orientation[2] > 0 )
     set_slice_thickness( uc_dim_in_orientation[2] );
+  */
 
   emit geometry_changed();
   emit parameter_changed();

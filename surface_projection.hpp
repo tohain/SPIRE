@@ -32,7 +32,8 @@
 #include "auxiliary.hpp"
 #include "vec_mat_math.hpp"
 
-
+#include <gmp.h>
+#include "iml.h"
 
 #ifdef USE_CGAL
 #include <CGAL/Simple_cartesian.h>
@@ -99,12 +100,19 @@ public:
   /// Computes the periodicity length in the given direction
   double compute_periodicity( std::vector<double> n );
 
+  /// Computes two base vector normal to the current orientation
+  /// forming the smalles possible unit cell
+  void compute_smallest_uc( int reduce = 1 );
+  
   /// Computes the dimension of the unitcell in the current orientation
-  void compute_uc_dim_in_orientation();
+  //void compute_uc_dim_in_orientation();
   
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
 
+  /// Sets the slice dimensions to fit a unit cell
+  void set_slice_to_uc( double margin = 0.0 );
+  
   /// Adds a membrane
   void add_membrane( double dist, double width );
 
@@ -195,6 +203,10 @@ public:
   double get_uc_scale_ab() const;
   /// returns unit cell scale in c direction
   double get_uc_scale_c() const;
+
+  /// returns the base vectors of the 2d uc in column major order
+  std::vector<double> get_uc_base() const;
+  
   /// Returns the surface level
   double get_surface_level() const;
   /// Returns the ratio of the volumes of the two channels
@@ -336,7 +348,7 @@ protected:
   double level_set_sphere( double x, double y, double z, std::vector<double> a);  
   
   /// Computes the position of the voxels in the slice
-  void set_up_points();
+  void set_up_points( );
   
   /// Evaluates all voxels with the chosen level sets. Sets colors of voxel
   void set_grid();
@@ -380,7 +392,7 @@ protected:
    */
   double slice_position;
 
-  /// Rectangular unit cell size
+  /// Rectangular unit cell size in length units
   std::vector<double> a;
   /// Surface period
   std::vector<double> inv_a;
@@ -409,7 +421,7 @@ protected:
   double theta;
   /// Phi angle of the orientation of the slice  
   double phi;
-
+  
   /// h Miller index
   int h;
   /// k Miller index  
@@ -417,6 +429,23 @@ protected:
   /// l Miller index  
   int l;
 
+
+  /// the first base vector spanning the hkl-plane, aligned in the
+  /// x-direction (cooresponds to <width> direction in the
+  /// projection). Chosen as the longer of the two base vector of the
+  /// kernel of N^T
+  std::vector<int> b1;
+  /// The "true" length of b1 in length units
+  double len_b1;
+  /// the second base vector spanning the hkl-plane
+  std::vector<int> b2;  
+  /// The "true" length of b2 in length units
+  double len_b2;
+
+  /// The angle in between the two base vectors b1, b2
+  double alpha;
+
+  
   /** \brief The length of the unitcell in the given orientation of the slice.
    *
    * In [001] direction, this equals the unitcell_dim. -1 if there if
@@ -473,6 +502,11 @@ protected:
 							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.1
 							   {1.0, sqrt(3.0), 1.732692}, //wur_0.2
   };
+
+  /// The base vectors of the direct lattice as column vectors
+  Matrix<double> A_dir;
+  /// The base vectors of the reciprocal lattice as column vectors
+  Matrix<double> A_rec;
 
   /// Available image scalings
   const std::vector<std::string> img_scaling_choices = {"LIN",

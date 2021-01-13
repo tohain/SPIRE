@@ -110,7 +110,7 @@ canvas::canvas( std::vector<double> n, int res_x_, int res_y_, double size_x_, d
 void canvas::update_projection_matrix(){
 
   auto base = VEC_MAT_MATH::get_orthogonal_base( normal );
-  projection_matrix = Matrix(base[0], base[1], point {0,0,0});
+  projection_matrix = Matrix<double>(base[0], base[1], point {0,0,0});
 }
 
 

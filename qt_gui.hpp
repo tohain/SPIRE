@@ -54,7 +54,7 @@
 #include "qt_sp.hpp"
 #include "sp_gui_tooltips.h"
 #include "slice_orientation_visualisation.hpp"
-
+#include "vec_mat_math.hpp"
 
 
 template <class QT_O>
@@ -314,6 +314,8 @@ private:
   const QImage *image;
   QPixmap *img_pix;
   unsigned char* img_data;
+
+  QPainter *uc_artist;
   
   // the thread holding the projection class
   QThread *thread;
@@ -364,6 +366,9 @@ public slots:
   
   
   void update_view();
+  void draw_unitcell();
+
+  
   void quit_app();
   void save_image_to_file();
 

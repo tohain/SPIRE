@@ -45,14 +45,14 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
   
   // initialize the plane, centered about origin
   point r1{-min_L*a, -min_L*a, 0}, r2{-min_L*a, min_L*a, 0}, r3{min_L*a, min_L*a, 0}, r4{min_L*a, -min_L*a, 0};
-
+  
   // rotate the initial plane to match the plane indicated by miller indeces
-  Matrix R1 = VEC_MAT_MATH::get_y_rot_m(theta), R2 = VEC_MAT_MATH::get_z_rot_m(phi);
+  Matrix<double> R1 = VEC_MAT_MATH::get_y_rot_m(theta), R2 = VEC_MAT_MATH::get_z_rot_m(phi);
   r1 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r1) );
   r2 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r2) );
   r3 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r3) );
   r4 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r4) );
-
+  
    // draw a cube  
   // cube centered around origin
   point c1 {-Lx*a,-Ly*a,-Lz*a}, c2{-Lx*a, Ly*a, -Lz*a}, c3{Lx*a, Ly*a, -Lz*a}, c4{Lx*a,-Ly*a,-Lz*a};
@@ -73,7 +73,7 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
   main_sketch.add_polygon( polygon( std::vector<point> {c5, c6, c7, c8}, "black", "grey", 2, .3 ) );  
   
   // get the vector indicating the angle of view of the skecth
-  Matrix Ry_proj = VEC_MAT_MATH::get_y_rot_m(theta_proj), Rz_proj = VEC_MAT_MATH::get_z_rot_m(phi_proj);
+  Matrix<double> Ry_proj = VEC_MAT_MATH::get_y_rot_m(theta_proj), Rz_proj = VEC_MAT_MATH::get_z_rot_m(phi_proj);
   point n_proj {1,0,0};
   n_proj = VEC_MAT_MATH::dot_prod( Rz_proj, VEC_MAT_MATH::dot_prod( Ry_proj, n_proj) );
   

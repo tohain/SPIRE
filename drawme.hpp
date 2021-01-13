@@ -103,7 +103,7 @@ private:
   std::vector<double> normal;
 
   void update_projection_matrix();
-  Matrix projection_matrix;
+  Matrix<double> projection_matrix;
   
   std::vector<int> pixvals;
 
