@@ -147,10 +147,6 @@ public:
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false, std::string scaling = "LIN");
 
-  /// Converts the \ref projection array in a rescaled image array and
-  /// adds a scale
-  unsigned char* get_image_with_scale(std::string loc = "bl" , bool invert = false );
-  
   /// Outputs the grid
   void print_grid( std::string fn );
   
@@ -314,11 +310,7 @@ protected:
   
   /// Quick and dirty modulo between two doubles
   inline double mod( double lhs, double rhs );
-  
-  /// Returns the normal vector of unit length for the given
-  /// orientation
-  std::vector<double> get_normal();  
-  
+    
   /// Nodal approximation of the level set function of a g surface
   double level_set_gyroid( double x, double y, double z, std::vector<double> a);
 
@@ -329,17 +321,17 @@ protected:
   double level_set_primitive( double x, double y, double z, std::vector<double> a);
 
   /// Nodal approximation of the level set function of a w surface with tolerance 0.05
-  double level_set_wurtzite_0_05( double x, double y, double z, std::vector<double> a);
+  double level_set_lonsdaleite_0_05( double x, double y, double z, std::vector<double> a);
   /// Nodal approximation of the level set function of a w surface with tolerance 0.075
-  double level_set_wurtzite_0_075( double x, double y, double z, std::vector<double> a);
+  double level_set_lonsdaleite_0_075( double x, double y, double z, std::vector<double> a);
   /// Nodal approximation of the level set function of a w surface with tolerance 0.1
-  double level_set_wurtzite_0_1( double x, double y, double z, std::vector<double> a);
+  double level_set_lonsdaleite_0_1( double x, double y, double z, std::vector<double> a);
   /// Nodal approximation of the level set function of a w surface with tolerance 0.2
-  double level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> a);
+  double level_set_lonsdaleite_0_2( double x, double y, double z, std::vector<double> a);
   /// Nodal approximation of the level set function of a
-  /// lonsdaleit/wurtzite surface, only reproducing the topology of
+  /// lonsdaleit surface, only reproducing the topology of
   /// the surface, but not being a minimal surface
-  double level_set_wurtzite_topo( double x, double y, double z, std::vector<double> a);  
+  double level_set_lonsdaleite_topo( double x, double y, double z, std::vector<double> a);  
 
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, std::vector<double> a);
@@ -356,16 +348,6 @@ protected:
   /// Computes the 2D projection
   void project_grid ();
 
-  /// Returns the id of a pixel up
-  inline int p_up( int val );
-  inline int p_down( int val );
-  inline int p_right( int val );
-  inline int p_left( int val );
-  inline int p_for( int val );
-  inline int p_back( int val );  
-
-
-  
   
   /////////////////////////////////////////////
   // parameters                           ////
@@ -399,7 +381,7 @@ protected:
 
   /// Scaling of unit cell (ab)
   double uc_scale_ab;
-  /// Scaling of unit cell (c) for rectangular/hexagonal symmetries (wurtzite so far)
+  /// Scaling of unit cell (c) for rectangular/hexagonal symmetries (lonsdaleite so far)
   double uc_scale_c;
 
   /// This parameter controlls the proportions of the two different
@@ -482,11 +464,11 @@ protected:
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
-						    //"Wurtzite",
-						    //"Wurtzite_0.05",
-						    //"Wurtzite_0.075",
-						    //"Wurtzite_0.1",
-						    "Wurtzite"	    
+						    //"lonsdaleite",
+						    //"lonsdaleite_0.05",
+						    //"lonsdaleite_0.075",
+						    //"lonsdaleite_0.1",
+						    "Lonsdaleite"	    
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -496,11 +478,11 @@ protected:
   const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0}, // gyr
 							   {1.0,1.0,1.0}, // dia
 							   {1.0,1.0,1.0}, // prim 
-							   //{1.0, sqrt(3.0), sqrt(8.0/3.0)}, //wur_topo
-							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.05
-							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.075
-							   //{2.0, sqrt(3.0), 1.732692}, //wur_0.1
-							   {1.0, sqrt(3.0), 1.732692}, //wur_0.2
+							   //{1.0, sqrt(3.0), sqrt(8.0/3.0)}, //lon_topo
+							   //{2.0, sqrt(3.0), 1.732692}, //lon_0.05
+							   //{2.0, sqrt(3.0), 1.732692}, //lon_0.075
+							   //{2.0, sqrt(3.0), 1.732692}, //lon_0.1
+							   {1.0, sqrt(3.0), 1.732692}, //lon_0.2
   };
 
   /// The base vectors of the direct lattice as column vectors

@@ -23,8 +23,8 @@
 
 /**
  * This struct is copy & paste from a CGAL example for surface
- * triangulations. Not quite sure what it does, but I think it defines
- * something like the niehgborhood of points
+ * triangulations. I think it defines something like the niehgborhood
+ * of points
  */
 struct Perimeter {
   double bound;
@@ -446,7 +446,7 @@ double surface_projection::level_set_primitive( double x, double y, double z, st
   return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
 }
 
-double surface_projection::level_set_wurtzite_0_05( double x, double y, double z, std::vector<double> inv_a) {
+double surface_projection::level_set_lonsdaleite_0_05( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
@@ -456,7 +456,7 @@ double surface_projection::level_set_wurtzite_0_05( double x, double y, double z
 
 }
 
-double surface_projection::level_set_wurtzite_0_075( double x, double y, double z, std::vector<double> inv_a) {
+double surface_projection::level_set_lonsdaleite_0_075( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
@@ -467,7 +467,7 @@ double surface_projection::level_set_wurtzite_0_075( double x, double y, double 
 }
 
 
-double surface_projection::level_set_wurtzite_0_1( double x, double y, double z, std::vector<double> inv_a) {
+double surface_projection::level_set_lonsdaleite_0_1( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
@@ -477,7 +477,7 @@ double surface_projection::level_set_wurtzite_0_1( double x, double y, double z,
 
 }
 
-double surface_projection::level_set_wurtzite_0_2( double x, double y, double z, std::vector<double> inv_a) {
+double surface_projection::level_set_lonsdaleite_0_2( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
@@ -494,7 +494,7 @@ double surface_projection::level_set_wurtzite_0_2( double x, double y, double z,
 /*
  * This one is the formula Matthias Saba derived analytically.
  */
-double surface_projection::level_set_wurtzite_topo( double x, double y, double z, std::vector<double> inv_a){
+double surface_projection::level_set_lonsdaleite_topo( double x, double y, double z, std::vector<double> inv_a){
 
  
    /* we need to adapt our x,y,z coordinates, since this series is
@@ -562,7 +562,6 @@ void surface_projection::set_up_points( ){
   //rotation matrices
   //substract the angle from 2pi since we're rotating in mathematical
   //negative orientation (with the clock
-  //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
   Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
   
   //rotate so nz is aligned with the normal vector
@@ -641,39 +640,6 @@ void surface_projection::set_up_points( ){
 }
 
 
-/*
- * This function computes the dimension of the unit cell of the
- * current structure in the current orientation. Basically just a
- * wrapper around the \ref compute_periodicity function.
- */
-
-/*
-void surface_projection::compute_uc_dim_in_orientation(){
- 
-  // base vectors of slice
-  std::vector<double> nx = {1, 0, 0};
-  std::vector<double> ny = {0, 1, 0};
-  std::vector<double> nz = {0, 0, 1};  
-  
-  //rotation matrices
-  //substract the angle from 2pi since we're rotating in mathematical
-  //negative orientation (with the clock
-  //Matrix Ry = get_y_rot_m(2*M_PI - theta), Rz = get_z_rot_m(2*M_PI - phi);
-  Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
-
-  //rotate
-  nx = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nx));
-  ny = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, ny));
-  nz = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, nz));  
-
-  // get the periodicities along the rotate base vectors
-  uc_dim_in_orientation[0] = compute_periodicity( nx );
-  uc_dim_in_orientation[1] = compute_periodicity( ny );
-  uc_dim_in_orientation[2] = compute_periodicity( nz );
-
-}
-*/
-
 /**
  * Evalutes the voxels in the level set. Sets the "colors" of the
  * voxels to 1 if they are within the membrane. Also updates the
@@ -708,19 +674,19 @@ void surface_projection::set_grid(){
     }
 
     /*
-    else if( type == 3 ){ //wurtzite_topo
-      level = level_set_wurtzite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 4 ){ //wurtzite_0.05
-      level = level_set_wurtzite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 5 ){ //wurtzite_0.075
-      level = level_set_wurtzite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 6 ){ //wurtzite_0.1
-      level = level_set_wurtzite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
+    else if( type == 3 ){ //lonsdaleite_topo
+      level = level_set_lonsdaleite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 4 ){ //lonsdaleite_0.05
+      level = level_set_lonsdaleite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 5 ){ //lonsdaleite_0.075
+      level = level_set_lonsdaleite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 6 ){ //lonsdaleite_0.1
+      level = level_set_lonsdaleite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
     }
     */
 
-    else if( type == 3 ){ //wurtzite_0.2
-      level = level_set_wurtzite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
+    else if( type == 3 ){ //lonsdaleite_0.2
+      level = level_set_lonsdaleite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
     
     else {
@@ -888,11 +854,9 @@ void surface_projection::project_grid (){
 void surface_projection::update_containers(){
   //resize and reset arrays
   points.resize( n_points_x * n_points_y * n_points_z * 3, 0 );
-  //memset( points.data(), 0, sizeof(double) * points.size() );
   
   /// Array holding the color (electron density) of the voxels
   grid.resize( n_points_x * n_points_y * n_points_z, 0 );
-  //memset( grid.data(), 0, sizeof(int) * grid.size() );
 
   /// The channel
   channel.resize( n_points_x * n_points_y * n_points_z, 0 );
@@ -1069,31 +1033,6 @@ void surface_projection::compute_percolation_threshold() {
 
 }
 
-/** 
- * Computes the normal vector of the given orientation. In principle
- * this is equivalent to computing hkl, except we're not making even
- * numbers
- *
- *
- *
- * not used anywhere, delete in future commit!
- *
- *
- */
-std::vector<double> surface_projection::get_normal() {
-
-  std::vector<double> n = {0, 0, 1};  
-
-  //rotation matrices
-  //substract the angle from 2pi since we're rotating in mathematical
-  //negative orientation (with the clock
-  Matrix<double> Ry = VEC_MAT_MATH::get_y_rot_m(2*M_PI - theta), Rz = VEC_MAT_MATH::get_z_rot_m(phi);
-
-  //rotate
-  n = VEC_MAT_MATH::dot_prod( Rz, VEC_MAT_MATH::dot_prod( Ry, n));  
-  
-  return n;
-}
 
 /**
  * Returns the modulo of two floating point numbers. That's
@@ -1320,61 +1259,6 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
 }
 
 
-/**
- * This function calls \ref get_image to generate an image from the
- * \ref projection array, but additionally adds a scale
- */
-unsigned char* surface_projection::get_image_with_scale(std::string loc, bool invert ){
-
-  // the scale bar should have a constant length in terms of the
-  // picture size. NOT PIXELS, meaning not matter how many pixels
-  // there are, the scale is always, say 10% of the edge length of the
-  // picture and oriented towards the x direction (horizontal)
-
-  double bar_length = 0.2;
-
-  //compute the pixel size
-  int bar_pix_l = bar_length * get_width();
-  int bar_pix_w = 0.1 * bar_length * get_height();
-
-  //find the positions
-  int margin_x, margin_y;
-  if( loc[0] == 't' ){
-    margin_y = 0.1 * get_height();
-  } else {
-    margin_y = get_height() - (0.1 * get_height()) - bar_pix_w;
-  }
-
-  if( loc[1] == 'l' ){
-    margin_x = 0.1 * get_width();
-  } else {
-    margin_x = get_width() - (0.1 * get_width()) - bar_pix_l;
-  }
-  
-
-
-  //get the image
-  unsigned char* img = get_image( invert );
-
-  //make the bar white or black
-  for( unsigned int yy=margin_y; yy < margin_y + bar_pix_w; yy++ ){
-    for( unsigned int xx=margin_x; xx < margin_x + bar_pix_l; xx++ ){
-      if( invert )
-	img[ get_width()*yy + xx ] = 0;
-      else
-	img[ get_width()*yy + xx ] = 255;
-    }
-  }
-
-
-  // now the important part: compute the actual length of the bar. We
-  // should take the orientation of the slice into account
-  
-
-  
-  return img;
-}
-
 /** 
  * adds a membrane to the membrane array
  *
@@ -1382,10 +1266,8 @@ unsigned char* surface_projection::get_image_with_scale(std::string loc, bool in
  *\param[in] width The width of the membrane
  */
 void surface_projection::add_membrane(double dist, double width ){
-
   membranes.push_back( dist );
-  membranes.push_back( width );
-  
+  membranes.push_back( width );  
 }
 
 
@@ -1437,79 +1319,6 @@ void surface_projection::compute_volume(){
   status = "Ready";
   
 }
-
-
-
-/**
- * returns the id of the pixel to the right
- */
-int surface_projection::p_right( int val ){
-  int m = val % (n_points_x*n_points_z);
-  if( (n_points_x*n_points_z) - n_points_z <= m &&
-      m < (n_points_x*n_points_z) ){
-    return val - (( n_points_x - 1) * n_points_z);
-  } else {
-    return val + n_points_z;
-  }
-}
-
-/**
- * returns the id of the pixel to the left
- */
-int surface_projection::p_left( int val ){
-  int m = val % (n_points_x*n_points_z);
-  if( 0 <= m && m < n_points_z ){
-    return val + ((n_points_x - 1) * n_points_z);
-  } else {
-    return val - n_points_z;
-  }
-}
-
-/**
- * returns the id of the pixel above
- */
-int surface_projection::p_up( int val ){
-  if(val % n_points_z == n_points_z - 1){
-    return val-(n_points_z-1);
-  } else {
-    return val+1;
-  }  
-}
-
-/**
- * returns the id of the pixel below
- */
-int surface_projection::p_down( int val ){
-  if( val % n_points_z == 0 ){
-    return val+(n_points_z-1);
-  } else {
-    return val - 1;
-  }
-}
-
-
-/**
- * returns the id of the pixel forward
- */
-int surface_projection::p_back( int val ){
-  if( val < n_points_x * n_points_z ){
-    return val + ( n_points_x * n_points_z * (n_points_y-1) );
-  } else {
-    return val - (n_points_x * n_points_z);
-  }
-}
-
-/**
- * returns the id of the pixel backwards
- */
-int surface_projection::p_for( int val ){
-  if( val >= (n_points_y-1) * n_points_x * n_points_z ){
-    return val - ( n_points_x * n_points_z * (n_points_y-1) );
-  } else {
-    return val + (n_points_x * n_points_z);
-  }
-}
-
 
 
 /**
@@ -1661,8 +1470,7 @@ void surface_projection::compute_surface_area(){
 
   status = "Ready";
   progress = 1;
-  
-  
+    
 }
 
 /*
