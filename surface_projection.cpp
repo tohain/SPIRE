@@ -1122,10 +1122,31 @@ void surface_projection::compute_smallest_uc( int reduce ){
     b1 = y; len_b1 = len_y;
     b2 = x; len_b2 = len_x;
   }
-
   uc_dim_in_orientation[0] = len_b1; // periodicity length along longer in-plane vector
   uc_dim_in_orientation[1] = len_b2; // periodicity length along shorter in-plane vector
-  uc_dim_in_orientation[2] = len_n; // periodicity length along normal vector
+  
+
+  /*
+   * strategy: we need to find the closest lattice point x in direction
+   * of the normal vector.
+   */
+
+  // direction
+  true_n = VEC_MAT_MATH::get_unit( true_n );
+  // lattice plane distance
+  double plane_dist = 1.0 / len_n;
+  
+  // compute how many unit cells we need to go in each direction
+  std::vector<int> pos = compute_periodicity( true_n, plane_dist, 2000 );
+
+
+  if( pos.size() > 0 ){ // we found a lattice point in the direction
+    std::vector<double> true_pos = VEC_MAT_MATH::dot_prod( A_dir, pos );
+    uc_dim_in_orientation[2] = sqrt( VEC_MAT_MATH::dot_prod( true_pos, true_pos ) );
+  } else { // did not found a reasonably sized unit cell
+    uc_dim_in_orientation[2] = -1;
+  }
+
 }
 
 /**
@@ -1140,7 +1161,9 @@ void surface_projection::set_slice_to_uc( double margin ){
   double b2_y = std::fabs( sin(alpha) * uc_dim_in_orientation[1] );
 
   // set unit cell dimensions plus the margin
-  set_slice_thickness( uc_dim_in_orientation[2] );
+  if( uc_dim_in_orientation[2] > 0 ){
+    set_slice_thickness( uc_dim_in_orientation[2] );
+  }
   set_slice_width( (1.0+margin) * ( uc_dim_in_orientation[0] + b2_x ) );
   set_slice_height( (1.0+margin) * b2_y );  
 }
@@ -1148,35 +1171,30 @@ void surface_projection::set_slice_to_uc( double margin ){
 
 /**
  * This function computes the periodicity length in a given
- * direction. That means, how far must the current plane (given by the
- * normal vector n) be moven along its normal vector n so it will
- * reach another chrystallographic equivalent layer. This is
- * implemented by looking for a scaling factor for the normal vector
- * so it will point to a point periodically equivalent to the origin
- * (where we started)
+ * direction. It moves along the normal vecors by steps of the lattice
+ * plane distance and checks if the current point is a lattice point
+ * of the direct lattice. The function stops at a cutoff value.
+ *
+ * \param[in] The direction in which to look
+ * \param[in] The distance between lattice planes
+ * \param[in] The maximum length
  */
-double surface_projection::compute_periodicity( std::vector<double> n ){
+std::vector<int> surface_projection::compute_periodicity( std::vector<double> n,
+							  double d_lattice,
+							  double cutoff  ){
 
-  // the step size is chosen, so that one step will take at least one
-  // direction from one periodic box to the next. Everything in
-  // between can't be periodic anyways
-  double step_size;
-  if( std::fabs( n[0] ) > tolerance ){
-    step_size = a[0] / n[0];
-  } else if ( std::fabs( n[1] ) > tolerance ){
-    step_size = a[1] / n[1];
-  } else {
-    step_size = a[2] / n[2];
-  }
+  // get the unit vector
+  n = VEC_MAT_MATH::get_unit( n );
 
-  if (step_size < 0) step_size  = -step_size ;
-
+  // the position of the closest lattice point in direction of the
+  // normal vector
+  std::vector<int> pos (0, 0);
+  
   //stop after some steps, rather arbitrary number
-  long long max_steps = 100;
+  long long max_steps = int( cutoff / d_lattice ) + 1;
 
   //count how many steps we need
   long long step_count = 1;
-
 
   bool more_steps = true;
 
@@ -1184,9 +1202,9 @@ double surface_projection::compute_periodicity( std::vector<double> n ){
   //periodic origin again
   while( step_count < max_steps && more_steps){
 
-    double xx = step_count * step_size * n[0];
-    double yy = step_count * step_size * n[1];
-    double zz = step_count * step_size * n[2];
+    double xx = step_count * d_lattice * n[0];
+    double yy = step_count * d_lattice * n[1];
+    double zz = step_count * d_lattice * n[2];
 
     double ddxx = mod(xx, a[0]);
     double ddyy = mod(yy, a[1]);
@@ -1195,6 +1213,12 @@ double surface_projection::compute_periodicity( std::vector<double> n ){
     if( std::fabs( ddxx ) < tolerance &&
 	std::fabs( ddyy ) < tolerance &&
 	std::fabs( ddzz ) < tolerance  ){
+
+      pos.resize( 3, 0);
+      pos[0] = int( round( xx / a[0] ) );
+      pos[1] = int( round( yy / a[1] ) );
+      pos[2] = int( round( zz / a[2] ) );
+
       more_steps = false;
       break;
     }
@@ -1203,14 +1227,7 @@ double surface_projection::compute_periodicity( std::vector<double> n ){
     step_count++;
   }
 
-  
-  if( step_count == max_steps ){
-    //no succes
-    return -1;
-  } else {
-    //success
-    return (step_count * step_size);
-  }
+  return pos;
 }
   
 
@@ -1837,7 +1854,7 @@ void surface_projection::update_a(){
     A_dir.v = { a[0],    0,    0 };
     A_dir.w = {    0, a[1],    0 };
     A_dir.z = {    0,    0, a[2] };
-
+    
     double scale = (1.0 / VEC_MAT_MATH::dot_prod( A_dir.v, VEC_MAT_MATH::cross_prod(A_dir.w, A_dir.z) ) );
     
     //update matrices
@@ -1969,6 +1986,6 @@ std::vector<double> surface_projection::get_uc_base() const {
   std::vector<double> a = VEC_MAT_MATH::dot_prod( A_dir, b1 );
   std::vector<double> b = VEC_MAT_MATH::dot_prod( A_dir, b2 );
   std::vector<double> c = VEC_MAT_MATH::dot_prod( A_rec, n );
-
+  
   return std::vector<double> {a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]};
 }

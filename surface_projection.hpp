@@ -98,7 +98,7 @@ public:
   void compute_projection();
 
   /// Computes the periodicity length in the given direction
-  double compute_periodicity( std::vector<double> n );
+  std::vector<int> compute_periodicity( std::vector<double> n, double d_lattice, double cutoff );
 
   /// Computes two base vector normal to the current orientation
   /// forming the smalles possible unit cell

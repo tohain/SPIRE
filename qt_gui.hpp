@@ -221,6 +221,8 @@ private:
   QT_h_labeled_obj<QDoubleSpinBox> *slice_position_control;
 
   QPushButton *button_set_to_uc_dim;
+  QCheckBox *draw_uc_control;
+  QVBoxLayout *auto_uc_layout;
   
   QT_h_labeled_obj<QSpinBox> *miller_h_control;
   QT_h_labeled_obj<QSpinBox> *miller_k_control;

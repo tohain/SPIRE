@@ -152,6 +152,8 @@ void GUI::set_up_ui(){
   slice_position_control->object()->setDecimals( 3 );
 
   button_set_to_uc_dim = new QPushButton ("Set to UC", controls_basic );
+  draw_uc_control = new QCheckBox( controls_basic );
+  draw_uc_control->setText("Draw unitcell");
   
   miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
   miller_h_control->object()->setRange(-500, 500);
@@ -332,6 +334,7 @@ void GUI::set_up_ui(){
   slice_orientation_layout = new QVBoxLayout();
   slice_dimension_layout = new QVBoxLayout();
   slice_settings = new QHBoxLayout();  
+  auto_uc_layout = new QVBoxLayout();
   membrane_settings = new QHBoxLayout();
   membrane_buttons_layout = new QHBoxLayout();
   
@@ -350,6 +353,8 @@ void GUI::set_up_ui(){
   
 
   slice_settings->addItem( h_spacer[1] );
+
+
   
   slice_dimension_layout->addLayout( slice_thickness_control->layout() );
   slice_dimension_layout->addLayout( slice_height_control->layout() );
@@ -358,8 +363,12 @@ void GUI::set_up_ui(){
 
   slice_settings->addLayout( slice_dimension_layout );
 
-  slice_settings->addWidget( button_set_to_uc_dim );
   
+  auto_uc_layout->addWidget( button_set_to_uc_dim );
+  auto_uc_layout->addWidget( draw_uc_control );  
+
+  slice_settings->addLayout(auto_uc_layout);
+    
   slice_settings->addItem( h_spacer[2] );
   
   slice_orientation_layout->addLayout( miller_h_control->layout() );
@@ -545,6 +554,8 @@ void GUI::set_up_signals_and_slots(){
 
   // set to uc
   connect( button_set_to_uc_dim, SIGNAL( clicked() ), sp, SLOT( set_slice_dim_to_uc() ) );
+  // draw unit cell?
+  connect( draw_uc_control, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );  
   
   // miller hkl
   connect( miller_h_control->object(), QOverload<int>::of(&QSpinBox::valueChanged),
@@ -725,7 +736,9 @@ void GUI::update_view(){
   img_pix->convertFromImage( *image );
 
   //draw the unit cell if desired
-  draw_unitcell();
+  if( draw_uc_control->isChecked() ){
+    draw_unitcell();
+  }
   
   draw_area->setPixmap( *img_pix);
 }
@@ -747,7 +760,7 @@ void GUI::draw_unitcell(){
   std::vector<double> a = {base[0], base[1], base[2]};
   std::vector<double> b = {base[3], base[4], base[5]};
   std::vector<double> c = {base[6], base[7], base[8]};  
-
+  
   // get an orhto-normal base vector system
   std::vector<double> x = VEC_MAT_MATH::get_unit( a );
   std::vector<double> z = VEC_MAT_MATH::get_unit( c );
