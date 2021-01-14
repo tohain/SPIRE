@@ -84,10 +84,10 @@ std::string draw_slice_visualization( std::vector<double> base, std::vector<doub
   n_proj = VEC_MAT_MATH::dot_prod( Rz_proj, VEC_MAT_MATH::dot_prod( Ry_proj, n_proj) );
   
   // draw the normal vector
-  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(a, z), "red", 3 ) );
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(a, z), g_color_n, 3 ) );
   // draw the two in-plane vectors
-  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, x), "blue", 1 ) );  
-  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, VEC_MAT_MATH::get_unit(y)), "yellow", 1 ) );
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, x), g_color_b1, 1 ) );  
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, VEC_MAT_MATH::get_unit(y)), g_color_b2, 1 ) );
   
   // create canvas and get 2D projection
   canvas can (n_proj, 75, 75, 150, 150, point {0,0,0});

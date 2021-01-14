@@ -56,6 +56,7 @@
 #include "slice_orientation_visualisation.hpp"
 #include "vec_mat_math.hpp"
 
+#include "global_settings.hpp"
 
 template <class QT_O>
 class QT_v_labeled_obj {

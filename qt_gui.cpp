@@ -227,6 +227,9 @@ void GUI::set_up_ui(){
   status_bar_areas = new QLabel( status_bar );
   status_bar_pixs = new QLabel( status_bar );
   status_bar_mins = new QLabel( status_bar );
+
+  status_bar_pixs->setTextFormat(Qt::RichText);
+
   status_bar->addPermanentWidget( status_bar_mins );  
   status_bar->addPermanentWidget( status_bar_vols );
   status_bar->addPermanentWidget( status_bar_areas );  
@@ -749,8 +752,6 @@ void GUI::draw_unitcell(){
   // get a new painter
 
   uc_artist = new QPainter( img_pix );
-  uc_artist->setBrush( Qt::magenta );
-  uc_artist->setPen( Qt::magenta );  
   
   
   // compute the pixles to draw the line
@@ -794,9 +795,11 @@ void GUI::draw_unitcell(){
   int bl_y = br_y;
 
   // draw the line
+  uc_artist->setPen( g_color_b1.c_str() );
   uc_artist->drawLine( tl_x, tl_y, tr_x, tr_y );
-  uc_artist->drawLine( tr_x, tr_y, br_x, br_y );
   uc_artist->drawLine( br_x, br_y, bl_x, bl_y );
+  uc_artist->setPen( g_color_b2.c_str() );
+  uc_artist->drawLine( tr_x, tr_y, br_x, br_y );
   uc_artist->drawLine( bl_x, bl_y, tl_x, tl_y );
   delete( uc_artist );
   
@@ -1021,11 +1024,11 @@ void GUI::update_stats(){
   auto uc_dim = sp->get_uc_dim_in_orientation();
   std::stringstream uc_orient_info, orient_info, pix_info, uc_dim_info;
   
-  uc_orient_info << "UC in orientation" << std::endl;
-  uc_orient_info << "X:  " << uc_dim[0] << std::endl;
-  uc_orient_info << "Y:  " << uc_dim[1] << std::endl;  
-  uc_orient_info << "Z:  " << uc_dim[2] << std::endl;  
-
+  uc_orient_info << "UC in orientation<br/>";
+  uc_orient_info << "<font color=\"" << g_color_b1 << "\">v:  " << uc_dim[0] << "</font><br/>";
+  uc_orient_info << "<font color=\"" << g_color_b2 << "\">w:  " << uc_dim[1] << "</font><br/>";
+  uc_orient_info << "<font color=\"" << g_color_n << "\">n:  " << uc_dim[2] << "</font><br/>";  
+  
   pix_info << "Resolution (pixel size)" << std::endl;
   pix_info << "X: " << std::setw(5) << sp->get_width()
 	   << " (" << std::setprecision(2) << sp->get_dx()
@@ -1047,7 +1050,7 @@ void GUI::update_stats(){
   orient_info << "Orientation     " << std::endl;
   orient_info << "Phi=" << std::setw(5) << sp->get_phi() << std::endl;
   orient_info << "Theta=" << std::setw(5) << sp->get_theta() << std::endl;
-
+  
   status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
   status_bar_mins->setText( QString( uc_dim_info.str().c_str() ) );
   status_bar_vols->setText( QString( orient_info.str().c_str() ) );

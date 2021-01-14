@@ -27,6 +27,8 @@
 
 #include "drawme.hpp"
 
+#include "global_settings.hpp"
+
 std::string draw_slice_visualization( std::vector<double> base, std::vector<double> L  );
 
 #endif
