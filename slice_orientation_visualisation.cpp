@@ -19,13 +19,27 @@
 
 #include "slice_orientation_visualisation.hpp"
 
-std::string draw_slice_orientation( int h, int k, int l, double theta, double phi, double Lx, double Ly, double Lz ){
+/**
+ * draws a visualization of the slice and the orientation of the viewing angle inside it
+ * \param[in] base A 1d array containing the three base vectors in column-major order. First vector is x direction, last one is normal onto viewing plane
+ */
+std::string draw_slice_visualization( std::vector<double> base, std::vector<double> L ){
 
 
-  double max_L = std::max( Lx, std::max( Ly, Lz ) );
-  Lx /= max_L;
-  Ly /= max_L;
-  Lz /= max_L;
+  
+  //get an orthonormal base
+  std::vector<double> x = {base[0], base[1], base[2]};
+  std::vector<double> y = {base[3], base[4], base[5]};
+  std::vector<double> z = {base[6], base[7], base[8]};  
+
+  x = VEC_MAT_MATH::get_unit( x );
+  z = VEC_MAT_MATH::get_unit( z );
+  std::vector<double> y_rect = VEC_MAT_MATH::cross_prod( z, x );
+
+  double max_L = std::max( L[0], std::max( L[1], L[2] ) );
+  double Lx = L[0] / max_L;
+  double Ly = L[1] / max_L;
+  double Lz = L[2] / max_L;
 
   double min_L = std::min( Lx, std::min( Ly, Lz ) );
   
@@ -37,27 +51,19 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
   // the edgelength of the cube
   double a = 50;
 
-  // cuttin plane
-  point n {static_cast<double>(h), static_cast<double>(k), static_cast<double>(l)};
-  auto base = VEC_MAT_MATH::get_orthogonal_base( n );
-  auto unit_normal = VEC_MAT_MATH::get_unit( n );
-
-  
-  // initialize the plane, centered about origin
-  point r1{-min_L*a, -min_L*a, 0}, r2{-min_L*a, min_L*a, 0}, r3{min_L*a, min_L*a, 0}, r4{min_L*a, -min_L*a, 0};
-  
-  // rotate the initial plane to match the plane indicated by miller indeces
-  Matrix<double> R1 = VEC_MAT_MATH::get_y_rot_m(theta), R2 = VEC_MAT_MATH::get_z_rot_m(phi);
-  r1 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r1) );
-  r2 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r2) );
-  r3 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r3) );
-  r4 = VEC_MAT_MATH::dot_prod( R2, VEC_MAT_MATH::dot_prod( R1, r4) );
-  
+  // draw the hkl plane centered around origin
+  point r1 = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod(  min_L*a, x ),
+				    VEC_MAT_MATH::s_prod(  min_L*a, y_rect ) );
+  point r2 = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod( -min_L*a, x ),
+				    VEC_MAT_MATH::s_prod(  min_L*a, y_rect ) );
+  point r3 = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod( -min_L*a, x ),
+				    VEC_MAT_MATH::s_prod( -min_L*a, y_rect ) );  
+  point r4 = VEC_MAT_MATH::vec_add( VEC_MAT_MATH::s_prod(  min_L*a, x ),
+				    VEC_MAT_MATH::s_prod( -min_L*a, y_rect ) );  
    // draw a cube  
   // cube centered around origin
   point c1 {-Lx*a,-Ly*a,-Lz*a}, c2{-Lx*a, Ly*a, -Lz*a}, c3{Lx*a, Ly*a, -Lz*a}, c4{Lx*a,-Ly*a,-Lz*a};
   point c5 {-Lx*a,-Ly*a,Lz*a}, c6{-Lx*a, Ly*a, Lz*a}, c7{Lx*a, Ly*a, Lz*a}, c8{Lx*a,-Ly*a,Lz*a};  
-
 
   // draw the background of the cube
   main_sketch.add_polygon( polygon( std::vector<point> {c1, c4, c8, c5}, "black", "grey", 2, .3 ) );
@@ -78,12 +84,16 @@ std::string draw_slice_orientation( int h, int k, int l, double theta, double ph
   n_proj = VEC_MAT_MATH::dot_prod( Rz_proj, VEC_MAT_MATH::dot_prod( Ry_proj, n_proj) );
   
   // draw the normal vector
-  main_sketch.add_line( line( point {0,0,0}, point {a*unit_normal[0], a*unit_normal[1], a*unit_normal[2] }, "red", 2 ) );
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(a, z), "red", 3 ) );
+  // draw the two in-plane vectors
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, x), "blue", 1 ) );  
+  main_sketch.add_line( line( point {0,0,0}, VEC_MAT_MATH::s_prod(0.5*a, VEC_MAT_MATH::get_unit(y)), "yellow", 1 ) );
   
   // create canvas and get 2D projection
   canvas can (n_proj, 75, 75, 150, 150, point {0,0,0});
   can.project_sketch( main_sketch );
 
   return can.draw_projection_svg();
+
   
 }

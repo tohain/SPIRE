@@ -27,6 +27,6 @@
 
 #include "drawme.hpp"
 
-std::string draw_slice_orientation( int h, int k, int l, double theta, double phi, double Lx = 1.0, double Ly = 1.0, double Lz = 1.0 );
+std::string draw_slice_visualization( std::vector<double> base, std::vector<double> L  );
 
 #endif

@@ -852,7 +852,8 @@ void GUI::update_gui_from_sp(){
 
 
   std::vector<double> uc_dim = sp->get_ucdim();
-  std::string hkl_visual = draw_slice_orientation( sp->get_h(), sp->get_k(), sp->get_l(), sp->get_theta(), sp->get_phi(), uc_dim[0], uc_dim[1], uc_dim[2] );
+  std::vector<double> base = sp->get_uc_base();
+  std::string hkl_visual = draw_slice_visualization( base, uc_dim );
   QByteArray tmp_arr ( hkl_visual.c_str(), -1 );  
   orientation_visualisation->load( tmp_arr );
   
