@@ -256,10 +256,11 @@ private:
   QStatusBar *status_bar;
   QLabel *status_bar_status_m;
   QLabel *status_bar_status_p;  
-  QLabel *status_bar_pixs;
-  QLabel *status_bar_vols;
-  QLabel *status_bar_areas;
-  QLabel *status_bar_mins;
+  //QLabel *status_bar_pixs;
+  QLabel *status_bar_uco;   // --> uc in orientation
+  QLabel *status_bar_or; //--> orientation
+  QLabel *status_bar_pixs; //--> pixel info
+  QLabel *status_bar_uc; //-->> uc_dim
 
 
   //about

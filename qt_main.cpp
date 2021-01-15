@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,12 +17,18 @@
  */
 
 #include <QApplication>
-
-
 #include "qt_gui.hpp"
+
+void print_legal(){
+  std::cout << "Licenses: " << std::endl;
+}
+
 
 int main( int argc, char *argv[]){
 
+  //produce license text
+  print_legal();
+  
   QApplication app( argc, argv );
 
   QLocale default_locale = QLocale();

@@ -1079,6 +1079,7 @@ inline double surface_projection::mod( double lhs, double rhs ){
  * This function is using the Integer Matrix Library, which computes
  * the kernel of a matrix and uses lattice reduction to find a
  * smallest, nearly orthogonal base.
+ *
  */
 void surface_projection::compute_smallest_uc( int reduce ){
 
@@ -1086,7 +1087,7 @@ void surface_projection::compute_smallest_uc( int reduce ){
 
   // a pointer to write the result in as GMP datatyp
   mpz_t *kernel;
-
+  
   // get the kernel base
   long kernel_dim = kernelLong( 1, 3, n.data(), &kernel, reduce );
 
@@ -1103,7 +1104,7 @@ void surface_projection::compute_smallest_uc( int reduce ){
 
   // probably should use something like gmp_clear() here
   free( kernel );
-
+  
   // find true length and the longer vector
   std::vector<double> true_x = VEC_MAT_MATH::dot_prod( A_dir, x ); // direct lattice
   std::vector<double> true_y = VEC_MAT_MATH::dot_prod( A_dir, y ); // direct lattice

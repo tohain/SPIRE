@@ -103,10 +103,7 @@ public:
   /// Computes two base vector normal to the current orientation
   /// forming the smalles possible unit cell
   void compute_smallest_uc( int reduce = 1 );
-  
-  /// Computes the dimension of the unitcell in the current orientation
-  //void compute_uc_dim_in_orientation();
-  
+    
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
 

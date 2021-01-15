@@ -1,6 +1,6 @@
-/* Projection tool - compute planar projection of triply periodic
+/* Projection tool - compute planar projections of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,10 +39,7 @@ void sp_qt::update_geometry_(){
   } catch ( invalid_parameter_exception e ){
     emit send_message( e.what() );
   }
-    set_orientation_from_hkl();
-    //compute_uc_dim_in_orientation();
-    compute_smallest_uc();
-
+  
 }
 
 void sp_qt::change_surface_type( int ind ){
@@ -402,15 +399,6 @@ void sp_qt::save_surface_points( int id, QString fn ){
 void sp_qt::set_slice_dim_to_uc(){
 
   set_slice_to_uc( 0.1 );
-
-  /*
-  if( uc_dim_in_orientation[0] > 0 )
-    set_slice_width( uc_dim_in_orientation[0] );
-  if( uc_dim_in_orientation[1] > 0 )
-    set_slice_height( uc_dim_in_orientation[1] );
-  if( uc_dim_in_orientation[2] > 0 )
-    set_slice_thickness( uc_dim_in_orientation[2] );
-  */
 
   emit geometry_changed();
   emit parameter_changed();

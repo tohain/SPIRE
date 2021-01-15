@@ -223,17 +223,17 @@ void GUI::set_up_ui(){
   status_bar_status_p = new QLabel( status_bar );
   status_bar_status_p->setAlignment(Qt::AlignCenter);  
   
-  status_bar_vols = new QLabel( status_bar );
-  status_bar_areas = new QLabel( status_bar );
+  status_bar_or = new QLabel( status_bar );
   status_bar_pixs = new QLabel( status_bar );
-  status_bar_mins = new QLabel( status_bar );
+  status_bar_uco = new QLabel( status_bar );
+  status_bar_uc = new QLabel( status_bar );
 
-  status_bar_pixs->setTextFormat(Qt::RichText);
+  status_bar_uco->setTextFormat(Qt::RichText);
 
-  status_bar->addPermanentWidget( status_bar_mins );  
-  status_bar->addPermanentWidget( status_bar_vols );
-  status_bar->addPermanentWidget( status_bar_areas );  
+  status_bar->addPermanentWidget( status_bar_uc );  
+  status_bar->addPermanentWidget( status_bar_or );
   status_bar->addPermanentWidget( status_bar_pixs );  
+  status_bar->addPermanentWidget( status_bar_uco );  
   status_bar->addPermanentWidget( status_bar_status_m );
   status_bar->addPermanentWidget( status_bar_status_p );  
 
@@ -805,11 +805,26 @@ void GUI::draw_unitcell(){
   int bl_x = br_x - ax;
   int bl_y = br_y;
 
-  // draw the line
-  uc_artist->setPen( g_color_b1.c_str() );
+  // draw the lines
+
+
+  // compute width, want higher widths for higer resolution, otherwise
+  // the lies get very thin
+  
+  int stroke_width = int( (sp->get_width() / 100.0 ) );
+
+  //uc_artist->pen().setWidth(2);
+  QPen *pen = new QPen();
+  pen->setColor( g_color_b1.c_str() );
+  pen->setWidth( stroke_width );
+  uc_artist->setPen( *pen );
+  
   uc_artist->drawLine( tl_x, tl_y, tr_x, tr_y );
   uc_artist->drawLine( br_x, br_y, bl_x, bl_y );
-  uc_artist->setPen( g_color_b2.c_str() );
+
+  pen->setColor( g_color_b2.c_str() );
+  uc_artist->setPen( *pen );
+
   uc_artist->drawLine( tr_x, tr_y, br_x, br_y );
   uc_artist->drawLine( bl_x, bl_y, tl_x, tl_y );
   delete( uc_artist );
@@ -868,15 +883,9 @@ void GUI::update_gui_from_sp(){
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
 
-  //sp->compute_uc_dim_in_orientation();
-  sp->compute_smallest_uc();
-
-  update_fill_channels();
-  
+  update_fill_channels();  
   update_stats( );
-
   read_membranes();
-
 
   std::vector<double> uc_dim = sp->get_ucdim();
   std::vector<double> base = sp->get_uc_base();
@@ -1031,7 +1040,6 @@ void GUI::change_orientation( int val ){
 
 void GUI::update_stats(){
 
-  sp->compute_smallest_uc();
   auto uc_dim = sp->get_uc_dim_in_orientation();
   std::stringstream uc_orient_info, orient_info, pix_info, uc_dim_info;
   
@@ -1062,10 +1070,10 @@ void GUI::update_stats(){
   orient_info << "Phi=" << std::setw(5) << sp->get_phi() << std::endl;
   orient_info << "Theta=" << std::setw(5) << sp->get_theta() << std::endl;
   
-  status_bar_pixs->setText( QString( uc_orient_info.str().c_str() ) );
-  status_bar_mins->setText( QString( uc_dim_info.str().c_str() ) );
-  status_bar_vols->setText( QString( orient_info.str().c_str() ) );
-  status_bar_areas->setText( QString( pix_info.str().c_str() ) );
+  status_bar_uco->setText( QString( uc_orient_info.str().c_str() ) );
+  status_bar_uc->setText( QString( uc_dim_info.str().c_str() ) );
+  status_bar_or->setText( QString( orient_info.str().c_str() ) );
+  status_bar_pixs->setText( QString( pix_info.str().c_str() ) );
 
 }
 
@@ -1326,10 +1334,10 @@ void GUI::set_measurements_status( int state ){
     style = "QLabel { background-color : green; color : black; }";
   }
   
+  status_bar_uco->setStyleSheet( QString( style.c_str() ) );
+  status_bar_or->setStyleSheet( QString( style.c_str() ) );
   status_bar_pixs->setStyleSheet( QString( style.c_str() ) );
-  status_bar_vols->setStyleSheet( QString( style.c_str() ) );
-  status_bar_areas->setStyleSheet( QString( style.c_str() ) );
-  status_bar_mins->setStyleSheet( QString( style.c_str() ) );
+  status_bar_uc->setStyleSheet( QString( style.c_str() ) );
 
 }
 
