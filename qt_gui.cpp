@@ -285,7 +285,18 @@ void GUI::set_up_ui(){
 		    " DOI: https://doi.org/10.1006/cviu.1998.0680 </a><br/>"
 		    "J. Hoshen and R. Kopelman<br/>"
 		    "<a href=\"https://doi.org/10.1103/PhysRevB.14.3438\">"
-		    " DOI: https://doi.org/10.1103/PhysRevB.14.3438 </a><br/>");
+		    " DOI: https://doi.org/10.1103/PhysRevB.14.3438 </a><br/>"
+		    "using <a href=\"https://www.openblas.net/\">libOpenBLAS</a><br/>"
+		    "published under the 3-clause license BSD license<br/>"
+		    "using <a href=\"https://gmplib.org/\">libmgp</a>"		    
+		    " published under <a href=\"https://www.gnu.org/licenses/"
+		    "old-licenses/gpl-2.0.html\">GNU GPL v2</a><br/>"
+		    "using <a href=\"https://www.mpfr.org//\">libmpfr</a>"
+		    " published under <a href=\"https://www.gnu.org/licenses/"
+		    "old-licenses/gpl-2.0.html\">GNU Lesser GPL</a><br/>"
+		    "using <a href=\"https://cs.uwaterloo.ca/~astorjoh/iml.html\">"
+		    "Integer Matrix Library</a><br/>"
+		    );
   refs_ack->setTextFormat(Qt::RichText);
   refs_ack->setTextInteractionFlags(Qt::TextBrowserInteraction);
   refs_ack->setOpenExternalLinks(true);    
@@ -1027,7 +1038,7 @@ void GUI::update_stats(){
   uc_orient_info << "UC in orientation<br/>";
   uc_orient_info << "<font color=\"" << g_color_b1 << "\">v:  " << uc_dim[0] << "</font><br/>";
   uc_orient_info << "<font color=\"" << g_color_b2 << "\">w:  " << uc_dim[1] << "</font><br/>";
-  uc_orient_info << "<font color=\"" << g_color_n << "\">n:  " << uc_dim[2] << "</font><br/>";  
+  uc_orient_info << "<font color=\"" << g_color_n << "\">n:  " << uc_dim[2] << "</font><br/>"; 
   
   pix_info << "Resolution (pixel size)" << std::endl;
   pix_info << "X: " << std::setw(5) << sp->get_width()

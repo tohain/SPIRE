@@ -1101,6 +1101,7 @@ void surface_projection::compute_smallest_uc( int reduce ){
   y[1] = mpz_get_si( kernel[3] );
   y[2] = mpz_get_si( kernel[5] );
 
+  // probably should use something like gmp_clear() here
   free( kernel );
 
   // find true length and the longer vector

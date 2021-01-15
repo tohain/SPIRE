@@ -49,7 +49,7 @@ if(BUILD_QT_GUI)
   endif()
 
   target_link_libraries(projection_tool_qt BLAS::BLAS)
-  target_link_libraries(projection_tool_qt gmp gmpxx)
+  target_link_libraries(projection_tool_qt gmp)
   
   target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
