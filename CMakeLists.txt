@@ -9,6 +9,9 @@ option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
 #add an option to build the gui or only terminal appliaction
 option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channel proportions" OFF)
 
+#add an option to build the gui or only terminal appliaction
+option(BUILD_BATCH_TOOL "Builds a tool to generate batches of files" OFF)
+
 #source files independent of interface
 SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp)
 
@@ -48,8 +51,7 @@ if(BUILD_QT_GUI)
     target_link_libraries(projection_tool_qt CGAL::CGAL)
   endif()
 
-  target_link_libraries(projection_tool_qt BLAS::BLAS)
-  target_link_libraries(projection_tool_qt gmp)
+  target_link_libraries(projection_tool_qt BLAS::BLAS gmp)
   
   target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
@@ -59,3 +61,28 @@ if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
   add_executable(get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
 endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
 
+
+if( BUILD_BATCH_TOOL )
+
+  add_executable(batch_tool ${SRC_BASE} ${SRC_IML} batch_tool.cpp resources.qrc)
+
+  find_library(gmp gmp)
+  find_package(BLAS)  
+  find_package(CGAL REQUIRED)
+
+  find_package(PNG REQUIRED)
+
+  if( PNG_FOUND )
+    add_compile_definitions(HAVE_PNG)
+    target_link_libraries(batch_tool PNG::PNG)
+    target_include_directories(batch_tool PRIVATE PNG_INCLUDE_DIRS)
+  endif()
+  
+  target_link_libraries(batch_tool BLAS::BLAS gmp)
+
+  if( CGAL_FOUND )
+    add_compile_definitions(USE_CGAL)
+    target_link_libraries(batch_tool CGAL::CGAL)
+  endif()
+
+endif( BUILD_BATCH_TOOL )

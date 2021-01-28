@@ -491,6 +491,17 @@ double surface_projection::level_set_lonsdaleite_0_2( double x, double y, double
 }
 
 
+double surface_projection::level_set_lonsdaleite_gerd( double x, double y, double z, std::vector<double> inv_a) {
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];  
+
+  return   + 0.108383 + 0.134835*cos(2*+freq_z*z) - 0.0558598*cos(4*+freq_z*z) + 0.223346*cos(2*+freq_y*y) - 0.325371*sin(2*+freq_y*y)*cos(+freq_z*z) - 0.0851725*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0831315*cos(4*+freq_y*y) + 0.0524651*cos(4*+freq_y*y)*cos(2*+freq_z*z) + 0.446968*cos(2*freq_x*x)*cos(+freq_y*y) + 0.654812*cos(2*freq_x*x)*sin(+freq_y*y)*cos(+freq_z*z) - 0.168348*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) - 0.086457*cos(2*freq_x*x)*sin(+freq_y*y)*cos(3*+freq_z*z) + 0.0782456*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.058346*cos(2*freq_x*x)*sin(+freq_y*y)*cos(7*+freq_z*z) - 0.0631101*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(4*+freq_z*z) + 0.135635*cos(2*freq_x*x)*sin(5*+freq_y*y)*cos(+freq_z*z) + 0.0580503*cos(2*freq_x*x)*cos(7*+freq_y*y) + 0.0503058*cos(2*freq_x*x)*sin(11*+freq_y*y)*cos(+freq_z*z) - 0.164956*cos(4*freq_x*x)*cos(2*+freq_y*y) + 0.0719557*cos(4*freq_x*x)*sin(2*+freq_y*y)*cos(+freq_z*z) + 0.107044*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.137182*cos(4*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z) - 0.0516356*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.0613834*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(4*+freq_z*z) - 0.136325*cos(6*freq_x*x)*sin(+freq_y*y)*cos(+freq_z*z) + 0.0560503*cos(6*freq_x*x)*cos(3*+freq_y*y) + 0.0786274*cos(6*freq_x*x)*sin(3*+freq_y*y)*cos(3*+freq_z*z) - 0.0549771*cos(6*freq_x*x)*sin(3*+freq_y*y)*cos(5*+freq_z*z) + 0.0571488*cos(6*freq_x*x)*cos(5*+freq_y*y) + 0.058408*cos(8*freq_x*x)*cos(2*+freq_y*y) + 0.0944446*cos(8*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z) - 0.0501326*cos(10*freq_x*x)*sin(7*+freq_y*y)*cos(+freq_z*z) - 0.0511467*cos(12*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z);
+
+}
+
+
 /*
  * This one is the formula Matthias Saba derived analytically.
  */
@@ -688,6 +699,9 @@ void surface_projection::set_grid(){
     else if( type == 3 ){ //lonsdaleite_0.2
       level = level_set_lonsdaleite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
+    else if( type == 4 ){ //lonsdaleite_GERD
+      level = level_set_lonsdaleite_gerd( points[ii], points[ii+1], points[ii+2], inv_a );            
+    }    
     
     else {
       throw std::string("type not supported");
@@ -1277,6 +1291,48 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
   return img;  
 }
 
+
+#ifdef HAVE_PNG
+/**
+ * writes the current projection to a png image
+ */
+void surface_projection::write_png( std::string out_fn, bool invert, std::string scaling ){
+
+  unsigned char *img = get_image( invert, scaling );
+  
+  // convert 1d to 2d array
+  png_bytep *rows = new png_bytep[n_points_y];
+  // set up png array
+  for( unsigned int ii=0; ii < n_points_y; ii++ ){
+    rows[ii] = img + ii * n_points_x * sizeof( png_byte );
+  }
+  
+  FILE *fp = fopen( out_fn.c_str(), "wb" );
+  if( !fp ){
+    throw std::string ("error opening file");
+  }
+
+  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
+  png_infop png_info = png_create_info_struct( png_ptr );
+
+  png_init_io(png_ptr, fp);
+  
+  png_set_IHDR(png_ptr, png_info, n_points_x, n_points_y, 8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_COMPRESSION_TYPE_DEFAULT);
+
+  png_write_info( png_ptr, png_info );
+  png_write_image( png_ptr, rows );
+
+  png_write_end( png_ptr, png_info );
+
+  png_destroy_write_struct(&png_ptr, &png_info);
+  
+  fclose(fp);
+
+  delete[]( rows );
+  delete[]( img );
+}
+
+#endif
 
 /** 
  * adds a membrane to the membrane array

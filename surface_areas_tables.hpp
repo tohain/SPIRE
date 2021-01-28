@@ -64,7 +64,7 @@ public:
       it_begin = G_SURFACE_VOL.begin();
       it_rbegin = G_SURFACE_VOL.rbegin();
       it_end = G_SURFACE_VOL.end();
-    } else if ( surface == "Lonsdaleite" ){
+    } else if ( surface.substr(0,11) == "Lonsdaleite" ){
       it = L_SURFACE_VOL.begin();
       it_begin = L_SURFACE_VOL.begin();
       it_rbegin = L_SURFACE_VOL.rbegin();
@@ -120,8 +120,7 @@ public:
       it_begin = G_SURFACE_VOL_INV.begin();
       it_rbegin = G_SURFACE_VOL_INV.rbegin();
       it_end = G_SURFACE_VOL_INV.end();
-    } else if ( surface == "Lonsdaleite" || surface == "lonsdaleite_0.05" || surface == "lonsdaleite_0.075" ||
-		surface == "lonsdaleite_0.1" || surface == "lonsdaleite_0.2"){
+    } else if ( surface.substr(0, 11)  == "Lonsdaleite" ){
       it = L_SURFACE_VOL_INV.begin();
       it_begin = L_SURFACE_VOL_INV.begin();
       it_rbegin = L_SURFACE_VOL_INV.rbegin();
