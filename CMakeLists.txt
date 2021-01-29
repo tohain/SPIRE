@@ -51,6 +51,12 @@ if(BUILD_QT_GUI)
     target_link_libraries(projection_tool_qt CGAL::CGAL)
   endif()
 
+  if( PNG_FOUND )
+    add_compile_definitions(HAVE_PNG)
+    target_link_libraries(projection_tool_qt PNG::PNG)
+    target_include_directories(projection_tool_qt PRIVATE PNG_INCLUDE_DIRS)
+  endif()
+  
   target_link_libraries(projection_tool_qt BLAS::BLAS gmp)
   
   target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)

@@ -278,7 +278,8 @@ public:
   void delete_membrane( int id );
   /// set membranes
   void set_membranes( std::vector<double> mems );
-  
+  /// sets the channel fills array (deciding which channel is colored")
+  void set_channel_fill( std::vector<int> fills );
   /// Sets the surface_level
   void set_surface_level( double val );
   /// Sets the channel proportion

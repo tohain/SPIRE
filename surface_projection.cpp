@@ -1784,6 +1784,12 @@ void surface_projection::set_membranes( std::vector<double> mems ){
   update_channel_fill_container();
 }
 
+void surface_projection::set_channel_fill( std::vector<int> fills ){
+  if( fills.size() == membranes.size() + 1 ){
+    channel_filled = fills;
+  }
+}
+
 void surface_projection::update_channel_fill_container(){
 
   // clear previous data
@@ -1831,7 +1837,7 @@ void surface_projection::set_type(int val ){
 
 void surface_projection::set_slice_thickness ( double val ){
   if( val <= 0 ){
-    throw invalid_parameter_exception("Slice width can't be negative or zero");
+    throw invalid_parameter_exception("Slice thickness can't be negative or zero");
   } else {
     L[2] = val;
   }
@@ -1840,7 +1846,7 @@ void surface_projection::set_slice_thickness ( double val ){
 
 void surface_projection::set_slice_width ( double val ){
   if( val <= 0 ){
-    throw invalid_parameter_exception("Slice length can't be negative or zero");
+    throw invalid_parameter_exception("Slice width can't be negative or zero");
   } else {
     L[0] = val;
   }
