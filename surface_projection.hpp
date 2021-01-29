@@ -44,6 +44,10 @@
 #include <random>
 #endif
 
+#ifdef HAVE_PNG
+#include <png.h>
+#endif
+
 /** \brief Quick and dirty implementation of an invalid parameter exception
  *
  * This exception is thrown, if a parameter choice would cause
@@ -144,6 +148,11 @@ public:
   /// Converts the \ref projection array in a rescaled image array
   unsigned char* get_image(bool invert = false, std::string scaling = "LIN");
 
+#ifdef HAVE_PNG
+  /// writes the current projection to a png image
+  void write_png( std::string out_fn, bool invert = true, std::string scaling = "LIN");
+#endif
+  
   /// Outputs the grid
   void print_grid( std::string fn );
   
@@ -269,7 +278,8 @@ public:
   void delete_membrane( int id );
   /// set membranes
   void set_membranes( std::vector<double> mems );
-  
+  /// sets the channel fills array (deciding which channel is colored")
+  void set_channel_fill( std::vector<int> fills );
   /// Sets the surface_level
   void set_surface_level( double val );
   /// Sets the channel proportion
@@ -330,6 +340,8 @@ protected:
   /// the surface, but not being a minimal surface
   double level_set_lonsdaleite_topo( double x, double y, double z, std::vector<double> a);  
 
+  double level_set_lonsdaleite_gerd( double x, double y, double z, std::vector<double> a);
+  
   /// for debugging: just a single layer
   double level_set_layer( double x, double y, double z, std::vector<double> a);
 
@@ -465,7 +477,8 @@ protected:
 						    //"lonsdaleite_0.05",
 						    //"lonsdaleite_0.075",
 						    //"lonsdaleite_0.1",
-						    "Lonsdaleite"	    
+						    "Lonsdaleite",
+						    "Lonsdaleite_GERD",
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -480,6 +493,7 @@ protected:
 							   //{2.0, sqrt(3.0), 1.732692}, //lon_0.075
 							   //{2.0, sqrt(3.0), 1.732692}, //lon_0.1
 							   {1.0, sqrt(3.0), 1.732692}, //lon_0.2
+							   {2.0, sqrt(3.0), sqrt(8.0/3.0)},
   };
 
   /// The base vectors of the direct lattice as column vectors
