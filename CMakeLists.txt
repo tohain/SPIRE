@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6.4)
 project (surface_projection)
 set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
+message( ${CMAKE_SYSTEM_LIBRARY_PATH} )
+#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/AMD/aocl/aocl-linux-gcc-2.2.0/lib)
 
 #add an option to build the gui or only terminal appliaction
 option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
