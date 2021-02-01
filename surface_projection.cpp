@@ -586,14 +586,20 @@ void surface_projection::set_up_points( ){
   
   // get the angle between b1 and x, they already are in the same
   // plane, so this angle is also in-plane
-  double ang = acos( VEC_MAT_MATH::dot_prod( nx, true_b1 ) /
-		     sqrt(VEC_MAT_MATH::dot_prod( true_b1, true_b1 ) )
-		     );
+  double quotient = VEC_MAT_MATH::dot_prod( nx, true_b1 ) /
+    sqrt(VEC_MAT_MATH::dot_prod( true_b1, true_b1 ) );
+
+  // some cases cause a quotient slightly higher than 1 (floating
+  // point arithmetic errors), which causes the acos to yield nan
+  if( std::fabs(1.0 - quotient) < 1e-15 ){
+    quotient = 1.0;
+  }
   
+  double ang = acos( quotient );
+
   // still do not know which direction to rotate, there must be a
   // better way, but for now, I'll just guess and try the other way if
-  // the first guess was incorrect
-  
+  // the first guess was incorrect  
   Matrix<double> rot_inplane = VEC_MAT_MATH::get_rot_n( nz, ang );
   nx = VEC_MAT_MATH::dot_prod( rot_inplane, nx );
   ny = VEC_MAT_MATH::dot_prod( rot_inplane, ny );
