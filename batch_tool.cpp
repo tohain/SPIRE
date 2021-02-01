@@ -203,19 +203,32 @@ void set_parameter( surface_projection &sp, std::string par, double val ){
 }
 
 
-std::string create_filename( std::string prefix, std::string suffix, std::vector< std::vector<double>::iterator > pars, std::string delimiter = "_" ){
+std::string create_filename( std::string prefix, std::string suffix, std::vector< std::vector<double>::iterator > pars, options &ops, std::string delimiter = "_" ){
 
   std::stringstream filename;
 
   if( prefix != "" ){
     filename << prefix;
   }
+
+  if( prefix != "" ){
+    filename << delimiter;
+  }
+
+  for( auto it : ops.membranes ){
+    if( it >= 0 )
+      filename << "+";
+    filename << it;
+  }
+  filename << delimiter;
+  
+  for( auto it : ops.filled_channels ){
+    filename << it;
+  }
+  filename << delimiter;
   
   for( auto it : pars ){
-    if( prefix != "" ){
-      filename << delimiter;
-    }
-    filename << *it;
+    filename << *it << delimiter;
   }
 
   filename << suffix;
@@ -449,7 +462,7 @@ void update_and_compute( surface_projection &sp,
 
   sp.update_geometry();
   sp.compute_projection();
-  sp.write_png( create_filename( ops.fn_prefix, ".png", pars ) );
+  sp.write_png( create_filename( ops.fn_prefix, ".png", pars, ops ) );
   
 }
 
