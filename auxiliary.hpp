@@ -61,6 +61,55 @@ public:
   
   }
 
+
+
+  /** euclid's algorithm to find the greatest common divisor of two
+   * integers implemented as presented in
+   *   
+   * https://www.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/the-euclidean-algorithm
+   */
+  template <class T>
+  static T gcd_euclid( T a, T b ){    
+    T mod;
+    while(1){
+      if( a == 0 ){
+	return b;
+      }
+      if( b == 0 ){
+	return a;
+      }
+      mod = a % b;
+      a = b;
+      b = mod;
+    }
+  }  
+
+
+  /**
+   * a wrapper around above function to compute the gcd of a set of
+   * integer of arbitrary cardinality
+   */
+  template <class T>
+  static T gcd_euclid( std::vector<T> set ){
+
+    if( set.size() == 0 ){
+      return 0;
+    }
+    if( set.size() == 1 ){
+      return set.at(0);
+    }
+
+    int pos = 0;
+    T gcd = set.at(pos);
+    while( pos < set.size() - 1 ){
+      gcd = gcd_euclid( gcd, set.at(pos+1) );
+      pos++;
+    }
+
+    return gcd;    
+  }
+
+  
 };
 
 
