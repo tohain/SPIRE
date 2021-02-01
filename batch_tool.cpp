@@ -47,6 +47,8 @@ void print_help(){
 	    << "                       can be disabled using filled_channels" << std::endl
 	    << "   --filled_channels : comma separated number of 1 or 0." << std::endl
 	    << "                       1 is a filled channel, 0 can disable membranes" << std::endl
+	    << "   --resolution      : two comma separated integers. Resolution in" << std::endl
+	    << "                       x,y dimension" << std::endl
 	    << "   --fn_prefix       : prefix to attach to all output files" << std::endl
 
 	    << std::endl
@@ -217,7 +219,53 @@ std::string create_filename( std::string prefix, std::string suffix, std::vector
 }
 
 
-void do_loop( options &ops, surface_projection &sp, void (*callback)(surface_projection &sp, std::vector< std::vector<double>::iterator > &pars, options &ops) ){
+/** 
+ * this function checks, if the direction of the vector hkl has been
+ * visited already
+ * 
+ * returns true, if we already checked that direction
+ */
+template <class T>
+bool check_hkl_doubles( T h, T k, T l, std::set< std::vector<int> > &visited ){
+
+  // the absolute value only works for cubic symmetry!!!!!
+  int h_int = static_cast<int> ( h );
+  int k_int = static_cast<int> ( k );
+  int l_int = static_cast<int> ( l );  
+
+  int gcd = std::abs( my_utility::gcd_euclid( std::vector<int> {std::abs(h_int),
+								std::abs(k_int),
+								std::abs(l_int)} ) );
+
+  std::vector<int> reduced_vec = { h_int / gcd, k_int / gcd, l_int / gcd };
+  
+  if( visited.find( reduced_vec ) == visited.end() ){
+    // did not find the vector, new direction!
+    visited.insert( reduced_vec );
+    return false;
+  } else {
+
+    return true;
+  }
+}
+
+
+void print_cur_parameters( options &ops, std::vector< std::vector<double>::iterator > its, std::ostream &out = std::cout){
+  for(unsigned int ii=0; ii<ops.parameters.size(); ii ++){
+    out << ops.parameters[ii] << "=" << *(its[ii]) << " ";
+  }
+}
+
+/**
+ * this function loops over all possible combinations of all iterators
+ * in the \ref parameters vector in \ref ops.
+ *
+ * It keeps track of which hkl direction already has been computed and
+ * avoids multiple combination of these directions
+ *
+ * returns the number of processed elements
+ */
+int do_loop( options &ops, surface_projection &sp, void (*callback)(surface_projection &sp, std::vector< std::vector<double>::iterator > &pars, options &ops) ){
 
   // get a set of iterators
   std::vector< std::vector<double>::iterator > its;
@@ -233,6 +281,9 @@ void do_loop( options &ops, surface_projection &sp, void (*callback)(surface_pro
   std::cout << "processing a total of " << total_elements << " configurations" << std::endl;
 
   long counter = 0;
+  long computed = 0;
+  
+  std::set<std::vector<int> > hkl_visited;
   
   // start looping. The last element is incremented most frequently.
   if( its.size() > 0 ){
@@ -260,6 +311,8 @@ void do_loop( options &ops, surface_projection &sp, void (*callback)(surface_pro
 	try{
 	  set_parameter( sp, ops.parameters[ii], *(its[ii]) );
 	} catch ( invalid_parameter_exception e ){
+	  print_cur_parameters( ops, its );
+	  std::cout << ": ";
 	  caught_exception = true;
 	  std::cout << e.msg << std::endl;
 	} catch ( std::string s ){
@@ -267,11 +320,28 @@ void do_loop( options &ops, surface_projection &sp, void (*callback)(surface_pro
 	  std::cerr << s << std::endl;
 	}
       }
+
+
+      // check the hkl direction
+      auto h_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[8] );
+      auto k_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[9] );
+      auto l_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[10] );      
+      auto h_pos = std::distance( ops.parameters.begin(), h_it );
+      auto k_pos = std::distance( ops.parameters.begin(), k_it );
+      auto l_pos = std::distance( ops.parameters.begin(), l_it );
+      bool visited = true; // in case we have hkl=(0,0,0) we won't
+			   // compute it, additional safety
+      if( !(*its[h_pos]==0 && *its[k_pos]==0 && *its[l_pos] ==0 ) ){
+	visited = check_hkl_doubles<double>( *its[h_pos], *its[k_pos], *its[l_pos], hkl_visited );
+      }
+
       
       // call the callback only if we didn't run into any issues given
       // the current set of parameters
-      if( !caught_exception )
+      if( !caught_exception && !visited ){
 	callback( sp, its, ops );
+	computed++;
+      }
       
       // increment the last element
       its[ its.size() - 1 ]++;
@@ -281,12 +351,17 @@ void do_loop( options &ops, surface_projection &sp, void (*callback)(surface_pro
       // but since computing the projection is the heavy task I'd
       // argue we won't create a bottle neck here
       if( counter % 1 == 0){
-	std::cout << "computing " << counter << "/" << total_elements  << " (" << std::setw(5) << std::setprecision(2) << ((float)counter / total_elements) * 100.0 << "\%)\r" << std::flush;
+	std::cout << "computing " << counter << "/" << total_elements
+		  << " (" << std::setw(5) << std::setprecision(4)
+		  << ((float)counter / total_elements) * 100.0
+		  << "\%)\r" << std::flush;
       }
     }
     
-  }
+  }  
 
+  std::cout << std::endl << "done!" << std::endl;
+  return computed;
 }
 
 
@@ -381,7 +456,8 @@ int main( int argc, char* argv[] ){
   }
 
 
-  do_loop( ops, sp, update_and_compute );
+  long elements_created = do_loop( ops, sp, update_and_compute );
+  std::cout << "made " << elements_created << " projections" << std::endl;
   
   return EXIT_SUCCESS;
 }
