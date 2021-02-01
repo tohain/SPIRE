@@ -54,7 +54,12 @@ void print_help(){
 	    << std::endl
 
 	    << "sweep parameters, each parameter can be assign a comma separated list," << std::endl
-	    << "or a range given as start:stop:step" << std::endl;
+	    << "or a range given as start:stop:step" << std::endl
+	    << std::endl
+	    << "last given parameter is increased most frequently, first least frequently" << std::endl
+	    << "recommending using miller indeces as last ones, otherwise configurations" << std::endl
+	    << "might be skipped" << std::endl;
+  
 
   for( auto it : iter_par_names ){
     std::cout << "   --" << it << std::endl;
@@ -267,12 +272,31 @@ void print_cur_parameters( options &ops, std::vector< std::vector<double>::itera
  */
 int do_loop( options &ops, surface_projection &sp, void (*callback)(surface_projection &sp, std::vector< std::vector<double>::iterator > &pars, options &ops) ){
 
+  // the position of the miller indeces in values array
+  unsigned int h_pos, k_pos, l_pos;
+  
   // get a set of iterators
   std::vector< std::vector<double>::iterator > its;
   for( unsigned int ii=0; ii<ops.values.size(); ii++ ){
+    // find the position of the miller indeces, will need them later
+    if( ops.parameters[ii] == iter_par_names[8] ){
+      h_pos = ii;
+    }
+    if( ops.parameters[ii] == iter_par_names[9] ){
+      k_pos = ii;
+    }
+    if( ops.parameters[ii] == iter_par_names[10] ){
+      l_pos = ii;
+    }    
     its.push_back( ops.values[ii].begin() );
   }
 
+  // find the "top-level" miller index, if this is resetted, we mus
+  // reset the visited directions, too!
+  // top level is the first appearing in values array
+  unsigned int hkl_first = std::min( h_pos, std::min(k_pos, l_pos) );
+  std::cout << "hkl_first=" << hkl_first <<std::endl;
+  
   // to measure progress, get total amount of elements
   long total_elements = 1;
   for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
@@ -296,6 +320,11 @@ int do_loop( options &ops, surface_projection &sp, void (*callback)(surface_proj
 	if( its[ii] == ops.values[ii].end() ){
 	  its[ii] = ops.values[ii].begin();
 	  its[ii-1]++;
+
+	  // reset visited directions
+	  if( ii == hkl_first ){
+	    hkl_visited.clear();
+	  }
 	}
 	
       }
@@ -320,27 +349,18 @@ int do_loop( options &ops, surface_projection &sp, void (*callback)(surface_proj
 	  std::cerr << s << std::endl;
 	}
       }
-
-
-      // check the hkl direction
-      auto h_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[8] );
-      auto k_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[9] );
-      auto l_it = std::find( ops.parameters.begin(), ops.parameters.end(), iter_par_names[10] );      
-      auto h_pos = std::distance( ops.parameters.begin(), h_it );
-      auto k_pos = std::distance( ops.parameters.begin(), k_it );
-      auto l_pos = std::distance( ops.parameters.begin(), l_it );
-      bool visited = true; // in case we have hkl=(0,0,0) we won't
-			   // compute it, additional safety
-      if( !(*its[h_pos]==0 && *its[k_pos]==0 && *its[l_pos] ==0 ) ){
-	visited = check_hkl_doubles<double>( *its[h_pos], *its[k_pos], *its[l_pos], hkl_visited );
-      }
-
       
       // call the callback only if we didn't run into any issues given
       // the current set of parameters
-      if( !caught_exception && !visited ){
-	callback( sp, its, ops );
-	computed++;
+      if( !caught_exception ){
+	// check if this direction was computed already
+	if( !check_hkl_doubles<double>( *its[h_pos],
+					*its[k_pos],
+					*its[l_pos],
+					hkl_visited ) ){
+	  callback( sp, its, ops );
+	  computed++;
+	}
       }
       
       // increment the last element
@@ -461,3 +481,5 @@ int main( int argc, char* argv[] ){
   
   return EXIT_SUCCESS;
 }
+
+
