@@ -19,16 +19,8 @@
 #include <QApplication>
 #include "qt_gui.hpp"
 
-void print_legal(){
-  std::cout << "Licenses: " << std::endl;
-}
-
-
 int main( int argc, char *argv[]){
 
-  //produce license text
-  print_legal();
-  
   QApplication app( argc, argv );
 
   QLocale default_locale = QLocale();

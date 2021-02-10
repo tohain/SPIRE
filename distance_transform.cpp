@@ -1,6 +1,6 @@
 /* Projection tool - compute planar projection of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ distance_transform<T, M>::distance_transform( std::vector<T> data, int n, int k,
 /**
  * Updates the object with a new grid, dimension and pixsize. The
  * function ref compute_distance_map() needs to be called again of
- * course to update the distance map returned by ref
+ * course to update the distance map returned by \ref
  * get_distance_map();
  * \param[in] data The array holding the image data 
  * \param[in] dim The dimension of the image: [0] the width (=nr of

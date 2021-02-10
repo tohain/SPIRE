@@ -45,6 +45,8 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QScrollArea>
+#include <QTextStream>
+#include <QFile>
 
 #include <QtSvg/QSvgWidget>
 
@@ -181,6 +183,7 @@ private:
   QWidget *controls_save;
   QWidget *manual_widget;
   QWidget *about_widget;
+  QWidget *license_widget;  
 
   // manual tab
   QPlainTextEdit *manual;
@@ -268,7 +271,11 @@ private:
 #endif
   QLabel *about_us;
   QLabel *refs_ack;
-    
+
+  // license
+  QTextEdit *licenses;
+
+  
   // layouts
 
   // the main layout, holds status bar and sub_main_layout
@@ -302,6 +309,8 @@ private:
 
   QVBoxLayout *about_widget_layout;
   QHBoxLayout *about_qt_layout;
+
+  QVBoxLayout *license_widget_layout;
   
   std::vector< QSpacerItem* > v_spacer;
   std::vector< QSpacerItem* > h_spacer;  

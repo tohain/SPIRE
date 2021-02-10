@@ -2,6 +2,10 @@
 <qresource>
   <file>resources/icon/icon.ico</file>
   <file>resources/logos/qt.png</file>
-  <file>resources/logos/cgal.png</file>  
+  <file>resources/logos/cgal.png</file>
+  <file>resources/licenses/LICENSE_GPLv3.txt</file>
+  <file>resources/licenses/LICENSE_lGPLv3.txt</file>
+  <file>resources/licenses/LICENSE_GPLv2.txt</file>
+  <file>resources/licenses/LICENSE_mBSD.txt</file>    
 </qresource>
 </RCC>

@@ -28,12 +28,14 @@ void GUI::set_up_ui(){
   controls_measurement = new QWidget( controls );
   manual_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
+  license_widget = new QWidget( controls );  
 
   controls->addTab( controls_basic, "Parameters" );
   controls->addTab( controls_measurement, "Measurements" );
   controls->addTab( controls_save, "Export" );
   controls->addTab( manual_widget, "Manual" );
   controls->addTab( about_widget, "About" );
+  controls->addTab( license_widget, "License" );  
 
 
   //manual tab
@@ -244,7 +246,7 @@ void GUI::set_up_ui(){
   qt_logo->setPixmap( QPixmap( ":/resources/logos/qt.png" ) );
 
   qt_text = new QLabel( about_widget );
-  qt_text->setText("This software is created using QT libraries<br/>"
+  qt_text->setText("This software is using QT libraries<br/>Published under the lGPL v3 license<br/>"
 		   "<a href=\"https://www.qt.io/\">Homepage</a>");
   qt_text->setTextFormat(Qt::RichText);
   qt_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -255,7 +257,7 @@ void GUI::set_up_ui(){
   cgal_logo->setPixmap( QPixmap( ":/resources/logos/cgal.png" ) );
 
   cgal_text = new QLabel( about_widget );
-  cgal_text->setText("This software is created using CGAL<br/>"
+  cgal_text->setText("This software is using CGAL<br/>Published under the GPL v3 license<br/>"
 		   "<a href=\"https://www.cgal.org/index.html\">Homepage</a>");
   cgal_text->setTextFormat(Qt::RichText);
   cgal_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -264,7 +266,7 @@ void GUI::set_up_ui(){
 
 
   about_us = new QLabel( about_widget );
-  about_us->setText("Projection tool"
+  about_us->setText("Projection tool<br/>"
 		    "Created by Tobias Hain<br/>"
 		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a><br/>"
 		    "based on the idea by Mark Mieczkowski");
@@ -289,17 +291,41 @@ void GUI::set_up_ui(){
 		    "using <a href=\"https://www.openblas.net/\">libOpenBLAS</a><br/>"
 		    "published under the 3-clause license BSD license<br/>"
 		    "using <a href=\"https://gmplib.org/\">libmgp</a>"		    
-		    " published under <a href=\"https://www.gnu.org/licenses/"
-		    "old-licenses/gpl-2.0.html\">GNU GPL v2</a><br/>"
+		    " published under <a href=\"https://www.gnu.org/licenses/lgpl-3.0.html\">GNU LGPL v3</a><br/>"
 		    "using <a href=\"https://www.mpfr.org//\">libmpfr</a>"
-		    " published under <a href=\"https://www.gnu.org/licenses/"
-		    "old-licenses/gpl-2.0.html\">GNU Lesser GPL</a><br/>"
+		    " published under <a href=\"https://www.gnu.org/licenses/lgpl-3.0.html\">GNU LGPL v3</a><br/>"
 		    "using <a href=\"https://cs.uwaterloo.ca/~astorjoh/iml.html\">"
-		    "Integer Matrix Library</a><br/>"
+		    "Integer Matrix Library</a>"
+		    " published under <a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a><br/>"
 		    );
   refs_ack->setTextFormat(Qt::RichText);
   refs_ack->setTextInteractionFlags(Qt::TextBrowserInteraction);
   refs_ack->setOpenExternalLinks(true);    
+
+
+
+  // license pane;
+  licenses = new QTextEdit();
+  licenses->setReadOnly( true );
+
+
+  QFile reading_device;
+  QTextStream textstream;
+  QString combined;
+  
+  std::vector<std::string> licenses_fn = {":/resources/licenses/LICENSE_GPLv3.txt",
+    ":/resources/licenses/LICENSE_lGPLv3.txt",
+    ":/resources/licenses/LICENSE_GPLv2.txt",
+    ":/resources/licenses/LICENSE_mBSD.txt" };
+  
+  for( auto it : licenses_fn ){
+    reading_device.setFileName( it.c_str() );
+    reading_device.open( QFile::ReadOnly | QFile::Text );
+    textstream.setDevice( &reading_device );
+    combined.append( textstream.readAll() + "\n\n\n\n" );
+  }
+
+  licenses->setText( combined );
   
   //the main layout of the form
   main_layout = new QHBoxLayout( this );
@@ -473,7 +499,10 @@ void GUI::set_up_ui(){
   about_widget_layout->addLayout( about_cgal_layout );
 #endif
 
+  license_widget_layout = new QVBoxLayout( license_widget );
 
+  license_widget_layout->addWidget( licenses );
+  
 }
 
 
@@ -494,6 +523,7 @@ void GUI::set_up_tooltips(){
    slice_position_control->object()->setToolTip( QString( ttips.sliceposition_tooltip.c_str() ) );   
    
    button_set_to_uc_dim->setToolTip( QString( ttips.set_to_uc_dim_tooltip.c_str() ) );
+   draw_uc_control->setToolTip ( QString( ttips.draw_uc_tooltip.c_str() ) );
    
    miller_h_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
    miller_k_control->object()->setToolTip( QString( ttips.hkl_tooltip.c_str() ) );
@@ -527,6 +557,11 @@ void GUI::set_up_tooltips(){
    path_prefix_control->object()->setToolTip( QString( ttips.save_prefix_tooltip.c_str() ) );
    
    choose_path_prefix->setToolTip( QString( ttips.choose_prefix_path.c_str() ) );
+
+   status_bar_uco->setToolTip( QString( ttips.status_uco_tooltip.c_str() ) );
+   status_bar_or->setToolTip( QString( ttips.status_or_tooltip.c_str() ) );
+   status_bar_pixs->setToolTip( QString( ttips.status_pixs_tooltip.c_str() ) );
+   status_bar_uc->setToolTip( QString( ttips.status_uc_tooltip.c_str() ) );   
 }
 
 
