@@ -37,7 +37,7 @@ class sp_qt : public QObject, public surface_projection {
   Q_OBJECT;
   
 public:
-  sp_qt (double &p, std::string &s);
+  sp_qt ();
   ~sp_qt();
 
 

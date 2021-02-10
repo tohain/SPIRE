@@ -658,7 +658,7 @@ void GUI::set_up_signals_and_slots(){
 GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ){
   
   //initialize surface projection
-  sp = new sp_qt( progress, status );
+  sp = new sp_qt( );
   sp->set_n_points_x( 150 );
   sp->set_n_points_z( 75 );  
   sp->update_geometry();
@@ -666,7 +666,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
 
   //initialize surface projection
   
-  sp_stats = new sp_qt( progress_stats, status_stats );
+  sp_stats = new sp_qt(  );
   sp_stats->set_n_points_x( 76 );  
   sp_stats->set_n_points_z( 76 );  
   sp_stats->update_geometry();
@@ -741,14 +741,17 @@ void GUI::update_view(){
   if( img_data != NULL ){
     delete[]( img_data );
   }
-  img_data = sp->get_image( invert_control->object()->isChecked(), image_scaling_control->object()->currentText().toStdString() );
+  img_data = sp->get_image( invert_control->object()->isChecked(),
+			    image_scaling_control->object()->currentText().toStdString() );
 
   // this does *NOT* seem to copy the img_data into its own object, so
   // keep that img_data array around!
-  image = new QImage( img_data, sp->get_width(), sp->get_height(), sp->get_width(), QImage::Format_Grayscale8 );
+  image = new QImage( img_data, sp->get_width(), sp->get_height(),
+		      sp->get_width(), QImage::Format_Grayscale8 );
 
   img_pix->convertFromImage( *image );
 
+  
   //draw the unit cell if desired
   if( draw_uc_control->isChecked() ){
     draw_unitcell();
@@ -996,8 +999,7 @@ void GUI::save_image_to_file(){
   if( !filename.endsWith( ".png", Qt::CaseInsensitive ) ){
     filename.append(".png");
   } 
-  
-  //image->save( filename );
+    
   img_pix->save( filename );
 }
 
@@ -1181,9 +1183,9 @@ void GUI::request_compute_projection(){
 void GUI::measure_vol_area(){
   sp_stats->copy_parameters( sp );
 
-  sp_stats->set_n_points_x( 76 );
-  sp_stats->set_n_points_y_to_unitcell();
-  sp_stats->set_n_points_z_to_unitcell();
+  //sp_stats->set_n_points_x( 76 );
+  //sp_stats->set_n_points_y_to_unitcell();
+  //sp_stats->set_n_points_z_to_unitcell();
 
 #ifndef USE_CGAL
   auto reply = QMessageBox::warning( this, "Area mesaurement", "You are not using CGAL to "

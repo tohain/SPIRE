@@ -160,7 +160,7 @@ void surface_projection::read_parameters( std::string infile ){
     std::getline( in, line );
 
     //check if line starts with a comment
-    int char_pos = 0;
+    unsigned int char_pos = 0;
     while( line[char_pos] == ' ' )
       char_pos++;
     if( char_pos < line.size() && line[char_pos] != '#' ){
@@ -263,12 +263,10 @@ void surface_projection::read_parameters( std::string infile ){
     
   }
 
-
-  int nr_channel_soll = membranes.size() + 1;
-
-  if( nr_channel_soll != channel_filled.size() ){
-    throw std::string("There was an error reading the parameter file; parameters not completly restored");
-    
+  if( membranes.size() + 1 != channel_filled.size() ){
+    throw std::string("There was an error reading the "
+		      "parameter file; parameters not "
+		      "completly restored");
   }
   
   update_geometry();
@@ -375,7 +373,7 @@ void surface_projection::print_max_rad_transform_dist( std::string fn ){
 /** Standard constructor initialize with the standard values and
  *  derive some more quantities
  */
-surface_projection::surface_projection( double &p, std::string &stat) : slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), progress(p), status( stat ), s_tables() {
+surface_projection::surface_projection() : slice_position(0), a(3,1), inv_a(3,2*M_PI), uc_scale_ab( 1.0 ), uc_scale_c( 1.0 ), L(3,1), L_2(3,0.5), n_points_x(76), n_points_y(76), n_points_z(76), type(2), h(0), k(0), l(1), uc_dim_in_orientation(3, 1), surface_level( 0.0f ), s_tables() {
 
 
   // init the base vectors
@@ -446,38 +444,11 @@ double surface_projection::level_set_primitive( double x, double y, double z, st
   return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
 }
 
-double surface_projection::level_set_lonsdaleite_0_05( double x, double y, double z, std::vector<double> inv_a) {
-
-  double freq_x = inv_a[0];
-  double freq_y = inv_a[1];
-  double freq_z = inv_a[2];
-
-  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.0532718*cos(6*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0526959*sin(2*+freq_y*y)*sin(3*+freq_z*z) - 0.0578834*sin(2*+freq_y*y)*sin(5*+freq_z*z) + 0.0688335*cos(4*+freq_y*y)*cos(4*+freq_z*z) - 0.0614875*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) - 0.065981*cos(2*freq_x*x)*cos(+freq_y*y)*cos(6*+freq_z*z) - 0.0589097*cos(2*freq_x*x)*sin(+freq_y*y)*sin(7*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0570703*cos(2*freq_x*x)*cos(5*+freq_y*y) - 0.0687129*cos(2*freq_x*x)*sin(5*+freq_y*y)*sin(+freq_z*z) - 0.0620785*cos(2*freq_x*x)*cos(7*+freq_y*y)*cos(4*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.0568124*cos(4*freq_x*x)*cos(4*+freq_y*y) + 0.0686862*cos(4*freq_x*x)*sin(4*+freq_y*y)*sin(+freq_z*z) - 0.0736126*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) - 0.0564133*cos(6*freq_x*x)*cos(+freq_y*y) + 0.067969*cos(6*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) - 0.0627811*cos(6*freq_x*x)*cos(5*+freq_y*y)*cos(4*+freq_z*z) - 0.0620622*cos(8*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z);
-
-}
-
-double surface_projection::level_set_lonsdaleite_0_075( double x, double y, double z, std::vector<double> inv_a) {
-
-  double freq_x = inv_a[0];
-  double freq_y = inv_a[1];
-  double freq_z = inv_a[2];  
-
-  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.0848054*cos(2*+freq_y*y)*cos(2*+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) - 0.0802985*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) - 0.0992979*cos(4*freq_x*x)*sin(2*+freq_y*y)*sin(3*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
-
-}
-
-
-double surface_projection::level_set_lonsdaleite_0_1( double x, double y, double z, std::vector<double> inv_a) {
-
-  double freq_x = inv_a[0];
-  double freq_y = inv_a[1];
-  double freq_z = inv_a[2];
-
-  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.170029*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) + 0.106884*cos(2*freq_x*x)*sin(+freq_y*y)*sin(3*+freq_z*z) + 0.117166*cos(2*freq_x*x)*sin(+freq_y*y)*sin(5*+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z) + 0.108815*cos(4*freq_x*x)*cos(2*+freq_z*z) + 0.138495*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(4*+freq_z*z) - 0.12331*cos(6*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
-
-}
-
-double surface_projection::level_set_lonsdaleite_0_2( double x, double y, double z, std::vector<double> inv_a) {
+/**
+ *
+ *
+ */
+double surface_projection::level_set_lonsdaleite( double x, double y, double z, std::vector<double> inv_a) {
 
   double freq_x = inv_a[0];
   double freq_y = inv_a[1];
@@ -485,22 +456,7 @@ double surface_projection::level_set_lonsdaleite_0_2( double x, double y, double
 
   return  + 0.0005309 - 0.362586*cos(2*+freq_z*z) + 0.223975*cos(2*+freq_y*y) + 0.226369*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.448045*cos(freq_x*x)*cos(+freq_y*y) - 0.452775*cos(freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.217121*cos(freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
 
-  /*
-  return  + 0.000277634 - 0.362363*cos(2*+freq_z*z) + 0.223887*cos(2*+freq_y*y) + 0.225075*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.447937*cos(2*freq_x*x)*cos(+freq_y*y) - 0.45065*cos(2*freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.215803*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
-  */
 }
-
-
-double surface_projection::level_set_lonsdaleite_gerd( double x, double y, double z, std::vector<double> inv_a) {
-
-  double freq_x = inv_a[0];
-  double freq_y = inv_a[1];
-  double freq_z = inv_a[2];  
-
-  return   + 0.108383 + 0.134835*cos(2*+freq_z*z) - 0.0558598*cos(4*+freq_z*z) + 0.223346*cos(2*+freq_y*y) - 0.325371*sin(2*+freq_y*y)*cos(+freq_z*z) - 0.0851725*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.0831315*cos(4*+freq_y*y) + 0.0524651*cos(4*+freq_y*y)*cos(2*+freq_z*z) + 0.446968*cos(2*freq_x*x)*cos(+freq_y*y) + 0.654812*cos(2*freq_x*x)*sin(+freq_y*y)*cos(+freq_z*z) - 0.168348*cos(2*freq_x*x)*cos(+freq_y*y)*cos(2*+freq_z*z) - 0.086457*cos(2*freq_x*x)*sin(+freq_y*y)*cos(3*+freq_z*z) + 0.0782456*cos(2*freq_x*x)*cos(+freq_y*y)*cos(4*+freq_z*z) + 0.058346*cos(2*freq_x*x)*sin(+freq_y*y)*cos(7*+freq_z*z) - 0.0631101*cos(2*freq_x*x)*cos(3*+freq_y*y)*cos(4*+freq_z*z) + 0.135635*cos(2*freq_x*x)*sin(5*+freq_y*y)*cos(+freq_z*z) + 0.0580503*cos(2*freq_x*x)*cos(7*+freq_y*y) + 0.0503058*cos(2*freq_x*x)*sin(11*+freq_y*y)*cos(+freq_z*z) - 0.164956*cos(4*freq_x*x)*cos(2*+freq_y*y) + 0.0719557*cos(4*freq_x*x)*sin(2*+freq_y*y)*cos(+freq_z*z) + 0.107044*cos(4*freq_x*x)*cos(2*+freq_y*y)*cos(2*+freq_z*z) - 0.137182*cos(4*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z) - 0.0516356*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(2*+freq_z*z) + 0.0613834*cos(4*freq_x*x)*cos(6*+freq_y*y)*cos(4*+freq_z*z) - 0.136325*cos(6*freq_x*x)*sin(+freq_y*y)*cos(+freq_z*z) + 0.0560503*cos(6*freq_x*x)*cos(3*+freq_y*y) + 0.0786274*cos(6*freq_x*x)*sin(3*+freq_y*y)*cos(3*+freq_z*z) - 0.0549771*cos(6*freq_x*x)*sin(3*+freq_y*y)*cos(5*+freq_z*z) + 0.0571488*cos(6*freq_x*x)*cos(5*+freq_y*y) + 0.058408*cos(8*freq_x*x)*cos(2*+freq_y*y) + 0.0944446*cos(8*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z) - 0.0501326*cos(10*freq_x*x)*sin(7*+freq_y*y)*cos(+freq_z*z) - 0.0511467*cos(12*freq_x*x)*sin(4*+freq_y*y)*cos(+freq_z*z);
-
-}
-
 
 /*
  * This one is the formula Matthias Saba derived analytically.
@@ -647,7 +603,6 @@ void surface_projection::set_up_points( ){
 	  
 	  kz += dz; // next z-pixel
 	  ind += 3; // running index
-	  progress = ind / double(max_points);
       }
       jx += dx; // next x-pixel
     }
@@ -676,39 +631,24 @@ void surface_projection::set_grid(){
   // the level set value of the present points
   double level = 0; 
 
-  status = "Computing membrane";
-  
   for( unsigned int ii=0; ii<points.size(); ii+=3 ){
 
     //compute level set
     
-    if( type == 0 ){ //gyroid
+    if( type == 0 ){ // gyroid
       level = level_set_gyroid( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 1 ){ //diamon
+    } else if( type == 1 ){ // diamond
       level = level_set_diamond( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 2 ){ //primitive
+    } else if( type == 2 ){ // primitive
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 3 ){ // lonsdaleite
+      level = level_set_lonsdaleite( points[ii], points[ii+1], points[ii+2], inv_a );            
     }
-
     /*
     else if( type == 3 ){ //lonsdaleite_topo
       level = level_set_lonsdaleite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 4 ){ //lonsdaleite_0.05
-      level = level_set_lonsdaleite_0_05( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 5 ){ //lonsdaleite_0.075
-      level = level_set_lonsdaleite_0_075( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 6 ){ //lonsdaleite_0.1
-      level = level_set_lonsdaleite_0_1( points[ii], points[ii+1], points[ii+2], inv_a );
-    }
     */
-
-    else if( type == 3 ){ //lonsdaleite_0.2
-      level = level_set_lonsdaleite_0_2( points[ii], points[ii+1], points[ii+2], inv_a );            
-    }
-    else if( type == 4 ){ //lonsdaleite_GERD
-      level = level_set_lonsdaleite_gerd( points[ii], points[ii+1], points[ii+2], inv_a );            
-    }    
-    
     else {
       throw std::string("type not supported");
     }
@@ -727,8 +667,6 @@ void surface_projection::set_grid(){
       //inside
       channel[int(ii/3.)] = 1;
     } 
-
-    progress = ii/(double(points.size()));
   }
 
 
@@ -737,8 +675,6 @@ void surface_projection::set_grid(){
   // that by comparing the distances to the main membrane with the
   // distance map
 
-  status = "Computing distance map";
-  progress = 0;
   // compute the distance transform of the grid
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
 		     std::vector<double> {dx, dy, dz}, false);
@@ -747,8 +683,6 @@ void surface_projection::set_grid(){
 
   // now assign channel number
 
-  status = "Computing channels";
-  
   // get the boundaries of all the membranes
   std::vector<double> mem_pos ( membranes.size(), 0);
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
@@ -781,8 +715,6 @@ void surface_projection::set_grid(){
     //found the appropriate membrane, save the channel number
     //the sign still marks, if in or outside of main membrane
     channel[ii] = (ch_id+1)*channel[ii];
-
-    progress = ii/(0.5*channel.size());
   }
 
   //now iterate over all pixels again and mark the ones, which are
@@ -827,8 +759,6 @@ void surface_projection::set_grid(){
     if( mark_point ){
       grid[ii] = 1;
     }
-
-    progress = 0.5 + (ii/double(grid.size()));
   }
 
   // update the distance map, since it changed after more pixels turned "white"
@@ -922,23 +852,14 @@ void surface_projection::compute_projection( ){
 
   update_containers();
   
-  progress = 0;
-  
   //get the points in the slice  
-  status = "Computing the points";
-
   set_up_points();
-
-  progress = 0.3;
   
   //reset grid
   memset( grid.data(), 0, sizeof(short) * grid.size() );
   
   //get grid
-  status = "Setting up the grid";
   set_grid();
-
-  progress = 0.6;
 
   // apply channel colors
   for( unsigned int ii=0; ii < channel_filled.size(); ii++){
@@ -958,12 +879,8 @@ void surface_projection::compute_projection( ){
   }
   
   //get projection
-  status = "Computing Projection";
   memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
-  progress = 1.0;
-  status = "Ready";
-  progress = 1;
 }
 
 
@@ -1377,9 +1294,6 @@ void surface_projection::set_channel_color( int mem_id, int val ){
  *
  */
 void surface_projection::compute_volume(){
-
-  status = "Computing channel volumes";
-  progress = 0.0;
   
   volumes = std::vector<double> (membranes.size() + 1, 0 );
   
@@ -1391,14 +1305,7 @@ void surface_projection::compute_volume(){
     ind = channel[ii];
     if( ind < 0 ) ind*=-1;
     volumes[ind-1]+=vox_vol;
-
-    progress = (double) ii / channel.size();
   }
-
-
-  progress = 1.0;
-  status = "Ready";
-  
 }
 
 
@@ -1416,9 +1323,6 @@ void surface_projection::compute_volume(){
  *
  */
 void surface_projection::compute_surface_area(){
-
-
-  status = "Computing surface area";
   
   surface_area = std::vector<double> ( int( 0.5*membranes.size() ), 0 );
 
@@ -1547,11 +1451,6 @@ void surface_projection::compute_surface_area(){
 
   }
 #endif
-
-
-  status = "Ready";
-  progress = 1;
-    
 }
 
 /*

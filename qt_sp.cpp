@@ -20,7 +20,7 @@
 #include "qt_sp.hpp"
 
 
-sp_qt::sp_qt( double &p, std::string &s) : surface_projection(p, s){
+sp_qt::sp_qt() : surface_projection(){
 
   connect( this, SIGNAL( geometry_changed() ), this, SLOT( update_geometry_() ) );
   

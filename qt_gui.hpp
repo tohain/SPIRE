@@ -149,10 +149,7 @@ public:
 
 
   ~GUI();
-  
-  double progress, progress_stats;
-  std::string status, status_stats;
-  
+    
 protected:
   
   void paintEvent( QPaintEvent * event );

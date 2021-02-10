@@ -472,9 +472,7 @@ int main( int argc, char* argv[] ){
     print_help();
   }
   
-  double progress;
-  std::string status;
-  surface_projection sp( progress, status );
+  surface_projection sp;
 
 
   options ops;
