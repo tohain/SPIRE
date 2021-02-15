@@ -44,7 +44,12 @@ class percolation_analysis {
 public:
 
   /// Constructor. Copies and initalises data and arrays
-  percolation_analysis( std::vector<T> data, std::vector<M> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool periodic);
+  percolation_analysis( std::vector<T> data, // we need a copy, since object is altered
+			const std::vector<M> &distance_map, // only reading
+			unsigned int sx_,
+			unsigned int sy_,
+			unsigned int sz_,
+			bool periodic);
 
   /// Using Hoshen-Kopelmann to find clusters
   void find_clusters( int ch_id_ );
@@ -82,7 +87,7 @@ private:
   /// the grid to analyse
   std::vector<T> structure;
   /// the distance map of the grid provided. Needs to dilute surfaces
-  std::vector<M> dmap;
+  const std::vector<M> &dmap;
 
   /// the map assigning each voxel its cluster label
   std::vector<int> cluster_labels;

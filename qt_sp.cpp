@@ -184,7 +184,6 @@ void sp_qt::compute_projection(){
   
   //get the points in the slice
   emit set_status( 0, 1 );
-  //emit send_message( "Busy", 0 );
   set_up_points();
   
   //reset grid
@@ -211,14 +210,11 @@ void sp_qt::compute_projection(){
   }
   
   //get projection
-  //emit send_message( "Computing Projection", 0 );
   memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
   
   emit projection_changed();
   emit set_status( 0, 0 );
-  //emit send_message( "Ready", 0 );
-  
 }
 
 

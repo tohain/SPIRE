@@ -26,21 +26,14 @@ void GUI::set_up_ui(){
   controls_basic = new QWidget( controls );
   controls_save = new QWidget( controls );
   controls_measurement = new QWidget( controls );
-  manual_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
   license_widget = new QWidget( controls );  
 
   controls->addTab( controls_basic, "Parameters" );
   controls->addTab( controls_measurement, "Measurements" );
   controls->addTab( controls_save, "Export" );
-  controls->addTab( manual_widget, "Manual" );
   controls->addTab( about_widget, "About" );
   controls->addTab( license_widget, "License" );  
-
-
-  //manual tab
-  manual = new QPlainTextEdit( manual_widget );
-  manual->setPlainText( QString( ttips.manual.c_str() ) );
   
   // stats tab
   detailled_stats = new QTableWidget( controls_save );
@@ -313,16 +306,18 @@ void GUI::set_up_ui(){
   QTextStream textstream;
   QString combined;
   
-  std::vector<std::string> licenses_fn = {":/resources/licenses/LICENSE_GPLv3.txt",
+  std::vector<std::string> licenses_fn = {
+    ":/resources/licenses/LICENSE_GPLv3.txt",
     ":/resources/licenses/LICENSE_lGPLv3.txt",
     ":/resources/licenses/LICENSE_GPLv2.txt",
     ":/resources/licenses/LICENSE_mBSD.txt" };
   
-  for( auto it : licenses_fn ){
+  for( auto &it : licenses_fn ){
     reading_device.setFileName( it.c_str() );
     reading_device.open( QFile::ReadOnly | QFile::Text );
     textstream.setDevice( &reading_device );
     combined.append( textstream.readAll() + "\n\n\n\n" );
+    reading_device.close();
   }
 
   licenses->setText( combined );
@@ -349,8 +344,6 @@ void GUI::set_up_ui(){
   controls_save_layout = new QVBoxLayout( controls_save );
   controls_measurement_layout = new QVBoxLayout( controls_measurement );
   controls_measurement_buttons_layout = new QHBoxLayout();
-  manual_widget_layout = new QVBoxLayout( manual_widget );
-  
 
   controls_measurement_layout->addWidget( detailled_stats );
 
@@ -365,9 +358,6 @@ void GUI::set_up_ui(){
   controls_save_layout->addWidget( save_grid_control );
   controls_save_layout->addWidget( save_surface_points_control );
     
-
-  manual_widget_layout->addWidget( manual );
-  
   structure_settings = new QHBoxLayout();
   surface_level_settings = new QHBoxLayout();
   resolution_settings = new QHBoxLayout();

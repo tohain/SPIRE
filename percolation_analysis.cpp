@@ -32,8 +32,18 @@
  * \param[in] is_periodic Is the input grid periodic
  */
 template <class T, class M>
-percolation_analysis<T, M>::percolation_analysis(std::vector<T> data, std::vector<M> distance_map, unsigned int sx_, unsigned int sy_, unsigned int sz_, bool is_periodic) : sx(sx_), sy(sy_), sz(sz_), periodic( is_periodic), structure(data), dmap (distance_map ), it( 0, sx_, sy_, sz_ ) {
-
+percolation_analysis<T, M>::percolation_analysis(std::vector<T> data,
+						 const std::vector<M> &distance_map, // read-only
+						 unsigned int sx_,
+						 unsigned int sy_,
+						 unsigned int sz_,
+						 bool is_periodic)
+  : sx(sx_), sy(sy_), sz(sz_),
+    periodic( is_periodic),
+    structure(data),
+    dmap (distance_map ),
+    it( 0, sx_, sy_, sz_ ) {
+  
   cluster_labels.resize( structure.size(), -1 );
   cluster_sizes.clear();
 }
@@ -479,7 +489,8 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
   //revert the backup
   structure = structure_backup;
 
-  return threshold;
+  // return the diameter, not the radius!
+  return 2*threshold;
 }
 
 

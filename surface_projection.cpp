@@ -881,6 +881,7 @@ void surface_projection::compute_projection( ){
   //get projection
   memset( projection.data(), 0, sizeof(float) * projection.size() );
   project_grid();
+  
 }
 
 

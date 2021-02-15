@@ -1,6 +1,6 @@
 /* Projection tool - compute planar projection of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 #include "img_out.hpp"
 
-void write_image( std::string fn, unsigned char *data, int width, int height, bool invert ){
+void write_image( std::string fn, unsigned char *data, int width, int height ){
   
   //open filestream
   std::ofstream out ( fn );
