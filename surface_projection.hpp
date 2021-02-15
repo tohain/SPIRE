@@ -268,9 +268,6 @@ public:
 
   /// Sets the position of the slice along ints normal vector
   void set_slice_position( double val );
-
-
-
   
   /// set membrane
   void edit_membrane( int id, double dist, double width );
@@ -307,7 +304,11 @@ public:
   /// Sets the \ref k Miller index  
   void set_k( int val );
   /// Sets the \ref l Miller index  
-  void set_l( int val );  
+  void set_l( int val );
+
+  /// A wrapper functions allowing setting a parameter identified by a
+  /// string
+  void set_parameter( std::string par, double val );
 
   
 protected:
@@ -507,10 +508,17 @@ protected:
   /// channels
   std::vector< std::unordered_set<int> > topological_network;
 
-
   /// The 2D projection
   std::vector<float> projection;
-};
 
+
+  /// A vector containing string name for each parameter. It can be
+  /// used in combination with \ref set_parameter_string to call
+  /// setter functions using a string. However, calling the setters
+  /// directly should be cleaner. Since this is a ststic member,
+  /// initialization is outside the class definition
+  static const std::vector<std::string> parameter_names;
+  
+};
 
 #endif

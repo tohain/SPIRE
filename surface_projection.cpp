@@ -18,6 +18,9 @@
 
 
 #include "surface_projection.hpp"
+// set static member
+const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
+
 
 #ifdef USE_CGAL
 
@@ -1937,6 +1940,65 @@ void surface_projection::set_l( int val ){
   }
   l = val;
 }
+
+
+
+/**
+ * A wrapper function, calling the setter functions of the parameter
+ * identified by the string. This should only be used if absolutely
+ * necessary, since type safety is weakend!
+ *
+ * The string identifier should only be taken from the array \ref parameter_names
+ *
+ * \param[in] par The string identifying the parameter
+ * \param[in] val The value to set to
+ */
+void surface_projection::set_parameter( std::string par, double val ){
+
+  if( par == parameter_names[0] ){
+    set_type( static_cast<int>( val ) );
+  }
+  
+  if( par == parameter_names[1] ){
+    set_uc_scale_ab( val );
+  }
+  if( par == parameter_names[2] ){
+    set_uc_scale_c( val );
+  }  
+  if( par == parameter_names[3] ){
+    set_surface_level( val );
+  }
+
+
+  if( par == parameter_names[4] ){
+    set_slice_thickness( val );
+  }
+  if( par == parameter_names[5] ){
+    set_slice_height( val );
+  }
+  if( par == parameter_names[6] ){
+    set_slice_width( val );
+  }
+  if( par == parameter_names[7] ){
+    set_slice_position( val );
+  }  
+
+  if( par == parameter_names[8] ){
+    set_h( static_cast<int>( val ) );
+  }
+  if( par == parameter_names[9] ){
+    set_k( static_cast<int>( val ) );
+  }
+  if( par == parameter_names[10] ){
+    set_l( static_cast<int>( val ) );
+  }
+  
+}
+
+
+
+
+
 
 std::vector<double> surface_projection::get_ucdim() const{
   return unitcell_dim[type];
