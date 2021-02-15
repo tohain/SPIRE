@@ -23,20 +23,20 @@ void GUI::set_up_ui(){
 
   // the widgets for the tabs
   controls = new QTabWidget( this );
-  controls_basic = new QWidget( controls );
-  controls_save = new QWidget( controls );
-  controls_measurement = new QWidget( controls );
+  parameters_widget = new QWidget( controls );
+  measurement_widget = new QWidget( controls );
+  save_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
   license_widget = new QWidget( controls );  
 
-  controls->addTab( controls_basic, "Parameters" );
-  controls->addTab( controls_measurement, "Measurements" );
-  controls->addTab( controls_save, "Export" );
+  controls->addTab( parameters_widget, "Parameters" );
+  controls->addTab( measurement_widget, "Measurements" );
+  controls->addTab( save_widget, "Export" );
   controls->addTab( about_widget, "About" );
   controls->addTab( license_widget, "License" );  
   
   // stats tab
-  detailled_stats = new QTableWidget( controls_save );
+  detailled_stats = new QTableWidget( save_widget );
   detailled_stats->insertColumn(0);
   detailled_stats->insertColumn(1);
   detailled_stats->insertColumn(2);
@@ -46,44 +46,44 @@ void GUI::set_up_ui(){
   detailled_stats->setHorizontalHeaderLabels( detailled_stats_header );
   
   // save tab
-  choose_path_prefix = new QPushButton( "Choose location and prefix", controls_save );
-  save_grid_control = new QPushButton( "Save grid", controls_save );
-  save_surface_points_control = new QPushButton( "Save membrane points", controls_save );
-  path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", controls_save );
+  choose_path_prefix = new QPushButton( "Choose location and prefix", save_widget );
+  save_grid_control = new QPushButton( "Save grid", save_widget );
+  save_surface_points_control = new QPushButton( "Save membrane points", save_widget );
+  path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", save_widget );
   
-  // buttons for controls_basic
-  button_save = new QPushButton("Save Image", controls_basic);
-  button_render = new QPushButton("Compute Projection", controls_basic);
+  // buttons for parameters_widget
+  button_save = new QPushButton("Save Image", parameters_widget);
+  button_render = new QPushButton("Compute Projection", parameters_widget);
 
-  button_read_pars = new QPushButton("Read parameters", controls_basic );
-  button_write_pars = new QPushButton("Write parameters", controls_basic );  
+  button_read_pars = new QPushButton("Read parameters", parameters_widget );
+  button_write_pars = new QPushButton("Write parameters", parameters_widget );  
 
-  button_measure_vol_area = new QPushButton("Measure Volume/Area", controls_basic);
-  button_measure_percthres = new QPushButton("Compute percolation threshold", controls_basic);
+  button_measure_vol_area = new QPushButton("Measure Volume/Area", parameters_widget);
+  button_measure_percthres = new QPushButton("Compute percolation threshold", parameters_widget);
   
   /*
    * structure control
    */ 
   
-  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor (xy)", controls_basic );
+  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor (xy)", parameters_widget );
   uc_size_control_a->object()->setMinimum(0.001);
   uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_a->object()->setSingleStep(0.01);
   uc_size_control_a->object()->setDecimals( 3 );
-  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor  (z)", controls_basic );
+  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor  (z)", parameters_widget );
   uc_size_control_c->object()->setMinimum(0.001);
   uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_c->object()->setSingleStep(0.01);
   uc_size_control_c->object()->setDecimals( 3 );
   
-  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", controls_basic );
+  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", parameters_widget );
   channel_prop_control->object()->setSingleStep(0.01);  
 
-  level_par_type = new QT_v_labeled_obj<QComboBox> ( "Surface control parameter", controls_basic );
+  level_par_type = new QT_v_labeled_obj<QComboBox> ( "Surface control parameter", parameters_widget );
   level_par_type->object()->insertItem( 0, "Volume proportion" );
   level_par_type->object()->insertItem( 1, "Level Set" );
   
-  surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", controls_basic );
+  surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", parameters_widget );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
   for(unsigned int ii=0; ii<sfc_types.size(); ii++){
     surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
@@ -92,20 +92,20 @@ void GUI::set_up_ui(){
   /*
    * Resolution control
    */
-  x_points_control = new QT_v_labeled_obj<QSpinBox> ( "X resolution", controls_basic );
+  x_points_control = new QT_v_labeled_obj<QSpinBox> ( "X resolution", parameters_widget );
   x_points_control->object()->setRange(1, 600);
 
-  z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", controls_basic );  
+  z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", parameters_widget );  
   z_points_control->object()->setRange(1, 250);
 
 
-  invert_control = new QT_v_labeled_obj<QCheckBox>( "", controls_basic );
+  invert_control = new QT_v_labeled_obj<QCheckBox>( "", parameters_widget );
   invert_control->object()->setText( "Invert image" );
 
-  autoupdate_control = new QCheckBox( controls_basic );
+  autoupdate_control = new QCheckBox( parameters_widget );
   autoupdate_control->setText( "Autoupdate" );  
 
-  image_scaling_control = new QT_v_labeled_obj<QComboBox>( "Scaling", controls_basic );
+  image_scaling_control = new QT_v_labeled_obj<QComboBox>( "Scaling", parameters_widget );
   std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
   for(unsigned int ii=0; ii<imgs_types.size(); ii++){
     image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
@@ -118,7 +118,7 @@ void GUI::set_up_ui(){
   draw_area->setSizePolicy(QSizePolicy::MinimumExpanding,
                      QSizePolicy::MinimumExpanding);
 
-  orientation_visualisation = new QSvgWidget( controls_basic );
+  orientation_visualisation = new QSvgWidget( parameters_widget );
   orientation_visualisation->setSizePolicy(QSizePolicy::MinimumExpanding,
                      QSizePolicy::MinimumExpanding);
   orientation_visualisation->setMinimumSize(120,120);
@@ -126,44 +126,44 @@ void GUI::set_up_ui(){
    * Slice control 
    */
 
-  slice_thickness_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Thickness", controls_basic);
+  slice_thickness_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Thickness", parameters_widget);
   slice_thickness_control->object()->setRange(0.001,10000);
   slice_thickness_control->object()->setSingleStep(0.001);
   slice_thickness_control->object()->setDecimals( 3 );
 
-  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Width", controls_basic);
+  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Width", parameters_widget);
   slice_width_control->object()->setRange(0.001,10000);
   slice_width_control->object()->setSingleStep(0.001);
   slice_width_control->object()->setDecimals( 3 );
 
-  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Height", controls_basic);
+  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Height", parameters_widget);
   slice_height_control->object()->setRange(0.001,10000);
   slice_height_control->object()->setSingleStep(0.001);
   slice_height_control->object()->setDecimals( 3 );
   
-  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Position", controls_basic);    
+  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Position", parameters_widget);    
   slice_position_control->object()->setSingleStep(0.01);
   slice_position_control->object()->setRange( -1000, 1000 );
   slice_position_control->object()->setDecimals( 3 );
 
-  button_set_to_uc_dim = new QPushButton ("Set to UC", controls_basic );
-  draw_uc_control = new QCheckBox( controls_basic );
+  button_set_to_uc_dim = new QPushButton ("Set to UC", parameters_widget );
+  draw_uc_control = new QCheckBox( parameters_widget );
   draw_uc_control->setText("Draw unitcell");
   
-  miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", controls_basic );
+  miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", parameters_widget );
   miller_h_control->object()->setRange(-500, 500);
   
-  miller_k_control = new QT_h_labeled_obj<QSpinBox> ("k", controls_basic );
+  miller_k_control = new QT_h_labeled_obj<QSpinBox> ("k", parameters_widget );
   miller_k_control->object()->setRange(-500, 500);
   
-  miller_l_control = new QT_h_labeled_obj<QSpinBox> ("l", controls_basic );  
+  miller_l_control = new QT_h_labeled_obj<QSpinBox> ("l", parameters_widget );  
   miller_l_control->object()->setRange(-500, 500);
 
   /*
    * membrane control
    */
 
-  membranes_control = new QTableWidget( controls_basic );
+  membranes_control = new QTableWidget( parameters_widget );
   membranes_control->insertColumn( 0 );
   membranes_control->insertColumn( 0 );
 
@@ -172,13 +172,13 @@ void GUI::set_up_ui(){
   membranes_control->setHorizontalHeaderLabels( table_header );
   membranes_control->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   
-  add_membrane_control = new QPushButton ( "Add", controls_basic );
-  rm_membrane_control = new QPushButton( "Remove", controls_basic );
+  add_membrane_control = new QPushButton ( "Add", parameters_widget );
+  rm_membrane_control = new QPushButton( "Remove", parameters_widget );
 
-  membranes_label = new QLabel( "Membranes", controls_basic );
+  membranes_label = new QLabel( "Membranes", parameters_widget );
 
-  fill_channels_label = new QLabel( "Fill in projection:", controls_basic );
-  fill_channels_control_container = new QScrollArea( controls_basic );
+  fill_channels_label = new QLabel( "Fill in projection:", parameters_widget );
+  fill_channels_control_container = new QScrollArea( parameters_widget );
   fill_channels_control_content = new QWidget( fill_channels_control_container );
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
 
@@ -199,15 +199,15 @@ void GUI::set_up_ui(){
     h_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum) );
   }
 
-  h_line_1 = new QFrame( controls_basic );
+  h_line_1 = new QFrame( parameters_widget );
   h_line_1->setFrameShape( QFrame::HLine );
   h_line_1->setFrameShadow( QFrame::Sunken );
 
-  h_line_2 = new QFrame( controls_basic );
+  h_line_2 = new QFrame( parameters_widget );
   h_line_2->setFrameShape( QFrame::HLine );
   h_line_2->setFrameShadow( QFrame::Sunken );
 
-  h_line_3 = new QFrame( controls_basic );
+  h_line_3 = new QFrame( parameters_widget );
   h_line_3->setFrameShape( QFrame::HLine );
   h_line_3->setFrameShadow( QFrame::Sunken );
 
@@ -339,24 +339,24 @@ void GUI::set_up_ui(){
   buttons_projection = new QVBoxLayout();  
 
   // the layout of the tabs
-  controls_basic_layout = new QVBoxLayout( controls_basic );
+  parameters_widget_layout = new QVBoxLayout( parameters_widget );
 
-  controls_save_layout = new QVBoxLayout( controls_save );
-  controls_measurement_layout = new QVBoxLayout( controls_measurement );
-  controls_measurement_buttons_layout = new QHBoxLayout();
+  save_widget_layout = new QVBoxLayout( save_widget );
+  measurement_widget_layout = new QVBoxLayout( measurement_widget );
+  measurement_widget_buttons_layout = new QHBoxLayout();
 
-  controls_measurement_layout->addWidget( detailled_stats );
+  measurement_widget_layout->addWidget( detailled_stats );
 
-  controls_measurement_buttons_layout->addWidget( button_measure_vol_area );
-  controls_measurement_buttons_layout->addWidget( button_measure_percthres );
+  measurement_widget_buttons_layout->addWidget( button_measure_vol_area );
+  measurement_widget_buttons_layout->addWidget( button_measure_percthres );
   
-  controls_measurement_layout->addLayout( controls_measurement_buttons_layout );
+  measurement_widget_layout->addLayout( measurement_widget_buttons_layout );
   
-  controls_save_layout->addLayout( path_prefix_control->layout() );
-  controls_save_layout->addWidget( choose_path_prefix );
-  controls_save_layout->addItem( v_spacer[0] );  
-  controls_save_layout->addWidget( save_grid_control );
-  controls_save_layout->addWidget( save_surface_points_control );
+  save_widget_layout->addLayout( path_prefix_control->layout() );
+  save_widget_layout->addWidget( choose_path_prefix );
+  save_widget_layout->addItem( v_spacer[0] );  
+  save_widget_layout->addWidget( save_grid_control );
+  save_widget_layout->addWidget( save_surface_points_control );
     
   structure_settings = new QHBoxLayout();
   surface_level_settings = new QHBoxLayout();
@@ -427,36 +427,36 @@ void GUI::set_up_ui(){
 
 
   // put it all together into the main layout
-  controls_basic_layout->addLayout( structure_settings );
-  controls_basic_layout->addLayout( surface_level_settings );
+  parameters_widget_layout->addLayout( structure_settings );
+  parameters_widget_layout->addLayout( surface_level_settings );
 
 
-  controls_basic_layout->addItem( v_spacer[2] );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
-  controls_basic_layout->addWidget( h_line_1 );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
+  parameters_widget_layout->addItem( v_spacer[2] );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );
+  parameters_widget_layout->addWidget( h_line_1 );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );  
 
-  controls_basic_layout->addLayout( slice_settings );
+  parameters_widget_layout->addLayout( slice_settings );
 
-  controls_basic_layout->addItem( v_spacer[3] );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
-  controls_basic_layout->addWidget( h_line_2 );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
+  parameters_widget_layout->addItem( v_spacer[3] );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );
+  parameters_widget_layout->addWidget( h_line_2 );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );
   
-  controls_basic_layout->addLayout( membrane_buttons_layout );
-  controls_basic_layout->addLayout( membrane_settings );
+  parameters_widget_layout->addLayout( membrane_buttons_layout );
+  parameters_widget_layout->addLayout( membrane_settings );
 
-  controls_basic_layout->addItem( v_spacer[4] );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );
-  controls_basic_layout->addWidget( h_line_3 );
-  controls_basic_layout->insertSpacing( -1, int(space_between_items/2) );  
+  parameters_widget_layout->addItem( v_spacer[4] );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );
+  parameters_widget_layout->addWidget( h_line_3 );
+  parameters_widget_layout->insertSpacing( -1, int(space_between_items/2) );  
   
-  controls_basic_layout->addLayout( resolution_settings );
+  parameters_widget_layout->addLayout( resolution_settings );
 
-  controls_basic_layout->addItem( v_spacer[5] );
-  controls_basic_layout->insertSpacing( -1, space_between_items );
+  parameters_widget_layout->addItem( v_spacer[5] );
+  parameters_widget_layout->insertSpacing( -1, space_between_items );
   
-  controls_basic_layout->addLayout( buttons_layout );
+  parameters_widget_layout->addLayout( buttons_layout );
     
   buttons_projection->addWidget( button_render );
   buttons_projection->addWidget( autoupdate_control );
@@ -1392,7 +1392,7 @@ void GUI::update_fill_channels(){
   
   // recreate them
 
-  fill_channels_control_content = new QWidget( controls_basic );
+  fill_channels_control_content = new QWidget( parameters_widget );
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
   // assign the new QWidget
   fill_channels_control_container->setWidget( fill_channels_control_content );

@@ -178,10 +178,9 @@ private:
   QSvgWidget *orientation_visualisation;
 
   QTabWidget *controls;
-  QWidget *controls_basic;
-  QWidget *controls_measurement;
-  QWidget *controls_save;
-  QWidget *manual_widget;
+  QWidget *parameters_widget;
+  QWidget *measurement_widget;
+  QWidget *save_widget;
   QWidget *about_widget;
   QWidget *license_widget;  
 
@@ -300,12 +299,10 @@ private:
   QHBoxLayout *membrane_settings;
   QHBoxLayout *membrane_buttons_layout;
   
-  QVBoxLayout *controls_basic_layout;
-  QVBoxLayout *controls_measurement_layout;
-  QHBoxLayout *controls_measurement_buttons_layout;
-  QVBoxLayout *controls_save_layout;
-
-  QVBoxLayout *manual_widget_layout;
+  QVBoxLayout *parameters_widget_layout;
+  QVBoxLayout *measurement_widget_layout;
+  QHBoxLayout *measurement_widget_buttons_layout;
+  QVBoxLayout *save_widget_layout;
 
   QVBoxLayout *about_widget_layout;
   QHBoxLayout *about_qt_layout;
