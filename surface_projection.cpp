@@ -1946,7 +1946,7 @@ void surface_projection::set_l( int val ){
 /**
  * A wrapper function, calling the setter functions of the parameter
  * identified by the string. This should only be used if absolutely
- * necessary, since type safety is weakend!
+ * necessary, since type safety is weakened!
  *
  * The string identifier should only be taken from the array \ref parameter_names
  *
@@ -1991,6 +1991,59 @@ void surface_projection::set_parameter( std::string par, double val ){
   }
   if( par == parameter_names[10] ){
     set_l( static_cast<int>( val ) );
+  }
+  
+}
+
+
+
+/**
+ * A wrapper function, calling the getter functions of the parameter
+ * identified by the string. This should only be used if absolutely
+ * necessary, since type safety is weakened!
+ *
+ * The string identifier should only be taken from the array \ref parameter_names
+ *
+ * \param[in] par The string identifying the parameter
+ */
+double surface_projection::get_parameter( std::string par ){
+
+  if( par == parameter_names[0] ){
+    return static_cast<double> ( get_type() );
+  }
+  
+  if( par == parameter_names[1] ){
+    return get_uc_scale_ab();
+  }
+  if( par == parameter_names[2] ){
+    return get_uc_scale_c();
+  }  
+  if( par == parameter_names[3] ){
+    return get_surface_level();
+  }
+
+
+  if( par == parameter_names[4] ){
+    return get_slice_thickness();
+  }
+  if( par == parameter_names[5] ){
+    return get_slice_height();
+  }
+  if( par == parameter_names[6] ){
+    return get_slice_width();
+  }
+  if( par == parameter_names[7] ){
+    return get_slice_position();
+  }  
+
+  if( par == parameter_names[8] ){
+    return static_cast<double> ( get_h() );
+  }
+  if( par == parameter_names[9] ){
+    return static_cast<double> ( get_k() );    
+  }
+  if( par == parameter_names[10] ){
+    return static_cast<double> ( get_l() );    
   }
   
 }

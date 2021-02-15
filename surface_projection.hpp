@@ -310,6 +310,19 @@ public:
   /// string
   void set_parameter( std::string par, double val );
 
+  /// A wrapper functions allowing getting a parameter identified by a
+  /// string
+  double get_parameter( std::string par );  
+
+
+  /// A vector containing string name for each parameter. It can be
+  /// used in combination with \ref set_parameter_string to call
+  /// setter functions using a string. However, calling the setters
+  /// directly should be cleaner. Since this is a ststic member,
+  /// initialization is outside the class definition
+  static const std::vector<std::string> parameter_names;
+
+
   
 protected:
 
@@ -510,14 +523,6 @@ protected:
 
   /// The 2D projection
   std::vector<float> projection;
-
-
-  /// A vector containing string name for each parameter. It can be
-  /// used in combination with \ref set_parameter_string to call
-  /// setter functions using a string. However, calling the setters
-  /// directly should be cleaner. Since this is a ststic member,
-  /// initialization is outside the class definition
-  static const std::vector<std::string> parameter_names;
   
 };
 
