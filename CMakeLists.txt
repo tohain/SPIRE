@@ -2,8 +2,6 @@ cmake_minimum_required (VERSION 2.6.4)
 project (surface_projection)
 set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
-message( ${CMAKE_SYSTEM_LIBRARY_PATH} )
-#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/AMD/aocl/aocl-linux-gcc-2.2.0/lib)
 
 #add an option to build the gui or only terminal appliaction
 option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
@@ -15,7 +13,7 @@ option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channe
 option(BUILD_BATCH_TOOL "Builds a tool to generate batches of files" OFF)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp)
+SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp batch_tool_lib.cpp)
 
 #the source files for the QT gui
 SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp slice_orientation_visualisation.cpp drawme.cpp)
@@ -53,6 +51,7 @@ if(BUILD_QT_GUI)
     target_link_libraries(projection_tool_qt CGAL::CGAL)
   endif()
 
+  find_package(PNG REQUIRED)
   if( PNG_FOUND )
     add_compile_definitions(HAVE_PNG)
     target_link_libraries(projection_tool_qt PNG::PNG)

@@ -38,7 +38,7 @@ void GUI::set_up_ui(){
   controls->addTab( license_widget, "License" );  
   
   // measurements tab
-  measurements_slice = new QT_v_labeled_obj<QTableWidget>( "This is a title", measurement_widget );
+  measurements_slice = new QT_labeled_obj<QTableWidget>( "vl", "Measurements of entire slice", measurement_widget );
   measurements_slice->object()->insertColumn(0);
   measurements_slice->object()->insertColumn(1);
   measurements_slice->object()->insertColumn(2);
@@ -47,7 +47,7 @@ void GUI::set_up_ui(){
   measurements_slice->object()->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   measurements_slice->object()->setHorizontalHeaderLabels( measurements_slice_header );
 
-  measurements_uc = new QT_v_labeled_obj<QTableWidget>( "Another title", measurement_widget );
+  measurements_uc = new QT_labeled_obj<QTableWidget>( "vl", "Measurements of a single, primitive unit cell in (001) orientation", measurement_widget );
   measurements_uc->object()->insertColumn(0);
   measurements_uc->object()->insertColumn(1);
   measurements_uc->object()->insertColumn(2);
@@ -61,7 +61,7 @@ void GUI::set_up_ui(){
   choose_path_prefix = new QPushButton( "Choose location and prefix", save_widget );
   save_grid_control = new QPushButton( "Save grid", save_widget );
   save_surface_points_control = new QPushButton( "Save membrane points", save_widget );
-  path_prefix_control = new QT_v_labeled_obj<QLineEdit>( "Path and prefix", save_widget );
+  path_prefix_control = new QT_labeled_obj<QLineEdit>( "vl", "Path and prefix", save_widget );
   
   // buttons for parameters_widget
   button_save = new QPushButton("Save Image", parameters_widget);
@@ -77,25 +77,25 @@ void GUI::set_up_ui(){
    * structure control
    */ 
   
-  uc_size_control_a = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor (xy)", parameters_widget );
+  uc_size_control_a = new QT_labeled_obj<QDoubleSpinBox> ( "vl", "Unit Cell Scale Factor (xy)", parameters_widget );
   uc_size_control_a->object()->setMinimum(0.001);
   uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_a->object()->setSingleStep(0.01);
   uc_size_control_a->object()->setDecimals( 3 );
-  uc_size_control_c = new QT_v_labeled_obj<QDoubleSpinBox> ( "Unit Cell Scale Factor  (z)", parameters_widget );
+  uc_size_control_c = new QT_labeled_obj<QDoubleSpinBox> ( "vl", "Unit Cell Scale Factor  (z)", parameters_widget );
   uc_size_control_c->object()->setMinimum(0.001);
   uc_size_control_a->object()->setMaximum(10000.0);
   uc_size_control_c->object()->setSingleStep(0.01);
   uc_size_control_c->object()->setDecimals( 3 );
   
-  channel_prop_control = new QT_v_labeled_obj<QDoubleSpinBox> ( "", parameters_widget );
+  channel_prop_control = new QT_labeled_obj<QDoubleSpinBox> ( "vl", "", parameters_widget );
   channel_prop_control->object()->setSingleStep(0.01);  
 
-  level_par_type = new QT_v_labeled_obj<QComboBox> ( "Surface control parameter", parameters_widget );
+  level_par_type = new QT_labeled_obj<QComboBox> ( "vl", "Surface control parameter", parameters_widget );
   level_par_type->object()->insertItem( 0, "Volume proportion" );
   level_par_type->object()->insertItem( 1, "Level Set" );
   
-  surface_type_control = new QT_v_labeled_obj<QComboBox> ( "Surface type", parameters_widget );
+  surface_type_control = new QT_labeled_obj<QComboBox> ( "vl", "Surface type", parameters_widget );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
   for(unsigned int ii=0; ii<sfc_types.size(); ii++){
     surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
@@ -104,20 +104,20 @@ void GUI::set_up_ui(){
   /*
    * Resolution control
    */
-  x_points_control = new QT_v_labeled_obj<QSpinBox> ( "X resolution", parameters_widget );
+  x_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "X resolution", parameters_widget );
   x_points_control->object()->setRange(1, 600);
 
-  z_points_control = new QT_v_labeled_obj<QSpinBox> ( "Z resolution", parameters_widget );  
+  z_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "Z resolution", parameters_widget );  
   z_points_control->object()->setRange(1, 250);
 
 
-  invert_control = new QT_v_labeled_obj<QCheckBox>( "", parameters_widget );
+  invert_control = new QT_labeled_obj<QCheckBox>( "vl", "", parameters_widget );
   invert_control->object()->setText( "Invert image" );
 
   autoupdate_control = new QCheckBox( parameters_widget );
   autoupdate_control->setText( "Autoupdate" );  
 
-  image_scaling_control = new QT_v_labeled_obj<QComboBox>( "Scaling", parameters_widget );
+  image_scaling_control = new QT_labeled_obj<QComboBox>( "vl", "Scaling", parameters_widget );
   std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
   for(unsigned int ii=0; ii<imgs_types.size(); ii++){
     image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
@@ -138,22 +138,22 @@ void GUI::set_up_ui(){
    * Slice control 
    */
 
-  slice_thickness_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Thickness", parameters_widget);
+  slice_thickness_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Thickness", parameters_widget);
   slice_thickness_control->object()->setRange(0.001,10000);
   slice_thickness_control->object()->setSingleStep(0.001);
   slice_thickness_control->object()->setDecimals( 3 );
 
-  slice_width_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Width", parameters_widget);
+  slice_width_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Width", parameters_widget);
   slice_width_control->object()->setRange(0.001,10000);
   slice_width_control->object()->setSingleStep(0.001);
   slice_width_control->object()->setDecimals( 3 );
 
-  slice_height_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Height", parameters_widget);
+  slice_height_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Height", parameters_widget);
   slice_height_control->object()->setRange(0.001,10000);
   slice_height_control->object()->setSingleStep(0.001);
   slice_height_control->object()->setDecimals( 3 );
   
-  slice_position_control = new QT_h_labeled_obj<QDoubleSpinBox>( "Slice Position", parameters_widget);    
+  slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Position", parameters_widget);    
   slice_position_control->object()->setSingleStep(0.01);
   slice_position_control->object()->setRange( -1000, 1000 );
   slice_position_control->object()->setDecimals( 3 );
@@ -162,13 +162,13 @@ void GUI::set_up_ui(){
   draw_uc_control = new QCheckBox( parameters_widget );
   draw_uc_control->setText("Draw unitcell");
   
-  miller_h_control = new QT_h_labeled_obj<QSpinBox> ("h", parameters_widget );
+  miller_h_control = new QT_labeled_obj<QSpinBox> ("hl", "h", parameters_widget );
   miller_h_control->object()->setRange(-500, 500);
   
-  miller_k_control = new QT_h_labeled_obj<QSpinBox> ("k", parameters_widget );
+  miller_k_control = new QT_labeled_obj<QSpinBox> ("hl", "k", parameters_widget );
   miller_k_control->object()->setRange(-500, 500);
   
-  miller_l_control = new QT_h_labeled_obj<QSpinBox> ("l", parameters_widget );  
+  miller_l_control = new QT_labeled_obj<QSpinBox> ( "hl", "l", parameters_widget );  
   miller_l_control->object()->setRange(-500, 500);
 
   /*

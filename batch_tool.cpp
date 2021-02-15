@@ -16,26 +16,17 @@
 #include "percolation_analysis.hpp"
 
 #include "auxiliary.hpp"
-
 #include <png.h>
 
+#include "batch_tool_lib.hpp"
 
 
 typedef struct {
-
-  std::vector<std::string> parameters;
-  std::vector< std::vector<double> > values;
-
   std::vector<double> membranes;
   std::vector<double> filled_channels;
   std::vector<double> resolution;
-
-  std::string fn_prefix;  
-} options;
-
-
-std::vector<std::string> iter_par_names = { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
-
+  std::string fn_prefix;
+} cmd_options;
 
 void print_help(){
 
@@ -61,7 +52,7 @@ void print_help(){
 	    << "might be skipped" << std::endl;
   
 
-  for( auto it : iter_par_names ){
+  for( auto it : surface_projection::parameter_names ){
     std::cout << "   --" << it << std::endl;
   }
   
@@ -69,339 +60,14 @@ void print_help(){
   
 }
 
-template <class T>
-std::vector<T> parse_string( std::string in ){
-
-  auto parts_range = my_utility::str_split( in, ':' );
-  auto parts_singles = my_utility::str_split( in, ',' );  
-
-  std::vector<T> out;
-  
-  if( parts_range.size() > 1 ){
-
-    double start = std::stod(parts_range[0]);
-    double end = std::stod(parts_range[1]);
-    double step = std::stod(parts_range[2]);    
-    if( step == 0 ){
-      throw std::string ("invalid range in " + in );
-    }   
-    if( start < end && step < 0 ){
-      throw std::string ("invalid range in " + in );
-    }
-    if( start > end && step > 0 ){
-      throw std::string ("invalid range in " + in );
-    }    
-
-    if ( start < end ){
-      for( double ii=start; ii<=end; ii+=step ){
-	out.push_back( ii );
-      }
-    } else {
-      for( double ii=start; ii>=end; ii+=step ){
-	out.push_back( ii );
-      }
-    }
-    
-  } else if ( parts_singles.size() >= 1 ){
-    for( auto it : parts_singles ){
-      out.push_back( static_cast<T>( std::stod( it ) ) );
-    }
-  }
-  
-  return out;
-}
 
 
-void parse_cmd_options( int argc, char* argv[], options &ops ){
-  
-  char *found_it = NULL;
-  
-  for( int ii=1; ii<argc; ii++) {
-    
-    for( unsigned int jj=0; jj<iter_par_names.size(); jj++){
-
-
-      /*
-       * check all the iterable parameters
-       */
-      found_it = strstr( argv[ii], iter_par_names[jj].c_str() );
-      
-      if( found_it != NULL ){
-	ops.parameters.push_back( iter_par_names[jj] );
-	ops.values.push_back( parse_string<double> ( std::string( argv[ii+1] ) ) );
-      }
-    }
-
-
-    /*
-     * now check the "fixed" parameters
-     */
-    if( strcmp( argv[ii], "--membranes" ) == 0 ){
-      ops.membranes = parse_string<double> ( std::string( argv[ii+1] ) );
-    }
-    if( strcmp( argv[ii], "--filled_channels" ) == 0 ){
-      ops.filled_channels = parse_string<double> ( std::string( argv[ii+1] ) );
-    }
-
-    if( strcmp( argv[ii], "--resolution" ) == 0 ){
-      ops.resolution = parse_string<double> ( std::string( argv[ii+1] ) );
-    }
-
-    if( strcmp( argv[ii], "--fn_prefix" ) == 0 ){
-      ops.fn_prefix = std::string( argv[ii+1] );
-    }    
-    
-  }
-    
-}
-
-
-/**
- * sets the according parameter of the surface projection module. Just
- * a wrapper around the setters/getters of \ref surface_projection
- */
-void set_parameter( surface_projection &sp, std::string par, double val ){
-
-  if( par == iter_par_names[0] ){
-    sp.set_type( static_cast<int>( val ) );
-  }
-  
-  if( par == iter_par_names[1] ){
-    sp.set_uc_scale_ab( val );
-  }
-  if( par == iter_par_names[2] ){
-    sp.set_uc_scale_c( val );
-  }  
-  if( par == iter_par_names[3] ){
-    sp.set_surface_level( val );
-  }
-
-
-  if( par == iter_par_names[4] ){
-    sp.set_slice_thickness( val );
-  }
-  if( par == iter_par_names[5] ){
-    sp.set_slice_height( val );
-  }
-  if( par == iter_par_names[6] ){
-    sp.set_slice_width( val );
-  }
-  if( par == iter_par_names[7] ){
-    sp.set_slice_position( val );
-  }  
-
-  if( par == iter_par_names[8] ){
-    sp.set_h( static_cast<int>( val ) );
-  }
-  if( par == iter_par_names[9] ){
-    sp.set_k( static_cast<int>( val ) );
-  }
-  if( par == iter_par_names[10] ){
-    sp.set_l( static_cast<int>( val ) );
-  }
-  
-}
-
-
-std::string create_filename( std::string prefix, std::string suffix, std::vector< std::vector<double>::iterator > pars, options &ops, std::string delimiter = "_" ){
-
-  std::stringstream filename;
-
-  if( prefix != "" ){
-    filename << prefix;
-  }
-
-  if( prefix != "" ){
-    filename << delimiter;
-  }
-
-  for( auto it : ops.membranes ){
-    if( it >= 0 )
-      filename << "+";
-    filename << it;
-  }
-  filename << delimiter;
-  
-  for( auto it : ops.filled_channels ){
-    filename << it;
-  }
-  filename << delimiter;
-  
-  for( auto it : pars ){
-    filename << *it << delimiter;
-  }
-
-  filename << suffix;
-  
-  return filename.str();
-}
-
-
-/** 
- * this function checks, if the direction of the vector hkl has been
- * visited already
- * 
- * returns true, if we already checked that direction
- */
-template <class T>
-bool check_hkl_doubles( T h, T k, T l, std::set< std::vector<int> > &visited ){
-
-  // the absolute value only works for cubic symmetry!!!!!
-  int h_int = static_cast<int> ( h );
-  int k_int = static_cast<int> ( k );
-  int l_int = static_cast<int> ( l );  
-
-  int gcd = std::abs( my_utility::gcd_euclid( std::vector<int> {std::abs(h_int),
-								std::abs(k_int),
-								std::abs(l_int)} ) );
-
-  std::vector<int> reduced_vec = { h_int / gcd, k_int / gcd, l_int / gcd };
-  
-  if( visited.find( reduced_vec ) == visited.end() ){
-    // did not find the vector, new direction!
-    visited.insert( reduced_vec );
-    return false;
-  } else {
-
-    return true;
-  }
-}
-
-
-void print_cur_parameters( options &ops, std::vector< std::vector<double>::iterator > its, std::ostream &out = std::cout){
-  for(unsigned int ii=0; ii<ops.parameters.size(); ii ++){
-    out << ops.parameters[ii] << "=" << *(its[ii]) << " ";
-  }
-}
-
-/**
- * this function loops over all possible combinations of all iterators
- * in the \ref parameters vector in \ref ops.
- *
- * It keeps track of which hkl direction already has been computed and
- * avoids multiple combination of these directions
- *
- * returns the number of processed elements
- */
-int do_loop( options &ops, surface_projection &sp, void (*callback)(surface_projection &sp, std::vector< std::vector<double>::iterator > &pars, options &ops) ){
-
-  // the position of the miller indeces in values array
-  unsigned int h_pos, k_pos, l_pos;
-  
-  // get a set of iterators
-  std::vector< std::vector<double>::iterator > its;
-  for( unsigned int ii=0; ii<ops.values.size(); ii++ ){
-    // find the position of the miller indeces, will need them later
-    if( ops.parameters[ii] == iter_par_names[8] ){
-      h_pos = ii;
-    }
-    if( ops.parameters[ii] == iter_par_names[9] ){
-      k_pos = ii;
-    }
-    if( ops.parameters[ii] == iter_par_names[10] ){
-      l_pos = ii;
-    }    
-    its.push_back( ops.values[ii].begin() );
-  }
-
-  // find the "top-level" miller index, if this is resetted, we mus
-  // reset the visited directions, too!
-  // top level is the first appearing in values array
-  unsigned int hkl_first = std::min( h_pos, std::min(k_pos, l_pos) );
-  std::cout << "hkl_first=" << hkl_first <<std::endl;
-  
-  // to measure progress, get total amount of elements
-  long total_elements = 1;
-  for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
-    total_elements *= ops.values[ii].size();
-  }
-  std::cout << "processing a total of " << total_elements << " configurations" << std::endl;
-
-  long counter = 0;
-  long computed = 0;
-  
-  std::set<std::vector<int> > hkl_visited;
-  
-  // start looping. The last element is incremented most frequently.
-  if( its.size() > 0 ){
-  
-    while( true ){
-      
-      // check if any iterator is at its end, starting at last
-      for( unsigned int ii=its.size()-1; ii>0; ii--){ 
-	
-	if( its[ii] == ops.values[ii].end() ){
-	  its[ii] = ops.values[ii].begin();
-	  its[ii-1]++;
-
-	  // reset visited directions
-	  if( ii == hkl_first ){
-	    hkl_visited.clear();
-	  }
-	}
-	
-      }
-
-      //if first element is at its end, we're done
-      if( its[0] == ops.values[0].end() ){
-	break;
-      }
-      
-      // we can now set the state of the sp object by calling something like this
-      bool caught_exception = false;
-      for( unsigned int ii=0; ii<ops.values.size(); ii++ ){
-	try{
-	  set_parameter( sp, ops.parameters[ii], *(its[ii]) );
-	} catch ( invalid_parameter_exception e ){
-	  print_cur_parameters( ops, its );
-	  std::cout << ": ";
-	  caught_exception = true;
-	  std::cout << e.msg << std::endl;
-	} catch ( std::string s ){
-	  caught_exception = true;
-	  std::cerr << s << std::endl;
-	}
-      }
-      
-      // call the callback only if we didn't run into any issues given
-      // the current set of parameters
-      if( !caught_exception ){
-	// check if this direction was computed already
-	if( !check_hkl_doubles<double>( *its[h_pos],
-					*its[k_pos],
-					*its[l_pos],
-					hkl_visited ) ){
-	  callback( sp, its, ops );
-	  computed++;
-	}
-      }
-      
-      // increment the last element
-      its[ its.size() - 1 ]++;
-
-      counter++;
-      // might not want to call it each time we increment the counter,
-      // but since computing the projection is the heavy task I'd
-      // argue we won't create a bottle neck here
-      if( counter % 1 == 0){
-	std::cout << "computing " << counter << "/" << total_elements
-		  << " (" << std::setw(5) << std::setprecision(4)
-		  << ((float)counter / total_elements) * 100.0
-		  << "\%)\r" << std::flush;
-      }
-    }
-    
-  }  
-
-  std::cout << std::endl << "done!" << std::endl;
-  return computed;
-}
 
 
 /** 
  * check the most critical parameters for consistency and apply them
  */
-bool check_and_set_fixed_pars( options &ops, surface_projection &sp ){
+bool check_and_set_fixed_pars( cmd_options &ops, surface_projection &sp ){
 
   if( ops.membranes.size() % 2 == 1 ){
     throw std::string ("odd number of parameters in membrane array found");
@@ -453,31 +119,117 @@ bool check_and_set_fixed_pars( options &ops, surface_projection &sp ){
 
 }
 
-/**
- * the function which is called after each parameter update
- */
-void update_and_compute( surface_projection &sp,
-			 std::vector< std::vector<double>::iterator > &pars,
-			 options &ops ){
 
-  sp.update_geometry();
-  sp.compute_projection();
-  sp.write_png( create_filename( ops.fn_prefix, ".png", pars, ops ) );
-  
+std::vector<double> split_and_map( std::string in ){
+
+  std::vector<std::string> split = my_utility::str_split( in, ',' );
+  std::vector<double> out ( split.size(), 0 );
+  for( size_t ii=0; ii<split.size(); ii++){
+    out[ii] = std::stod( split[ii] );
+  }
+  return out;
 }
+
+
+void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options &ops ){
+  
+  char *found_it = NULL;
+  
+  for( int ii=1; ii<argc; ii++) {    
+    for( unsigned int jj=0; jj<surface_projection::parameter_names.size(); jj++){
+
+      // check all the iterable parameters
+      found_it = strstr( argv[ii], surface_projection::parameter_names[jj].c_str() );
+      
+      if( found_it != NULL ){
+	bc.add_parameter( surface_projection::parameter_names[jj], std::string( argv[ii+1] ) );
+      }
+    }
+
+
+    /*
+     * now check the "fixed" parameters
+     */
+    if( strcmp( argv[ii], "--membranes" ) == 0 ){
+      ops.membranes = split_and_map( std::string( argv[ii+1] ) );
+    }
+    if( strcmp( argv[ii], "--filled_channels" ) == 0 ){
+      ops.filled_channels = split_and_map ( std::string( argv[ii+1] ) );
+    }
+
+    if( strcmp( argv[ii], "--resolution" ) == 0 ){
+      ops.resolution = split_and_map ( std::string( argv[ii+1] ) );
+    }
+
+    if( strcmp( argv[ii], "--fn_prefix" ) == 0 ){
+      ops.fn_prefix = std::string( argv[ii+1] );
+    }    
+    
+  }
+    
+}
+
+
+
+
+class cmd_callback : public sp_callback {
+
+public:
+  cmd_callback( surface_projection &sp,
+		batch_creation &bc_,
+		std::string prefix ) :
+    sp_callback( sp ),
+    fn_prefix( prefix ),
+    bc( bc_ ),
+    counter (0)
+  {
+    summary.open( fn_prefix + "_summary.txt" );
+  }
+
+  ~cmd_callback(){
+    summary.close();
+  }
+  
+  void operator()( std::vector< std::vector<double>::iterator > pars ){
+
+    std::string fn = std::to_string( counter ) + ".png";
+    
+    sp.update_geometry();
+    sp.compute_projection();
+    sp.write_png( fn );
+
+    summary << fn << "    ";
+
+    for( auto it : surface_projection::parameter_names ){
+      summary << it << "=" << sp.get_parameter( it ) << " ";
+    }
+
+    summary << std::endl;
+    
+      
+    counter++;
+  }
+
+  long counter;
+  
+  batch_creation &bc;
+  std::string fn_prefix;
+  std::ofstream summary;
+};
+
 
 int main( int argc, char* argv[] ){
 
   if( argc == 1 ){
     print_help();
   }
-  
+
+  cmd_options ops;
   surface_projection sp;
+  batch_creation bc ( sp );
 
-
-  options ops;
   try {
-    parse_cmd_options( argc, argv, ops );
+    parse_cmd_options( argc, argv, bc, ops );
     if( !check_and_set_fixed_pars( ops, sp ) ){
       return EXIT_FAILURE;
     }
@@ -486,8 +238,10 @@ int main( int argc, char* argv[] ){
     return EXIT_FAILURE;
   }
 
-
-  long elements_created = do_loop( ops, sp, update_and_compute );
+  // get the functor
+  cmd_callback cmdcb ( sp, bc, ops.fn_prefix );
+  
+  long elements_created = bc.do_loop( cmdcb  );
   std::cout << "made " << elements_created << " projections" << std::endl;
   
   return EXIT_SUCCESS;

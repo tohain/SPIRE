@@ -60,26 +60,49 @@
 
 #include "global_settings.hpp"
 
+/**
+ * short wrapper for an object including a label combined with an
+ * object
+ */
 template <class QT_O>
-class QT_v_labeled_obj {
+class QT_labeled_obj {
 
 public:
-  QT_v_labeled_obj( std::string label_str, QWidget *parent = NULL ){
+  /**
+   * Constructor orientation is a char array of length 2. First
+   * character: v/h horizontal or vertical laytou, second character
+   * l/o label or object first
+   *
+   * \param[in] orientation Orientation and Layout
+   * \param[in] label_str Text of the label
+   * param[in] parent The QT parent
+   */
+  QT_labeled_obj( std::string orientation, std::string label_str, QWidget *parent = NULL ){
     obj = new QT_O ( parent );
     lbl = new QLabel( QString(label_str.c_str()), parent );
-    lyt = new QVBoxLayout();
 
-    lyt->addWidget( lbl );
-    lyt->addWidget( obj );
+    if( orientation[0] == 'v' ){
+      lyt = new QVBoxLayout();
+    } else {
+      lyt = new QHBoxLayout();
+    }
+
+    if( orientation[1] == 'l' ){      
+      lyt->addWidget( lbl );
+      lyt->addWidget( obj );
+    } else {
+      lyt->addWidget( obj );
+      lyt->addWidget( lbl );
+    }
   }
   
-  ~QT_v_labeled_obj(){
+  ~QT_labeled_obj(){
     delete( obj );
     delete( lbl );
     delete( lyt );
   }
 
-  QVBoxLayout* layout(){
+  QBoxLayout* layout(){
     return lyt;
   }
   QT_O* object(){
@@ -92,9 +115,10 @@ public:
 private:
   QT_O *obj;
   QLabel *lbl;
-  QVBoxLayout *lyt;
+  QBoxLayout *lyt;
 };
 
+/*
 template <class QT_O>
 class QT_h_labeled_obj {
 
@@ -139,7 +163,7 @@ private:
   QHBoxLayout *lyt;  
 };
 
-
+*/
 
 
 class GUI : public QWidget {
@@ -189,45 +213,45 @@ private:
   QPlainTextEdit *manual;
 
   // measurement tab
-  QT_v_labeled_obj<QTableWidget> *measurements_slice;
-  QT_v_labeled_obj<QTableWidget> *measurements_uc;  
+  QT_labeled_obj<QTableWidget> *measurements_slice;
+  QT_labeled_obj<QTableWidget> *measurements_uc;  
 
   // save tab
   QPushButton *choose_path_prefix;
   QPushButton *save_grid_control;
   QPushButton *save_surface_points_control;
 
-  QT_v_labeled_obj<QLineEdit> *path_prefix_control;
+  QT_labeled_obj<QLineEdit> *path_prefix_control;
   
   // structure control
-  QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
-  QT_v_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
-  QT_v_labeled_obj<QDoubleSpinBox> *channel_prop_control;
-  QT_v_labeled_obj<QComboBox> *level_par_type;
-  QT_v_labeled_obj<QComboBox> *surface_type_control;
+  QT_labeled_obj<QDoubleSpinBox> *uc_size_control_a;
+  QT_labeled_obj<QDoubleSpinBox> *uc_size_control_c;
+  QT_labeled_obj<QDoubleSpinBox> *channel_prop_control;
+  QT_labeled_obj<QComboBox> *level_par_type;
+  QT_labeled_obj<QComboBox> *surface_type_control;
   
 
   // resolution control
-  QT_v_labeled_obj<QSpinBox> *z_points_control;
-  QT_v_labeled_obj<QSpinBox> *x_points_control;
-  QT_v_labeled_obj<QComboBox> *image_scaling_control;  
-  QT_v_labeled_obj<QCheckBox> *invert_control;  
+  QT_labeled_obj<QSpinBox> *z_points_control;
+  QT_labeled_obj<QSpinBox> *x_points_control;
+  QT_labeled_obj<QComboBox> *image_scaling_control;  
+  QT_labeled_obj<QCheckBox> *invert_control;  
   QCheckBox *autoupdate_control;  
 
 
   // slice parameters control
-  QT_h_labeled_obj<QDoubleSpinBox> *slice_thickness_control;
-  QT_h_labeled_obj<QDoubleSpinBox> *slice_width_control;
-  QT_h_labeled_obj<QDoubleSpinBox> *slice_height_control;  
-  QT_h_labeled_obj<QDoubleSpinBox> *slice_position_control;
+  QT_labeled_obj<QDoubleSpinBox> *slice_thickness_control;
+  QT_labeled_obj<QDoubleSpinBox> *slice_width_control;
+  QT_labeled_obj<QDoubleSpinBox> *slice_height_control;  
+  QT_labeled_obj<QDoubleSpinBox> *slice_position_control;
 
   QPushButton *button_set_to_uc_dim;
   QCheckBox *draw_uc_control;
   QVBoxLayout *auto_uc_layout;
   
-  QT_h_labeled_obj<QSpinBox> *miller_h_control;
-  QT_h_labeled_obj<QSpinBox> *miller_k_control;
-  QT_h_labeled_obj<QSpinBox> *miller_l_control;  
+  QT_labeled_obj<QSpinBox> *miller_h_control;
+  QT_labeled_obj<QSpinBox> *miller_k_control;
+  QT_labeled_obj<QSpinBox> *miller_l_control;  
   
   //membranes
   QLabel *membranes_label;
