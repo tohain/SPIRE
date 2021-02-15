@@ -47,6 +47,7 @@
 #include <QScrollArea>
 #include <QTextStream>
 #include <QFile>
+#include <QProgressBar>
 
 #include <QtSvg/QSvgWidget>
 
@@ -118,53 +119,6 @@ private:
   QBoxLayout *lyt;
 };
 
-/*
-template <class QT_O>
-class QT_h_labeled_obj {
-
-public:
-  QT_h_labeled_obj( std::string label_str, QWidget *parent = NULL, bool _left = true ){
-    obj = new QT_O ( parent );
-    lbl = new QLabel( QString(label_str.c_str()), parent );
-    lyt = new QHBoxLayout();
-    left = _left;
-
-    if( left ){
-      lyt->addWidget( lbl );
-      lyt->addWidget( obj );
-    } else {
-      lyt->addWidget( obj );
-      lyt->addWidget( lbl );
-    }
-  }
-  
-  ~QT_h_labeled_obj(){
-    delete( obj );
-    delete( lbl );
-    delete( lyt );
-  }
-
-  QHBoxLayout* layout(){
-    return lyt;
-  }
-  QT_O* object(){
-    return obj;
-  }
-  QLabel* label(){
-    return lbl;
-  }  
-  
-private:
-  QT_O *obj;
-  QLabel *lbl;
-
-  bool left; // is label left or right?
-  
-  QHBoxLayout *lyt;  
-};
-
-*/
-
 
 class GUI : public QWidget {
 
@@ -204,7 +158,11 @@ private:
   QTabWidget *controls;
   QWidget *parameters_widget;
   QWidget *measurement_widget;
+
   QWidget *batch_widget;
+  QScrollArea *batch_scroll_area;
+  QWidget *batch_scroll_subwidget;
+  
   QWidget *save_widget;
   QWidget *about_widget;
   QWidget *license_widget;  
@@ -276,11 +234,20 @@ private:
   QPushButton *button_measure_vol_area;
   QPushButton *button_measure_percthres;
 
+  // batch creation
+  QLabel *batch_instructions;
+  std::vector<QT_labeled_obj<QLineEdit>*> batch_values;
+  QT_labeled_obj<QLineEdit> *batch_output_name;
+  QT_labeled_obj<QPushButton> *batch_choose_folder;
+  QProgressBar *batch_progress;
+  QPushButton *batch_compute_start;
+  QPushButton *batch_compute_stop;
+  
+  
   //status bar
   QStatusBar *status_bar;
   QLabel *status_bar_status_m;
   QLabel *status_bar_status_p;  
-  //QLabel *status_bar_pixs;
   QLabel *status_bar_uco;   // --> uc in orientation
   QLabel *status_bar_or; //--> orientation
   QLabel *status_bar_pixs; //--> pixel info
@@ -328,8 +295,13 @@ private:
   QVBoxLayout *measurement_widget_layout;
   QHBoxLayout *measurement_widget_buttons_layout;
   QVBoxLayout *save_widget_layout;
-  QVBoxLayout *batch_widget_layout;
 
+  
+  QVBoxLayout *batch_widget_layout;
+  QHBoxLayout *batch_widget_buttons_layout;
+  QVBoxLayout *batch_widget_parameters_layout;
+  QHBoxLayout *batch_widget_output_layout;
+  
   QVBoxLayout *about_widget_layout;
   QHBoxLayout *about_qt_layout;
 
@@ -442,6 +414,10 @@ public slots:
   
   void set_parameter();
 
+  void set_batch_output();
+  void start_batch_computing();
+  void stop_batch_computing();
+  
   void do_something();
   
 };

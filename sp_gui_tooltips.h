@@ -68,7 +68,9 @@ class tooltips {
   const std::string status_uco_tooltip = "The size of the unit cell in the given orientation";
   const std::string status_or_tooltip = "The angles of rotation of the primitive unit cell around the y (theta) and z (phi) axis to reach the current orientation";
   const std::string status_pixs_tooltip = "Gives the nr (and size of the voxels in length units) in all spatial dimensions, dx/dy is the size of a single pixel in the projection in length units";
-  const std::string status_uc_tooltip = "The size of the primitive unit cell, i.e. in (001) orientation";    
+  const std::string status_uc_tooltip = "The size of the primitive unit cell, i.e. in (001) orientation";
+
+const std::string batch_creation_instructions = "Creates projections for all combinations of given parameters.\n\nEmpty fields will use parameters from \"Parameter\" tab\n\nProvide values as comma separated list or range with syntax: start:end:step\n\nFiles will be store in folder provided below as\n/path/to/files/filename[_number].png\nwhere number will be replaced";  
     
 };
 

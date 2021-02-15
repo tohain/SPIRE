@@ -25,7 +25,15 @@ void GUI::set_up_ui(){
   controls = new QTabWidget( this );
   parameters_widget = new QWidget( controls );
   measurement_widget = new QWidget( controls );
+
   batch_widget = new QWidget( controls );
+  batch_scroll_area = new QScrollArea( batch_widget );
+  batch_scroll_subwidget = new QWidget( batch_scroll_area );
+  batch_scroll_subwidget->setMinimumWidth( 350 );
+  batch_scroll_subwidget->setSizePolicy( QSizePolicy::Expanding,
+					 QSizePolicy::Expanding);
+
+  
   save_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
   license_widget = new QWidget( controls );  
@@ -128,7 +136,7 @@ void GUI::set_up_ui(){
   draw_area->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
   draw_area->setMinimumSize(500,500);
   draw_area->setSizePolicy(QSizePolicy::MinimumExpanding,
-                     QSizePolicy::MinimumExpanding);
+			   QSizePolicy::MinimumExpanding);
 
   orientation_visualisation = new QSvgWidget( parameters_widget );
   orientation_visualisation->setSizePolicy(QSizePolicy::MinimumExpanding,
@@ -195,6 +203,29 @@ void GUI::set_up_ui(){
   fill_channels_container_layout = new QVBoxLayout( fill_channels_control_content );
 
   fill_channels_control_container->setWidget( fill_channels_control_content );  
+
+
+  /*
+   * batch creation
+   */
+
+  //batch_instructions->setWordWrap(true);
+  batch_instructions = new QLabel ( QString( ttips.batch_creation_instructions.c_str() ), batch_widget );
+  batch_instructions->setWordWrap( true );
+  
+  batch_compute_start = new QPushButton("Go!", batch_widget );
+  batch_compute_stop = new QPushButton("Stop", batch_widget );  
+
+  batch_output_name = new QT_labeled_obj<QLineEdit> ( "vl", "Output folder and prefix", batch_widget );
+  batch_choose_folder = new QT_labeled_obj<QPushButton> ( "vl", "", batch_widget );
+  batch_choose_folder->object()->setText("Open Folder");
+
+  for( auto it : surface_projection::parameter_names ){
+    batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
+  }
+
+  batch_progress = new QProgressBar( batch_scroll_subwidget );
+
   
   /*
    * Layout
@@ -243,8 +274,7 @@ void GUI::set_up_ui(){
   status_bar->addPermanentWidget( status_bar_uco );  
   status_bar->addPermanentWidget( status_bar_status_m );
   status_bar->addPermanentWidget( status_bar_status_p );  
-
-
+  
   // about widget
 
   qt_logo = new QLabel( about_widget );
@@ -357,7 +387,34 @@ void GUI::set_up_ui(){
   measurement_widget_layout = new QVBoxLayout( measurement_widget );
   measurement_widget_buttons_layout = new QHBoxLayout();
 
+  // batch creation
   batch_widget_layout = new QVBoxLayout( batch_widget );
+  batch_widget_buttons_layout = new QHBoxLayout();
+  batch_widget_parameters_layout = new QVBoxLayout( batch_scroll_subwidget );
+  batch_widget_output_layout = new QHBoxLayout();
+  
+  // add all value lineedits
+  for( auto it : batch_values ){
+    batch_widget_parameters_layout->addLayout( it->layout() );
+  }
+
+  // add buttons
+  batch_widget_buttons_layout->addWidget( batch_compute_stop );
+  batch_widget_buttons_layout->addWidget( batch_compute_start );
+
+  //output
+  batch_widget_output_layout->addLayout( batch_output_name->layout() );
+  batch_widget_output_layout->addLayout( batch_choose_folder->layout() );  
+
+  // put it together
+  batch_scroll_area->setWidget( batch_scroll_subwidget );
+
+  batch_widget_layout->addWidget( batch_instructions );
+  batch_widget_layout->addLayout( batch_widget_output_layout );
+  batch_widget_layout->addWidget( batch_scroll_area );
+  batch_widget_layout->addLayout( batch_widget_buttons_layout );
+  batch_widget_layout->addWidget( batch_progress );
+
   
   measurement_widget_layout->addLayout( measurements_slice->layout() );
   measurement_widget_layout->addLayout( measurements_uc->layout() );  
@@ -679,6 +736,12 @@ void GUI::set_up_signals_and_slots(){
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements );  
 
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
+
+  // batch
+  connect( batch_choose_folder->object(), &QPushButton::clicked, this, &GUI::set_batch_output );
+  connect( batch_compute_start, &QPushButton::clicked, this, &GUI::start_batch_computing );
+  connect( batch_compute_stop, &QPushButton::clicked, this, &GUI::stop_batch_computing );  
+
 
   // saving
   connect( choose_path_prefix, &QPushButton::clicked, this, &GUI::choose_export_prefix );
@@ -1528,13 +1591,37 @@ void GUI::read_parameters(){
 }
 
 
+
+
+void GUI::set_batch_output(){
+
+  QString filename = QFileDialog::getSaveFileName( this, "Select File", "./", tr("*"), NULL, QFileDialog::DontUseNativeDialog );
+
+  batch_output_name->object()->setText( filename );
+  
+}
+
+
+void GUI::start_batch_computing(){
+
+  std::cout << "start" << std::endl;
+
+}
+
+
+void GUI::stop_batch_computing(){
+
+  std::cout << "stop" << std::endl;
+
+}
+
 /*
  * Since QAbstractSpinbox::finishedEditing is a slot without a
  * parameter, we have to catch that signal in this slot to read the
  * value from the object and pass it onto another slot in the sp class
  * to actually change the value. Using the valueChanged signal would
  * avoid this issue, however causes annoying behavior where the focus
- * is lost, when updating the GUI after each digit change. Somehoe
+ * is lost, when updating the GUI after each digit change. Somehow
  * this does not affect the (integer) QSpinBox objects. Maybe I'll
  * implement this in a cleaner fashion in the future
  */
