@@ -25,25 +25,37 @@ void GUI::set_up_ui(){
   controls = new QTabWidget( this );
   parameters_widget = new QWidget( controls );
   measurement_widget = new QWidget( controls );
+  batch_widget = new QWidget( controls );
   save_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
   license_widget = new QWidget( controls );  
 
   controls->addTab( parameters_widget, "Parameters" );
   controls->addTab( measurement_widget, "Measurements" );
+  controls->addTab( batch_widget, "Batch creation" );
   controls->addTab( save_widget, "Export" );
   controls->addTab( about_widget, "About" );
   controls->addTab( license_widget, "License" );  
   
-  // stats tab
-  detailled_stats = new QTableWidget( save_widget );
-  detailled_stats->insertColumn(0);
-  detailled_stats->insertColumn(1);
-  detailled_stats->insertColumn(2);
-  QStringList detailled_stats_header;
-  detailled_stats_header << "Volume" << "Area" << "Perc. threshold";
-  detailled_stats->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-  detailled_stats->setHorizontalHeaderLabels( detailled_stats_header );
+  // measurements tab
+  measurements_slice = new QT_v_labeled_obj<QTableWidget>( "This is a title", measurement_widget );
+  measurements_slice->object()->insertColumn(0);
+  measurements_slice->object()->insertColumn(1);
+  measurements_slice->object()->insertColumn(2);
+  QStringList measurements_slice_header;
+  measurements_slice_header << "Volume" << "Area" << "Perc. threshold";
+  measurements_slice->object()->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  measurements_slice->object()->setHorizontalHeaderLabels( measurements_slice_header );
+
+  measurements_uc = new QT_v_labeled_obj<QTableWidget>( "Another title", measurement_widget );
+  measurements_uc->object()->insertColumn(0);
+  measurements_uc->object()->insertColumn(1);
+  measurements_uc->object()->insertColumn(2);
+  QStringList measurements_uc_header;
+  measurements_uc_header << "Volume" << "Area" << "Perc. threshold";
+  measurements_uc->object()->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  measurements_uc->object()->setHorizontalHeaderLabels( measurements_uc_header );
+  
   
   // save tab
   choose_path_prefix = new QPushButton( "Choose location and prefix", save_widget );
@@ -345,7 +357,10 @@ void GUI::set_up_ui(){
   measurement_widget_layout = new QVBoxLayout( measurement_widget );
   measurement_widget_buttons_layout = new QHBoxLayout();
 
-  measurement_widget_layout->addWidget( detailled_stats );
+  batch_widget_layout = new QVBoxLayout( batch_widget );
+  
+  measurement_widget_layout->addLayout( measurements_slice->layout() );
+  measurement_widget_layout->addLayout( measurements_uc->layout() );  
 
   measurement_widget_buttons_layout->addWidget( button_measure_vol_area );
   measurement_widget_buttons_layout->addWidget( button_measure_percthres );
@@ -661,7 +676,7 @@ void GUI::set_up_signals_and_slots(){
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
 
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_stats );
-  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_detailled_stats );  
+  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements );  
 
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
 
@@ -1106,10 +1121,10 @@ void GUI::update_stats(){
 
 
 
-void GUI::update_detailled_stats(){
+void GUI::update_measurements(){
 
   // reset table view
-  detailled_stats->setRowCount( 0 );
+  measurements_slice->object()->setRowCount( 0 );
 
   QStringList vertical_labels;
 
@@ -1117,7 +1132,7 @@ void GUI::update_detailled_stats(){
   // create table
   int mem_count=0, ch_count=0;
   for( unsigned int ii=0; ii<mems.size()+1; ii++){
-    detailled_stats->insertRow( ii );
+    measurements_slice->object()->insertRow( ii );
     if( ii % 2 == 0 ){
       vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
     } else {
@@ -1125,14 +1140,14 @@ void GUI::update_detailled_stats(){
     }	
   }
 
-  for( int r=0; r<detailled_stats->rowCount(); r++){
-    for( int c=0; c<detailled_stats->columnCount(); c++){
-      detailled_stats->setItem( r, c, new QTableWidgetItem() );
-      detailled_stats->item( r, c )->setFlags( Qt::ItemIsEnabled );
+  for( int r=0; r<measurements_slice->object()->rowCount(); r++){
+    for( int c=0; c<measurements_slice->object()->columnCount(); c++){
+      measurements_slice->object()->setItem( r, c, new QTableWidgetItem() );
+      measurements_slice->object()->item( r, c )->setFlags( Qt::ItemIsEnabled );
     }
   }
   
-  detailled_stats->setVerticalHeaderLabels( vertical_labels );
+  measurements_slice->object()->setVerticalHeaderLabels( vertical_labels );
 
   
 
@@ -1146,15 +1161,15 @@ void GUI::update_detailled_stats(){
   
   // vols
   for( unsigned int ii=0; ii<vol_data.size(); ii++ ){
-    detailled_stats->item( ii, 0)->setText( def_locale->toString( vol_data[ii] ) );
+    measurements_slice->object()->item( ii, 0)->setText( def_locale->toString( vol_data[ii] ) );
   }
   // areas
   for( unsigned int ii=0; ii<area_data.size(); ii++ ){    
-    detailled_stats->item( (ii*2)+1, 1 )->setText( def_locale->toString( area_data[ii] ) );
+    measurements_slice->object()->item( (ii*2)+1, 1 )->setText( def_locale->toString( area_data[ii] ) );
   }
   // percolation
   for( unsigned int ii=0; ii<perc_thres.size(); ii++){
-    detailled_stats->item( 2*ii, 2)->setText( def_locale->toString( perc_thres[ii] ) );
+    measurements_slice->object()->item( 2*ii, 2)->setText( def_locale->toString( perc_thres[ii] ) );
   }
   
 }

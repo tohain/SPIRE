@@ -180,6 +180,7 @@ private:
   QTabWidget *controls;
   QWidget *parameters_widget;
   QWidget *measurement_widget;
+  QWidget *batch_widget;
   QWidget *save_widget;
   QWidget *about_widget;
   QWidget *license_widget;  
@@ -187,9 +188,9 @@ private:
   // manual tab
   QPlainTextEdit *manual;
 
-  // stats tab
-  //QLabel *detailled_stats;
-  QTableWidget *detailled_stats;
+  // measurement tab
+  QT_v_labeled_obj<QTableWidget> *measurements_slice;
+  QT_v_labeled_obj<QTableWidget> *measurements_uc;  
 
   // save tab
   QPushButton *choose_path_prefix;
@@ -303,6 +304,7 @@ private:
   QVBoxLayout *measurement_widget_layout;
   QHBoxLayout *measurement_widget_buttons_layout;
   QVBoxLayout *save_widget_layout;
+  QVBoxLayout *batch_widget_layout;
 
   QVBoxLayout *about_widget_layout;
   QHBoxLayout *about_qt_layout;
@@ -390,7 +392,7 @@ public slots:
   void output_message( QString msg, int type = 1);
 
   void update_stats();
-  void update_detailled_stats();
+  void update_measurements();
 
   void change_autoupdate( int state );
   void request_compute_projection();
