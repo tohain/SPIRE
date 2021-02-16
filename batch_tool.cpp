@@ -18,7 +18,7 @@
 #include "auxiliary.hpp"
 #include <png.h>
 
-#include "batch_tool_lib.hpp"
+#include "batch_lib.hpp"
 
 
 typedef struct {

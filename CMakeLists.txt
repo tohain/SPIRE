@@ -13,7 +13,7 @@ option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channe
 option(BUILD_BATCH_TOOL "Builds a tool to generate batches of files" OFF)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp batch_tool_lib.cpp)
+SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp batch_lib.cpp)
 
 #the source files for the QT gui
 SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp slice_orientation_visualisation.cpp drawme.cpp)
