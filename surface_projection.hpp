@@ -322,6 +322,9 @@ public:
   /// initialization is outside the class definition
   static const std::vector<std::string> parameter_names;
 
+  /// Human readable names of the the Parameters
+  static const std::vector<std::string> parameter_names_hr;
+
 
   
 protected:

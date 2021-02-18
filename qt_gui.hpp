@@ -1,6 +1,6 @@
 /* Projection tool - compute planar projection of triply periodic
  * minimal surfaces 
- * Copyright (C) 2020 Tobias Hain
+ * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QProgressBar>
-
+#include <QRegularExpression>
 #include <QtSvg/QSvgWidget>
 
 #include <QThread>
@@ -60,6 +60,118 @@
 #include "vec_mat_math.hpp"
 
 #include "global_settings.hpp"
+#include "batch_lib.hpp"
+
+
+/**
+ * a short qt wrapper around the batch_lib to it has signals and slots
+ */
+class qt_bc : public QObject, public batch_creation {
+
+  Q_OBJECT;
+
+public:
+  
+  qt_bc ( surface_projection &sp_ ) : batch_creation( sp_ ) {
+  }
+
+  void set_callback( sp_callback *callback ){
+    cb = callback;
+  }
+
+public slots:
+  void start_loop(){
+    this->do_loop( *cb );    
+    emit finished_batch_loop();
+  }
+  
+signals:
+  void finished_batch_loop();
+  
+private:
+  sp_callback *cb;
+
+};
+
+/** 
+ * The callback functor for batch creation
+ */
+class gui_callback : public QObject, public sp_callback {
+
+  Q_OBJECT;
+  
+public:
+  gui_callback( surface_projection &sp,
+		batch_creation &bc_,
+		std::string prefix ) :
+    sp_callback( sp ),
+    fn_prefix( prefix ),
+    bc( bc_ ),
+    internal_counter (0),
+    keep_going ( true )
+  {
+
+  }
+
+  ~gui_callback(){
+  }
+
+  void set_prefix( std::string new_pre ){
+    fn_prefix = new_pre;   
+  }
+
+  void init(){
+    summary.open( fn_prefix + "_summary.txt" );
+    internal_counter=0;
+    external_counter=0;
+  }
+
+  void finalize(){
+    summary.close();
+  }
+  
+  bool operator()( std::vector< std::vector<double>::iterator > pars ){
+
+    std::string fn = fn_prefix + "_" +  std::to_string( internal_counter ) + ".png";
+    
+    sp.update_geometry();
+    sp.compute_projection();
+    sp.write_png( fn, invert, scaling );
+
+    summary << fn << "    ";
+
+    for( auto it : surface_projection::parameter_names ){
+      summary << it << "=" << sp.get_parameter( it ) << " ";
+    }
+
+    summary << std::endl;
+    internal_counter++;
+    emit updated_batch_progress( external_counter );
+
+    return keep_going;
+  }
+
+  // keeps track of how many projections has been computed, used for
+  // filenames
+  unsigned int internal_counter;
+  
+  batch_creation &bc;
+  std::string fn_prefix;
+  std::ofstream summary;
+
+  bool keep_going;
+		       
+public slots:
+  void update_status ( bool go_on ){
+    keep_going = go_on;
+  }
+  
+signals:
+  void updated_batch_progress( int p );
+  
+};
+
+
 
 /**
  * short wrapper for an object including a label combined with an
@@ -328,12 +440,23 @@ private:
   // another copy of the projection class, but used for measurements
   QThread *t_stats;
 
+  // a thread to handle the batch computation
+  QThread *bc_thread;
+  QThread *cb_thread;
   
   // the surface projection class
   sp_qt *sp;
 
+  // surface projection class to compute measurements, not sure if
+  // that's needed after all
   sp_qt *sp_stats;
 
+  // the batch_creation controller class
+  qt_bc *bc;
+
+  // the callback functor to call the projection thingy
+  gui_callback *cb;
+  
   // a pointer to the application executing this form
   QApplication *app;
   
@@ -358,7 +481,10 @@ signals:
   void call_show_dialog_box();
 
   void request_parameter_change( double value );
-			     
+
+  void emit_start_batch();
+  void emit_stop_batch( bool go_on );			 
+			 
 public slots:
 
   void change_surface_par_type( int index );
@@ -414,9 +540,12 @@ public slots:
   
   void set_parameter();
 
+
+  bool check_batch_string_consistency( QString inp );
   void set_batch_output();
   void start_batch_computing();
   void stop_batch_computing();
+  void finalize_batch_loop();
   
   void do_something();
   

@@ -121,6 +121,7 @@ void GUI::set_up_ui(){
 
   invert_control = new QT_labeled_obj<QCheckBox>( "vl", "", parameters_widget );
   invert_control->object()->setText( "Invert image" );
+  invert_control->object()->setCheckState( Qt::Checked );
 
   autoupdate_control = new QCheckBox( parameters_widget );
   autoupdate_control->setText( "Autoupdate" );  
@@ -220,7 +221,7 @@ void GUI::set_up_ui(){
   batch_choose_folder = new QT_labeled_obj<QPushButton> ( "vl", "", batch_widget );
   batch_choose_folder->object()->setText("Open Folder");
 
-  for( auto it : surface_projection::parameter_names ){
+  for( auto &it : surface_projection::parameter_names_hr ){
     batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
   }
 
@@ -741,8 +742,11 @@ void GUI::set_up_signals_and_slots(){
   connect( batch_choose_folder->object(), &QPushButton::clicked, this, &GUI::set_batch_output );
   connect( batch_compute_start, &QPushButton::clicked, this, &GUI::start_batch_computing );
   connect( batch_compute_stop, &QPushButton::clicked, this, &GUI::stop_batch_computing );  
-
-
+  connect( this, &GUI::emit_start_batch, bc, &qt_bc::start_loop );
+  connect( cb, &gui_callback::updated_batch_progress, batch_progress, &QProgressBar::setValue );
+  connect( bc, &qt_bc::finished_batch_loop, this, &GUI::finalize_batch_loop );
+  connect( this, &GUI::emit_stop_batch, cb, &gui_callback::update_status );
+  
   // saving
   connect( choose_path_prefix, &QPushButton::clicked, this, &GUI::choose_export_prefix );
   connect( save_grid_control, &QPushButton::clicked, this, &GUI::save_grid );
@@ -776,6 +780,13 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   sp_stats->update_containers();
 
 
+  // initialise batch creation object
+  bc = new qt_bc( *sp  );
+
+  // initialise the callback instance
+  cb = new gui_callback( *sp, *bc, "./projection" );
+  // pass the pointer
+  bc->set_callback( dynamic_cast<sp_callback*> (cb) );
   
   set_up_ui();
   set_up_tooltips();
@@ -790,12 +801,21 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   img_pix->convertFromImage( *image );
   
   thread = new QThread();
-  sp->moveToThread(thread);
+  sp->moveToThread( thread );
   thread->start();
 
   t_stats = new QThread();
   sp_stats->moveToThread( t_stats );
-  t_stats->start();
+  t_stats->start();  
+  
+  bc_thread = new QThread();
+  bc->moveToThread( bc_thread );
+  bc_thread->start();
+
+  cb_thread = new QThread();
+  cb->moveToThread( cb_thread );
+  cb_thread->start();
+
   
   
   set_up_signals_and_slots();
@@ -812,11 +832,20 @@ GUI::~GUI(){
   t_stats->exit();
   thread->wait();
   t_stats->wait();
+  bc_thread->exit();
+  bc_thread->wait();
+  cb_thread->exit();
+  cb_thread->wait();  
+  
   
   delete( thread );
-  delete( t_stats );  
+  delete( t_stats );
+  delete( bc_thread );
+  delete( cb_thread );
   delete( sp );
   delete( sp_stats );
+  delete( bc );
+  delete( cb );
   delete[]( img_data );
   delete( image );
   delete (img_pix );
@@ -830,6 +859,7 @@ void GUI::quit_app(){
   if( reply == QMessageBox::Yes ){
     thread->quit();
     t_stats->quit();
+    bc_thread->quit();
     app->quit();
   } else {
     // do nothing, just close dialog box
@@ -1602,17 +1632,95 @@ void GUI::set_batch_output(){
 }
 
 
+
+bool GUI::check_batch_string_consistency( QString inp ){
+
+  QString regex_csl_identifier ( "^([+-]?([0-9]+[.])?[0-9]+)+(,([+-]?([0-9]+[.])?[0-9]+))*$" );
+  QString regex_range_identifier ( "^(([+-]?([0-9]+[.])?[0-9]+):([+-]?([0-9]+[.])?[0-9]+):([+-]?([0-9]+[.])?[0-9]+))?$" );
+  QRegularExpression re_list( regex_csl_identifier );
+  QRegularExpression re_range( regex_range_identifier  );
+  
+  bool is_list = re_list.match( inp ).hasMatch();
+  bool is_range = re_range.match( inp ).hasMatch();    
+  
+  return is_list || is_range;
+}
+
+
 void GUI::start_batch_computing(){
+  
+  bc->reset_parameters();
 
-  std::cout << "start" << std::endl;
+  bool all_valid = true;
+  
+  for( size_t ii=0; ii<batch_values.size(); ii++ ){
 
+    // reset color
+    batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 255, 255); }");
+
+    // check all parameter inputs
+    bool this_valid = check_batch_string_consistency( batch_values[ii]->object()->text() );
+    all_valid = all_valid && this_valid;
+    if( !this_valid ){
+      batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 0, 0); }");
+    }
+  }
+
+  // stop if there are invalid expressions
+  if( !all_valid ){
+    QMessageBox::QMessageBox::critical( this, "Invalid parameters", "Some parameter inputs are "
+					"invalid\nPlease provide a comma separated list or a range!");
+    return;
+  }
+
+  batch_compute_start->setEnabled( false );
+  
+  // set all the parameters
+  for( size_t ii=0; ii<batch_values.size(); ii++ ){
+
+    if( batch_values[ii]->object()->text() == "" ){
+      // this parameter is not changed and should be set correctly already
+    } else {
+      bc->add_parameter( surface_projection::parameter_names[ii],
+			 batch_values[ii]->object()->text().toStdString() );
+    }
+
+  }
+
+  // pass the new path
+  if( !(batch_output_name->object()->text() == "") ){
+    cb->set_prefix ( batch_output_name->object()->text().toStdString() );
+  }
+  // open summary file
+  cb->init();
+  cb->set_img_mode ( invert_control->object()->isChecked(),
+		     image_scaling_control->object()->currentText().toStdString() );
+  
+  batch_progress->setMaximum( bc->total_combinations() );
+  
+  // start the loop
+  emit emit_start_batch();
+  
 }
 
 
 void GUI::stop_batch_computing(){
 
-  std::cout << "stop" << std::endl;
+  batch_progress->setValue( 0 );
+  emit emit_stop_batch( false );
+  
+}
 
+/**
+ * function is called when batch loop is finished succesfully
+ */
+void GUI::finalize_batch_loop(){
+  // close summary file
+  cb->finalize();
+  
+  batch_progress->setMaximum(1);
+  batch_progress->setValue( 1 );
+  batch_compute_start->setEnabled( true );  
 }
 
 /*

@@ -1,3 +1,21 @@
+/* Projection tool - compute planar projections of triply periodic
+ * minimal surfaces 
+ * Copyright (C) 2021 Tobias Hain
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see https://www.gnu.org/licenses.
+ */
+
 #include "batch_lib.hpp"
 
 /**
@@ -155,12 +173,13 @@ void batch_creation::print_cur_parameters( std::vector< std::vector<double>::ite
  *
  * returns the number of processed elements
  */
-int batch_creation::do_loop( sp_callback &callback ){
+long batch_creation::do_loop( sp_callback &callback ){
 
   // the position of the miller indeces in values array
   unsigned int h_pos=std::numeric_limits<unsigned int>::max();
   unsigned int k_pos=std::numeric_limits<unsigned int>::max();
   unsigned int l_pos=std::numeric_limits<unsigned int>::max();  
+  unsigned int nr_miller_provided = 0;
   
   // get a set of iterators
   std::vector< std::vector<double>::iterator > its;
@@ -168,12 +187,15 @@ int batch_creation::do_loop( sp_callback &callback ){
     // find the position of the miller indeces, will need them later
     if( ops.parameters[ii] == surface_projection::parameter_names[8] ){
       h_pos = ii;
+      nr_miller_provided++;
     }
     if( ops.parameters[ii] == surface_projection::parameter_names[9] ){
       k_pos = ii;
+      nr_miller_provided++;
     }
     if( ops.parameters[ii] == surface_projection::parameter_names[10] ){
       l_pos = ii;
+      nr_miller_provided++;
     }    
     its.push_back( ops.values[ii].begin() );
   }
@@ -183,14 +205,6 @@ int batch_creation::do_loop( sp_callback &callback ){
   // top level is the first appearing in values array
   unsigned int hkl_first = std::min( h_pos, std::min(k_pos, l_pos) );
   
-  // to measure progress, get total amount of elements
-  long total_elements = 1;
-  for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
-    total_elements *= ops.values[ii].size();
-  }
-  std::cout << "processing a total of " << total_elements << " possible configurations" << std::endl;
-
-  long counter = 0;
   long computed = 0;
   
   std::set<std::vector<int> > hkl_visited;
@@ -201,22 +215,34 @@ int batch_creation::do_loop( sp_callback &callback ){
     while( true ){
       
       // check if any iterator is at its end, starting at last
-      for( unsigned int ii=its.size()-1; ii>0; ii--){ 
+      bool stop = false;
+      for( int ii=its.size()-1; ii>=0; ii--){ 
 	
 	if( its[ii] == ops.values[ii].end() ){
 	  its[ii] = ops.values[ii].begin();
-	  its[ii-1]++;
+
+	  if( ii == 0 ){
+	    stop = true;
+	  } else {	  
+	    its[ii-1]++;
+	  }
 
 	  // reset visited directions
 	  if( ii == hkl_first ){
 	    hkl_visited.clear();
 	  }
 	}
+
+	// if no miller index is provided, reset the visited map after
+	// each parameter change
+	if( nr_miller_provided == 0 ){
+	  hkl_visited.clear();
+	}
 	
       }
 
       //if first element is at its end, we're done
-      if( its[0] == ops.values[0].end() ){
+      if( stop ){
 	break;
       }
       
@@ -244,7 +270,10 @@ int batch_creation::do_loop( sp_callback &callback ){
 					sp.get_k(),
 					sp.get_l(),
 					hkl_visited ) ){
-	  callback( its );
+	  if ( !callback( its ) ){
+	    // if callback returns false quit and stop
+	    break;	    
+	  }
 	  computed++;
 	}
       }
@@ -252,26 +281,28 @@ int batch_creation::do_loop( sp_callback &callback ){
       // increment the last element
       its[ its.size() - 1 ]++;
 
-      counter++;
-      // might not want to call it each time we increment the counter,
-      // but since computing the projection is the heavy task I'd
-      // argue we won't create a bottle neck here
-      if( counter % 1 == 0){
-	std::cout << "computing " << counter << "/" << total_elements
-		  << " (" << std::setw(5) << std::setprecision(4)
-		  << ((float)counter / total_elements) * 100.0
-		  << "\%)\r" << std::flush;
-      }
+      callback.inc_counter();
     }
     
   }  
 
-  std::cout << std::endl << "done!" << std::endl;
   return computed;
 }
 
+/**
+ * clears all parameters
+ */
+void batch_creation::reset_parameters(){
+  ops.parameters.clear();
+  ops.values.clear();
+}
 
+long batch_creation::total_combinations(){
 
-
-
-
+  // to measure progress, get total amount of elements
+  long total_elements = 1;
+  for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
+    total_elements *= ops.values[ii].size();
+  }
+  return total_elements;
+}

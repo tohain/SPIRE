@@ -18,8 +18,10 @@
 
 
 #include "surface_projection.hpp"
-// set static member
+// set static members
 const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
+
+const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Surface control Parameter", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l" };
 
 
 #ifdef USE_CGAL
