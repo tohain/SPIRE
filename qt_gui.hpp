@@ -542,6 +542,7 @@ public slots:
 
 
   bool check_batch_string_consistency( QString inp );
+  std::vector<double> check_struct_type_string_consistency( QString inp );  
   void set_batch_output();
   void start_batch_computing();
   void stop_batch_computing();

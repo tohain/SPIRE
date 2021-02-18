@@ -1646,12 +1646,46 @@ bool GUI::check_batch_string_consistency( QString inp ){
   return is_list || is_range;
 }
 
+/*
+ * checks for consistency of the string by checking if each comma
+ * separated value is found as structure type. If so, converts the
+ * string to the appropriate index in the array. If any substring is
+ * not found returns an empty list
+ */
+std::vector<double> GUI::check_struct_type_string_consistency( QString inp ){
+
+
+  std::vector<double> ret;
+  bool valid = true;
+    
+  std::vector<std::string> as = sp->get_surface_choices();     
+  QStringList split = inp.split ( "," );
+  
+  for( auto &it : split ){
+    auto surface_found = std::find( as.begin(), as.end(), it.toStdString() );
+    if( surface_found != as.end() ){
+      ret.push_back( std::distance( as.begin(), surface_found ) );
+    } else {
+      valid = false;
+    }
+  }
+  
+
+  // if any entry is invalid return an empty list
+  if( valid ){
+    return ret;
+  } else {
+    return std::vector<double> (0, 0);
+  }
+}
+
 
 void GUI::start_batch_computing(){
   
   bc->reset_parameters();
 
   bool all_valid = true;
+  std::vector<double> prov_surface_types;
   
   for( size_t ii=0; ii<batch_values.size(); ii++ ){
 
@@ -1659,10 +1693,28 @@ void GUI::start_batch_computing(){
     batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 255, 255); }");
 
     // check all parameter inputs
-    bool this_valid = check_batch_string_consistency( batch_values[ii]->object()->text() );
-    all_valid = all_valid && this_valid;
-    if( !this_valid ){
-      batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 0, 0); }");
+
+    // handle struct type differentyl since we allow strings here
+    if( surface_projection::parameter_names[ii] == surface_projection::parameter_names[0] ){
+
+      // check string for consistency
+      prov_surface_types = check_struct_type_string_consistency( batch_values[ii]->object()->text() );
+
+
+      //if list is empty, string is not consistent
+      if( batch_values[ii]->object()->text() != "" && prov_surface_types.size() == 0 ){
+	all_valid = all_valid && false;
+	batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 0, 0); }");
+      }
+      
+    } else {
+    
+      bool this_valid = check_batch_string_consistency( batch_values[ii]->object()->text() );
+      all_valid = all_valid && this_valid;
+      if( !this_valid ){
+	batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 0, 0); }");
+      }
+
     }
   }
 
@@ -1681,8 +1733,13 @@ void GUI::start_batch_computing(){
     if( batch_values[ii]->object()->text() == "" ){
       // this parameter is not changed and should be set correctly already
     } else {
-      bc->add_parameter( surface_projection::parameter_names[ii],
-			 batch_values[ii]->object()->text().toStdString() );
+
+      if( surface_projection::parameter_names[ii] == surface_projection::parameter_names[0] ){
+	bc->add_parameter( surface_projection::parameter_names[ii], prov_surface_types );
+      } else {
+	bc->add_parameter( surface_projection::parameter_names[ii],
+			   batch_values[ii]->object()->text().toStdString() );
+      }
     }
 
   }
