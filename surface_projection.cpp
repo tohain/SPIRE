@@ -23,6 +23,8 @@ const std::vector<std::string> surface_projection::parameter_names = std::vector
 
 const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Surface control Parameter", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l" };
 
+const std::vector<std::string> surface_projection::parameter_names_short = std::vector<std::string> { "Surface", "UC scale xy", "UC scale z", "Level Set", "Thickness", "Height", "Width", "Position", "h", "k", "l" };
+
 
 #ifdef USE_CGAL
 

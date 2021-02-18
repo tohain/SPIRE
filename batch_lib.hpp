@@ -114,7 +114,6 @@ public:
 			     std::ostream &out = std::cout);
 
 
-private:
   batch_options ops;
   surface_projection &sp;
   

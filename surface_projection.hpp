@@ -325,7 +325,8 @@ public:
   /// Human readable names of the the Parameters
   static const std::vector<std::string> parameter_names_hr;
 
-
+  /// short names of the the parameters to print into the images
+  static const std::vector<std::string> parameter_names_short;
   
 protected:
 
