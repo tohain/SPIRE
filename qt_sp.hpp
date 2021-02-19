@@ -31,6 +31,10 @@
 #include <QPen>
 #include <QPainter>
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
 #include "surface_projection.hpp"
 
 
@@ -72,10 +76,13 @@ signals:
 					
 public slots:  
 
-  void save_png_legend( std::string fn,
-			bool invert,
-			std::string scaling,
-			std::vector<std::string> parameters );
+  uchar* save_png_legend( unsigned char* img,
+			  unsigned int width,
+			  unsigned int height,
+			  std::string textcolor,
+			  std::string backcolor,
+			  std::string fn,
+			  std::vector<std::string> parameters = std::vector<std::string> (0, "") );
   
   void update_geometry_();  
   void compute_projection();

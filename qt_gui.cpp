@@ -124,7 +124,10 @@ void GUI::set_up_ui(){
   invert_control->object()->setCheckState( Qt::Checked );
 
   autoupdate_control = new QCheckBox( parameters_widget );
-  autoupdate_control->setText( "Autoupdate" );  
+  autoupdate_control->setText( "Autoupdate" );
+ 
+  render_pars_to_img_control = new QCheckBox( parameters_widget );
+  render_pars_to_img_control->setText( "Render Parameters" );   
 
   image_scaling_control = new QT_labeled_obj<QComboBox>( "vl", "Scaling", parameters_widget );
   std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
@@ -217,6 +220,12 @@ void GUI::set_up_ui(){
   batch_compute_start = new QPushButton("Go!", batch_widget );
   batch_compute_stop = new QPushButton("Stop", batch_widget );  
 
+  batch_render_parameters = new QCheckBox( batch_widget );
+  batch_render_parameters->setText("render parameters");
+  
+  batch_render_all_parameters = new QCheckBox( batch_widget );
+  batch_render_all_parameters->setText("render all parameters");
+  
   for( auto &it : surface_projection::parameter_names_hr ){
     // only add vol. prop. or surface level
     // must be possible to do more elegantly!!!
@@ -411,6 +420,8 @@ void GUI::set_up_ui(){
   }  
 
   // add buttons
+  batch_widget_buttons_layout->addWidget( batch_render_parameters );
+  batch_widget_buttons_layout->addWidget( batch_render_all_parameters );  
   batch_widget_buttons_layout->addWidget( batch_compute_stop );
   batch_widget_buttons_layout->addWidget( batch_compute_start );
 
@@ -544,6 +555,7 @@ void GUI::set_up_ui(){
     
   buttons_projection->addWidget( button_render );
   buttons_projection->addWidget( autoupdate_control );
+  buttons_projection->addWidget( render_pars_to_img_control );  
 
   buttons_savewrite->addWidget( button_write_pars );
   buttons_savewrite->addWidget( button_read_pars );
@@ -800,6 +812,11 @@ void GUI::set_up_signals_and_slots(){
   connect( cb, &gui_callback::updated_batch_progress, batch_progress, &QProgressBar::setValue );
   connect( bc, &qt_bc::finished_batch_loop, this, &GUI::finalize_batch_loop );
   connect( this, &GUI::emit_stop_batch, cb, &gui_callback::update_status );
+
+  connect( batch_render_parameters, &QCheckBox::stateChanged,
+	   cb, &gui_callback::set_render_parameters );
+  connect( batch_render_all_parameters, &QCheckBox::stateChanged,
+	   cb, &gui_callback::set_render_all_parameters );
   
   // saving
   connect( choose_path_prefix, &QPushButton::clicked, this, &GUI::choose_export_prefix );
@@ -849,10 +866,8 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   read_membranes();
   
   //set a black background iamge
-  img_data = new uchar[10000]();
-  image = new QImage( img_data, 100, 100, 100, QImage::Format_Grayscale8 );
-  img_pix = new QPixmap();
-  img_pix->convertFromImage( *image );
+  img_pix = new QPixmap( 100, 100 );
+  img_pix->fill( "#ffffff" );
   
   thread = new QThread();
   sp->moveToThread( thread );
@@ -900,8 +915,6 @@ GUI::~GUI(){
   delete( sp_stats );
   delete( bc );
   delete( cb );
-  delete[]( img_data );
-  delete( image );
   delete (img_pix );
 
 }
@@ -922,37 +935,12 @@ void GUI::quit_app(){
 }
 
 
-void GUI::update_view(){
-
-  // delete old img_data if existant.
-  if( img_data != NULL ){
-    delete[]( img_data );
-  }
-  img_data = sp->get_image( invert_control->object()->isChecked(),
-			    image_scaling_control->object()->currentText().toStdString() );
-
-  // this does *NOT* seem to copy the img_data into its own object, so
-  // keep that img_data array around!
-  image = new QImage( img_data, sp->get_width(), sp->get_height(),
-		      sp->get_width(), QImage::Format_Grayscale8 );
-
-  img_pix->convertFromImage( *image );
-
-  
-  //draw the unit cell if desired
-  if( draw_uc_control->isChecked() ){
-    draw_unitcell();
-  }
-  
-  draw_area->setPixmap( *img_pix);
-}
-
-
-void GUI::draw_unitcell(){
+void GUI::draw_unitcell( QPaintDevice *canvas ){
 
   // get a new painter
 
-  uc_artist = new QPainter( img_pix );
+  uc_artist = new QPainter();
+  uc_artist->begin( canvas );
   
   
   // compute the pixles to draw the line
@@ -1020,6 +1008,36 @@ void GUI::draw_unitcell(){
   delete( uc_artist );
   
 }
+
+void GUI::update_view(){
+
+  
+  uchar *img_data = sp->get_image( invert_control->object()->isChecked(),
+				   image_scaling_control->object()->currentText().toStdString() );
+  
+  // this does *NOT* copy the img_data into its own object, so
+  // keep that img_data array around!
+  QImage image = QImage( img_data, sp->get_width(), sp->get_height(),
+			 sp->get_width(), QImage::Format_Grayscale8 );
+  
+
+  // load the image into the pixmap
+  img_pix->convertFromImage( image );
+
+  
+  //draw the unit cell if desired
+  if( draw_uc_control->isChecked() ){
+    draw_unitcell( img_pix );
+  }
+
+  // display
+  draw_area->setPixmap( *img_pix);
+
+  delete[] ( img_data );
+}
+
+
+
 
 void GUI::paintEvent( QPaintEvent * event ){
 
@@ -1186,8 +1204,39 @@ void GUI::save_image_to_file(){
   if( !filename.endsWith( ".png", Qt::CaseInsensitive ) ){
     filename.append(".png");
   } 
+
+  
+  
+
+  /*
+
+  */
+  
+
+  if( render_pars_to_img_control->isChecked() ){
+
+    uchar *img_data = sp->get_image( invert_control->object()->isChecked(),
+				     image_scaling_control->object()->currentText().toStdString() );
+
+    QImage qimg = QImage( img_data, sp->get_width(), sp->get_height(),
+			  sp->get_width(), QImage::Format_Grayscale8 );
     
-  img_pix->save( filename );
+    if( draw_uc_control->isChecked() ){
+      draw_unitcell( &qimg );
+    }
+    
+    img_data = sp->save_png_legend( img_data, qimg.width(), qimg.height(),
+				    invert_control->object()->isChecked()
+				    ? std::string("#ffffff") : std::string("#000000"),
+				    invert_control->object()->isChecked()
+				    ? std::string("#000000") : std::string("#ffffff"),
+				    filename.toStdString() , std::vector<std::string> (0,"") );
+    
+    free( img_data );
+    
+  } else {    
+    img_pix->save( filename );
+  }
 }
 
 

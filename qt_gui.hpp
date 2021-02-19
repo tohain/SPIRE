@@ -143,8 +143,23 @@ public:
     sp.update_geometry();
     sp.compute_projection();
 
-    static_cast<sp_qt&> ( sp ).save_png_legend( fn, invert, scaling, bc.ops.parameters );
 
+    if( render_parameters ){
+    
+      unsigned char* img = sp.get_image( invert, scaling );
+      sp_qt& tmp = static_cast<sp_qt&>( sp );
+      img = tmp.save_png_legend( img, sp.get_width(), sp.get_height(),
+				 invert ? std::string("#ffffff") : std::string("#000000"),
+				 invert ? std::string("#000000") : std::string("#ffffff"),
+				 fn, render_all_parameters
+				 ? std::vector<std::string> (0, "") : bc.ops.parameters );
+
+      
+      free( img );
+
+    } else {
+      sp.save_to_png( fn, invert, scaling );
+    }
     
     summary << fn << "    ";
 
@@ -168,10 +183,21 @@ public:
   std::ofstream summary;
   
   bool keep_going;
-		       
+  bool render_parameters;
+  bool render_all_parameters;			
+		 
+		 
 public slots:
   void update_status ( bool go_on ){
     keep_going = go_on;
+  }
+
+  void set_render_all_parameters( bool val ){
+    render_all_parameters = val;
+  }
+
+  void set_render_parameters( bool val ){
+    render_parameters = val;
   }
   
 signals:
@@ -316,7 +342,8 @@ private:
   QT_labeled_obj<QSpinBox> *x_points_control;
   QT_labeled_obj<QComboBox> *image_scaling_control;  
   QT_labeled_obj<QCheckBox> *invert_control;  
-  QCheckBox *autoupdate_control;  
+  QCheckBox *autoupdate_control;
+  QCheckBox *render_pars_to_img_control;
 
 
   // slice parameters control
@@ -364,7 +391,8 @@ private:
   QProgressBar *batch_progress;
   QPushButton *batch_compute_start;
   QPushButton *batch_compute_stop;
-  
+  QCheckBox *batch_render_parameters;
+  QCheckBox *batch_render_all_parameters;
   
   //status bar
   QStatusBar *status_bar;
@@ -436,11 +464,9 @@ private:
   
   //
   // background members
-  //
-  
-  const QImage *image;
+  //  
   QPixmap *img_pix;
-  unsigned char* img_data;
+
 
   QPainter *uc_artist;
   
@@ -507,7 +533,7 @@ public slots:
   
   
   void update_view();
-  void draw_unitcell();
+  void draw_unitcell( QPaintDevice *image );
 
   
   void quit_app();

@@ -330,6 +330,7 @@ void sp_qt::copy_parameters( sp_qt *source ){
 }
 
 
+
 /**
  * Saves a png of the current projection with a legend of all provided
  * parameters. If empty, all parameters are added to the image
@@ -343,17 +344,26 @@ void sp_qt::copy_parameters( sp_qt *source ){
  * The text is arranged on a grid, with a cell length of the longest
  * word size. If a shorter word fits the line, it is squeezed in,
  * however, only at the start of a grid cell
+ *
+ * reallocates the memory of image, therefore returns a pointer to the
+ * reallocated memory
+ *
+ * renders all parameters, if none are given
  */
-void sp_qt::save_png_legend( std::string fn,
-			     bool invert,
-			     std::string scaling,
+unsigned char* sp_qt::save_png_legend( unsigned char* img,
+			     unsigned int img_x,
+			     unsigned int img_y,
+			     std::string textcolor,
+			     std::string backcolor,
+			     std::string fn,
 			     std::vector<std::string> parameters ){
 
-  // get the image
-  unsigned char* img = get_image( invert, scaling );
-  int img_x = get_width(); int img_y = get_height();
-
-
+  
+  if( parameters.size() == 0 ){
+    parameters = std::vector<std::string> ( surface_projection::parameter_names );
+  }
+  
+  
   /*
    * creating the legend
    */ 
@@ -416,7 +426,7 @@ void sp_qt::save_png_legend( std::string fn,
     if( parameters[ii] == surface_projection::parameter_names[0] ){
       ss << surface_choices[ int( get_parameter( parameters[ii] )  )  ] << std::endl;
     } else {      
-      ss << get_parameter( parameters[ii] ) << std::endl;
+      ss << std::setprecision(3) << get_parameter( parameters[ii] ) << std::endl;
     }
     
     // store words
@@ -452,7 +462,7 @@ void sp_qt::save_png_legend( std::string fn,
   
   // make the background white/black
   memset( img + sizeof(unsigned char) * img_x * img_y,
-	  invert ? 0 : 255,
+	  0,
 	  sizeof(unsigned char)*img_x*(new_img_y-img_y) );
   
 
@@ -466,12 +476,16 @@ void sp_qt::save_png_legend( std::string fn,
   
   // font color
   QPen pen = QPen();
-  pen.setColor( invert ? "#ffffff" : "#000000" );
-  
+  pen.setColor( textcolor.c_str() );
+
   // setup painter
   QPainter poet ( &qimg );
   poet.setFont( font );
-  poet.setPen( pen );    
+  poet.setPen( pen );
+  
+  // draw the background
+  poet.fillRect( 0, scale*img_y, qimg.width(), qimg.height()-scale*img_y, backcolor.c_str() );
+  
   
   // update the new font size
   fm = QFontMetrics( font );
@@ -508,9 +522,8 @@ void sp_qt::save_png_legend( std::string fn,
   }
 
   qimg.save( fn.c_str() );
-  
-  // free memory
-  free( img );
+
+  return img;
 }
 
 
