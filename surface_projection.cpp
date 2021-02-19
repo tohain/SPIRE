@@ -19,11 +19,11 @@
 
 #include "surface_projection.hpp"
 // set static members
-const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
+const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "vol_prop", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
 
-const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Surface control Parameter", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l" };
+const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Level Set", "Volume Proportion", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l" };
 
-const std::vector<std::string> surface_projection::parameter_names_short = std::vector<std::string> { "Surface", "UC scale xy", "UC scale z", "Level Set", "Thickness", "Height", "Width", "Position", "h", "k", "l" };
+const std::vector<std::string> surface_projection::parameter_names_short = std::vector<std::string> { "Surface", "UC scale xy", "UC scale z", "Level Set", "Vol. prop.", "Thickness", "Height", "Width", "Position", "h", "k", "l" };
 
 
 #ifdef USE_CGAL
@@ -1613,7 +1613,7 @@ double surface_projection::get_surface_level() const {
   return surface_level;
 }
 
-double surface_projection::get_channel_prop() const {
+double surface_projection::get_channel_vol_prop() const {
   double val =  s_tables.get_prop( surface_choices[type], surface_level );
   return val;
 }
@@ -1996,28 +1996,29 @@ void surface_projection::set_parameter( std::string par, double val ){
   if( par == parameter_names[3] ){
     set_surface_level( val );
   }
-
-
   if( par == parameter_names[4] ){
-    set_slice_thickness( val );
+    set_channel_vol_prop( val );
   }
   if( par == parameter_names[5] ){
-    set_slice_height( val );
+    set_slice_thickness( val );
   }
   if( par == parameter_names[6] ){
-    set_slice_width( val );
+    set_slice_height( val );
   }
   if( par == parameter_names[7] ){
+    set_slice_width( val );
+  }
+  if( par == parameter_names[8] ){
     set_slice_position( val );
   }  
 
-  if( par == parameter_names[8] ){
+  if( par == parameter_names[9] ){
     set_h( static_cast<int>( round( val ) ) );
   }
-  if( par == parameter_names[9] ){
+  if( par == parameter_names[10] ){
     set_k( static_cast<int>( round( val ) ) );
   }
-  if( par == parameter_names[10] ){
+  if( par == parameter_names[11] ){
     set_l( static_cast<int>( round( val ) ) );
   }
   
@@ -2049,28 +2050,31 @@ double surface_projection::get_parameter( std::string par ){
   if( par == parameter_names[3] ){
     return get_surface_level();
   }
-
-
   if( par == parameter_names[4] ){
+    return get_channel_vol_prop();
+  }
+  
+
+  if( par == parameter_names[5] ){
     return get_slice_thickness();
   }
-  if( par == parameter_names[5] ){
+  if( par == parameter_names[6] ){
     return get_slice_height();
   }
-  if( par == parameter_names[6] ){
+  if( par == parameter_names[7] ){
     return get_slice_width();
   }
-  if( par == parameter_names[7] ){
+  if( par == parameter_names[8] ){
     return get_slice_position();
   }  
 
-  if( par == parameter_names[8] ){
+  if( par == parameter_names[9] ){
     return static_cast<double> ( get_h() );
   }
-  if( par == parameter_names[9] ){
+  if( par == parameter_names[10] ){
     return static_cast<double> ( get_k() );    
   }
-  if( par == parameter_names[10] ){
+  if( par == parameter_names[11] ){
     return static_cast<double> ( get_l() );    
   }
   

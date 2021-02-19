@@ -220,7 +220,8 @@ public:
   /// Returns the surface level
   double get_surface_level() const;
   /// Returns the ratio of the volumes of the two channels
-  double get_channel_prop() const;
+  double get_channel_vol_prop() const;
+
   /// Returns the membranes
   std::vector<double> get_membranes() const;
   /// Return channel volumes
@@ -285,10 +286,12 @@ public:
   void set_membranes( std::vector<double> mems );
   /// sets the channel fills array (deciding which channel is colored")
   void set_channel_fill( std::vector<int> fills );
+
   /// Sets the surface_level
   void set_surface_level( double val );
   /// Sets the channel proportion
   void set_channel_vol_prop( double val );
+
   /// recomputes the unitcell dimensions from \ref uc_scale_ab , \ref uc_scape_c and \ref unitcell_dim
   void update_a( );
   /// Sets the unit cell scaling in c direction

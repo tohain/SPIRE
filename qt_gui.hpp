@@ -270,6 +270,8 @@ private:
   void set_up_ui();
   void set_up_signals_and_slots();
   void set_up_tooltips();
+
+  void update_batch_parameters_gui();
   
   // ui elements
   QLabel *draw_area;

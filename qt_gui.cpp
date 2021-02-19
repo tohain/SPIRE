@@ -100,8 +100,8 @@ void GUI::set_up_ui(){
   channel_prop_control->object()->setSingleStep(0.01);  
 
   level_par_type = new QT_labeled_obj<QComboBox> ( "vl", "Surface control parameter", parameters_widget );
-  level_par_type->object()->insertItem( 0, "Volume proportion" );
-  level_par_type->object()->insertItem( 1, "Level Set" );
+  level_par_type->object()->insertItem( 0, surface_projection::parameter_names_hr[4].c_str() );
+  level_par_type->object()->insertItem( 1, surface_projection::parameter_names_hr[3].c_str() );
   
   surface_type_control = new QT_labeled_obj<QComboBox> ( "vl", "Surface type", parameters_widget );
   std::vector<std::string> sfc_types = sp->get_surface_choices();
@@ -217,13 +217,24 @@ void GUI::set_up_ui(){
   batch_compute_start = new QPushButton("Go!", batch_widget );
   batch_compute_stop = new QPushButton("Stop", batch_widget );  
 
+  for( auto &it : surface_projection::parameter_names_hr ){
+    // only add vol. prop. or surface level
+    // must be possible to do more elegantly!!!
+    if( ( it == surface_projection::parameter_names_hr[3] ||
+	  it == surface_projection::parameter_names_hr[4] ) ){
+      
+      if( it == level_par_type->object()->currentText().toStdString() ){
+	batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
+      }
+      
+    } else {    
+      batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
+    }
+  }
+
   batch_output_name = new QT_labeled_obj<QLineEdit> ( "vl", "Output folder and prefix", batch_widget );
   batch_choose_folder = new QT_labeled_obj<QPushButton> ( "vl", "", batch_widget );
-  batch_choose_folder->object()->setText("Open Folder");
-
-  for( auto &it : surface_projection::parameter_names_hr ){
-    batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
-  }
+  batch_choose_folder->object()->setText("Open Folder");  
 
   batch_progress = new QProgressBar( batch_scroll_subwidget );
 
@@ -397,7 +408,7 @@ void GUI::set_up_ui(){
   // add all value lineedits
   for( auto it : batch_values ){
     batch_widget_parameters_layout->addLayout( it->layout() );
-  }
+  }  
 
   // add buttons
   batch_widget_buttons_layout->addWidget( batch_compute_stop );
@@ -567,6 +578,49 @@ void GUI::set_up_ui(){
   license_widget_layout->addWidget( licenses );
   
 }
+
+
+
+void GUI::update_batch_parameters_gui(){
+
+  delete( batch_widget_parameters_layout );
+  delete( batch_scroll_subwidget );
+  batch_values.clear();
+  
+  batch_scroll_subwidget = new QWidget( batch_scroll_area );
+  batch_scroll_subwidget->setMinimumWidth( 350 );
+  batch_scroll_subwidget->setSizePolicy( QSizePolicy::Expanding,
+					 QSizePolicy::Expanding);  
+
+  batch_widget_parameters_layout = new QVBoxLayout( batch_scroll_subwidget );
+
+  
+  
+  for( auto &it : surface_projection::parameter_names_hr ){
+    // only add vol. prop. or surface level
+    // must be possible to do more elegantly!!!
+    if( it == surface_projection::parameter_names_hr[3] ||
+	it == surface_projection::parameter_names_hr[4] ) {
+
+      if( it == level_par_type->object()->currentText().toStdString() ){
+	batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
+      }
+      
+    } else {    
+      batch_values.push_back( new QT_labeled_obj<QLineEdit> ( "vl", it, batch_scroll_subwidget ) );
+    }
+  }
+
+
+  // add all value lineedits
+  for( auto it : batch_values ){
+    batch_widget_parameters_layout->addLayout( it->layout() );
+  }  
+  batch_scroll_area->setWidget( batch_scroll_subwidget );
+  
+  
+}
+
 
 
 
@@ -991,7 +1045,7 @@ void GUI::update_gui_from_sp(){
 
 
   if( level_par_type->object()->currentIndex() == 0 ){
-    channel_prop_control->object()->setValue( sp->get_channel_prop() );
+    channel_prop_control->object()->setValue( sp->get_channel_vol_prop() );
   } else {
     channel_prop_control->object()->setValue( sp->get_surface_level() );
   }
@@ -1563,28 +1617,14 @@ void GUI::change_surface_par_type( int index ){
   if( index == 0 ){
     //volume proportion
 
-    /*
-    // link to the right function in surface projection
-    disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	     sp, &sp_qt::change_lvl_set );
-    connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	     sp, &sp_qt::change_vol_prop );
-    */
-
     // channel proportion only allows values between 0 and 1
     channel_prop_control->object()->setRange(0, 1);
 
     // set the value to the channel proportion
-    channel_prop_control->object()->setValue( sp->get_channel_prop() );
+    channel_prop_control->object()->setValue( sp->get_channel_vol_prop() );
   } else if ( index == 1 ){
     // level set
 
-    /*
-    disconnect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		 sp, &sp_qt::change_vol_prop );
-    connect( channel_prop_control->object(), QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-	     sp, &sp_qt::change_lvl_set );
-    */
 
     // level set values can be pretty much everything
     channel_prop_control->object()->setRange(-10, 10);
@@ -1592,6 +1632,8 @@ void GUI::change_surface_par_type( int index ){
     channel_prop_control->object()->setValue( sp->get_surface_level() );
   }
 
+  update_batch_parameters_gui();
+  
 }
 
 void GUI::write_parameters(){
@@ -1688,18 +1730,17 @@ void GUI::start_batch_computing(){
   std::vector<double> prov_surface_types;
   
   for( size_t ii=0; ii<batch_values.size(); ii++ ){
-
+    
     // reset color
     batch_values[ii]->object()->setStyleSheet("QLineEdit { background: rgb(255, 255, 255); }");
 
     // check all parameter inputs
 
     // handle struct type differentyl since we allow strings here
-    if( surface_projection::parameter_names[ii] == surface_projection::parameter_names[0] ){
+    if( batch_values[ii]->label()->text().toStdString() == surface_projection::parameter_names_hr[0] ){
 
       // check string for consistency
       prov_surface_types = check_struct_type_string_consistency( batch_values[ii]->object()->text() );
-
 
       //if list is empty, string is not consistent
       if( batch_values[ii]->object()->text() != "" && prov_surface_types.size() == 0 ){
@@ -1730,15 +1771,22 @@ void GUI::start_batch_computing(){
   // set all the parameters
   for( size_t ii=0; ii<batch_values.size(); ii++ ){
 
+    // get the index of the current value in the parameter_names array
+    size_t ind = std::distance( surface_projection::parameter_names_hr.begin(),
+				std::find( surface_projection::parameter_names_hr.begin(),
+					   surface_projection::parameter_names_hr.end(),
+					   batch_values[ii]->label()->text().toStdString() ) );
+
+    std::string par_name = surface_projection::parameter_names[ind];
+    
     if( batch_values[ii]->object()->text() == "" ){
       // this parameter is not changed and should be set correctly already
     } else {
 
-      if( surface_projection::parameter_names[ii] == surface_projection::parameter_names[0] ){
-	bc->add_parameter( surface_projection::parameter_names[ii], prov_surface_types );
+      if( par_name  == surface_projection::parameter_names[0] ){
+	bc->add_parameter( par_name, prov_surface_types );
       } else {
-	bc->add_parameter( surface_projection::parameter_names[ii],
-			   batch_values[ii]->object()->text().toStdString() );
+	bc->add_parameter( par_name, batch_values[ii]->object()->text().toStdString() );
       }
     }
 

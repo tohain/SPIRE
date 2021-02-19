@@ -45,7 +45,7 @@ void sp_qt::update_geometry_(){
 void sp_qt::change_surface_type( int ind ){
 
   //backup channel proportion
-  double vol_prop = get_channel_prop();
+  double vol_prop = get_channel_vol_prop();
 
   set_type( ind );
 
@@ -362,7 +362,7 @@ void sp_qt::save_png_legend( std::string fn,
   double pixsize_fractional = 0.045; // size of the font (height) in
 				     // fractions of the height of the
 				     // image
-  double margin = 1.2; // one line will have the height of
+  double margin = 1.4; // one line will have the height of
 		       // margin*fontsize(in pixels)
   unsigned int min_pixsize = 25;  // the minimum font height(in
 				  // pixels)
