@@ -1960,7 +1960,7 @@ void surface_projection::set_l( int val ){
 void surface_projection::set_parameter( std::string par, double val ){
 
   if( par == parameter_names[0] ){
-    set_type( static_cast<int>( val ) );
+    set_type( static_cast<int>( round( val ) ) );
   }
   
   if( par == parameter_names[1] ){
@@ -1988,13 +1988,13 @@ void surface_projection::set_parameter( std::string par, double val ){
   }  
 
   if( par == parameter_names[8] ){
-    set_h( static_cast<int>( val ) );
+    set_h( static_cast<int>( round( val ) ) );
   }
   if( par == parameter_names[9] ){
-    set_k( static_cast<int>( val ) );
+    set_k( static_cast<int>( round( val ) ) );
   }
   if( par == parameter_names[10] ){
-    set_l( static_cast<int>( val ) );
+    set_l( static_cast<int>( round( val ) ) );
   }
   
 }
@@ -2044,6 +2044,8 @@ double surface_projection::get_parameter( std::string par ){
     return static_cast<double> ( get_h() );
   }
   if( par == parameter_names[9] ){
+    std::cout << get_k() << std::endl;
+    std::cout << static_cast<double> ( get_k() ) << std::endl;
     return static_cast<double> ( get_k() );    
   }
   if( par == parameter_names[10] ){

@@ -157,7 +157,8 @@ public:
     std::string fn = fn_prefix + "_" +  std::to_string( internal_counter ) + ".png";       
     sp.update_geometry();
     sp.compute_projection();
-
+    sp.write_png( fn + ".png" );
+    
     unsigned char* img = sp.get_image( invert, scaling );
     int img_x = sp.get_width(); int img_y = sp.get_height();
 
@@ -218,10 +219,13 @@ public:
       auto types = sp.get_surface_choices();
 
       // special treatment for surface type so string is printed instead of index
-      if( bc.ops.parameters[ii] == surface_projection::parameter_names[0] ){
-	ss << types[ *(pars[ii]) ] << std::endl;
+      if( bc.ops.parameters[ind] == surface_projection::parameter_names[0] ){
+	ss << types[ int( sp.get_parameter( surface_projection::parameter_names[0] )  )  ] << std::endl;
       } else {      
-	ss << *(pars[ii]) << std::endl;
+	//ss << *(pars[ii]) << std::endl;
+	std::cout << surface_projection::parameter_names[ind]
+		  << sp.get_parameter( surface_projection::parameter_names[ind] ) << std::endl;
+	ss << sp.get_parameter( surface_projection::parameter_names[ind] ) << std::endl;
       }
 
       // store words
