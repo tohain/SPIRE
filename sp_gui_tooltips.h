@@ -51,6 +51,9 @@ class tooltips {
   const std::string invert_tooltip = "Inverts the colors in the picture. If inverted the pixel with the highest value is black.";
   const std::string autoupdate_tooltip = "Automatically update thr projection as soon as a parameter changes, can result in significant delays and lags in the usage of the user interface!";
 
+  const std::string render_pars_to_img_tooltip = "If checked, the parameters used to create the current projection are written directly in the margins of the saved projection";
+
+  
   const std::string button_write_pars = "Writes the current parameters in an ASCI file";
   const std::string button_read_pars = "Reads parameters from an ASCI file";
   const std::string button_save = "Save the currently displayed image to a PNG file";
@@ -71,6 +74,18 @@ class tooltips {
   const std::string status_uc_tooltip = "The size of the primitive unit cell, i.e. in (001) orientation";
 
 const std::string batch_creation_instructions = "Creates projections for all combinations of given parameters.\n\nEmpty fields will use parameters from \"Parameter\" tab\n\nProvide values as comma separated list or range with syntax: start:end:step\n\nFiles will be store in folder provided below as\n/path/to/files/filename[_number].png\nwhere number will be replaced";  
-    
+
+
+
+  const std::string batch_output_name_tooltip = "The path and prefix which will be appended in front of each saved image file. Can be realtive or absolute";
+  const std::string batch_choose_folder_tooltip = "Open a file dialog to choose an output folder and prefix";
+
+  const std::string batch_render_parameters_tooltip = "Directly renders the parameters of the current projection into the margin of the image";
+
+  const std::string batch_render_all_parameters_tooltip = "If check, ALL parameters are written into the margin, if unchecked only the ones changing from projection to projection";
+
+  const std::string batch_compute_start_tooltip = "Start the batch computation of the projections";
+  const std::string batch_compute_stop_tooltip = "Stops the current batch computation";
+  
 };
 

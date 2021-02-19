@@ -663,6 +663,7 @@ void GUI::set_up_tooltips(){
 
    invert_control->object()->setToolTip( QString( ttips.invert_tooltip.c_str() ) );
    autoupdate_control->setToolTip( QString( ttips.autoupdate_tooltip.c_str() ) );
+   render_pars_to_img_control->setToolTip( ttips.render_pars_to_img_tooltip.c_str() );
    image_scaling_control->object()->setToolTip( QString( ttips.image_scaling_tooltip.c_str() ) );
 
    membranes_control->setToolTip ( QString( ttips.membranes_settings_tooltip.c_str() ) );
@@ -687,6 +688,15 @@ void GUI::set_up_tooltips(){
    
    choose_path_prefix->setToolTip( QString( ttips.choose_prefix_path.c_str() ) );
 
+
+   batch_output_name->object()->setToolTip( ttips.batch_output_name_tooltip.c_str() );
+   batch_choose_folder->object()->setToolTip( ttips.batch_choose_folder_tooltip.c_str() );   
+   batch_compute_start->setToolTip( ttips.batch_compute_start_tooltip.c_str() );
+   batch_compute_stop->setToolTip( ttips.batch_compute_stop_tooltip.c_str() );
+   batch_render_parameters->setToolTip( ttips.batch_render_parameters_tooltip.c_str() );
+   batch_render_all_parameters->setToolTip( ttips.batch_render_all_parameters_tooltip.c_str() );
+
+   
    status_bar_uco->setToolTip( QString( ttips.status_uco_tooltip.c_str() ) );
    status_bar_or->setToolTip( QString( ttips.status_or_tooltip.c_str() ) );
    status_bar_pixs->setToolTip( QString( ttips.status_pixs_tooltip.c_str() ) );
