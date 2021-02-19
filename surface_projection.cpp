@@ -1224,18 +1224,29 @@ unsigned char* surface_projection::get_image(bool invert, std::string scaling){
 
 
 #ifdef HAVE_PNG
+
+void surface_projection::save_to_png( std::string out_fn, bool invert, std::string scaling ){
+
+  unsigned char *img = get_image( invert, scaling );
+  write_png( img, get_width(), get_height(), out_fn );
+  
+}
+
 /**
  * writes the current projection to a png image
  */
-void surface_projection::write_png( std::string out_fn, bool invert, std::string scaling ){
+void surface_projection::write_png( unsigned char *img,
+				    unsigned int width,
+				    unsigned int height,
+				    std::string out_fn ){
 
-  unsigned char *img = get_image( invert, scaling );
+  //unsigned char *img = get_image( invert, scaling );
   
   // convert 1d to 2d array
-  png_bytep *rows = new png_bytep[n_points_y];
+  png_bytep *rows = new png_bytep[height];
   // set up png array
-  for( unsigned int ii=0; ii < n_points_y; ii++ ){
-    rows[ii] = img + ii * n_points_x * sizeof( png_byte );
+  for( unsigned int ii=0; ii < height; ii++ ){
+    rows[ii] = img + ii * width * sizeof( png_byte );
   }
   
   FILE *fp = fopen( out_fn.c_str(), "wb" );
@@ -1248,7 +1259,10 @@ void surface_projection::write_png( std::string out_fn, bool invert, std::string
 
   png_init_io(png_ptr, fp);
   
-  png_set_IHDR(png_ptr, png_info, n_points_x, n_points_y, 8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_COMPRESSION_TYPE_DEFAULT);
+  png_set_IHDR(png_ptr, png_info, width, height,
+	       8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+	       PNG_COMPRESSION_TYPE_DEFAULT,
+	       PNG_COMPRESSION_TYPE_DEFAULT);
 
   png_write_info( png_ptr, png_info );
   png_write_image( png_ptr, rows );
@@ -1803,6 +1817,16 @@ void surface_projection::set_uc_scale_c( double val ){
   uc_scale_c = val;
 }
 
+/**
+ * This function checks if the scaling of the unit cell is compatible
+ * with the symmetry. Essentially 
+ */
+void surface_projection::validate_uc_scaling(){
+  if( type <= 2 ){
+    uc_scale_c = uc_scale_ab;
+  }
+}
+
 
 /** 
  * updates the size of the unitcell given in length units as well as
@@ -2044,8 +2068,6 @@ double surface_projection::get_parameter( std::string par ){
     return static_cast<double> ( get_h() );
   }
   if( par == parameter_names[9] ){
-    std::cout << get_k() << std::endl;
-    std::cout << static_cast<double> ( get_k() ) << std::endl;
     return static_cast<double> ( get_k() );    
   }
   if( par == parameter_names[10] ){

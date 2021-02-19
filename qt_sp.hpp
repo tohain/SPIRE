@@ -25,6 +25,11 @@
 #include <QObject>
 #include <QApplication>
 #include <QThread>
+#include <QFont>
+#include <QFontMetrics>
+#include <QImage>
+#include <QPen>
+#include <QPainter>
 
 #include "surface_projection.hpp"
 
@@ -66,6 +71,11 @@ signals:
 
 					
 public slots:  
+
+  void save_png_legend( std::string fn,
+			bool invert,
+			std::string scaling,
+			std::vector<std::string> parameters );
   
   void update_geometry_();  
   void compute_projection();

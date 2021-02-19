@@ -95,6 +95,9 @@ public:
   /// Recomputes the geometric slice properties
   void update_geometry();
 
+  /// validates the scaling in cubic symmetrie
+  void validate_uc_scaling();
+  
   /// Updates container capacities
   void update_containers();
 
@@ -150,7 +153,12 @@ public:
 
 #ifdef HAVE_PNG
   /// writes the current projection to a png image
-  void write_png( std::string out_fn, bool invert = true, std::string scaling = "LIN");
+  void save_to_png( std::string out_fn, bool invert = true, std::string scaling = "LIN");
+  /// writes the given image data to a png image
+  void write_png( unsigned char *img,
+		  unsigned int width,
+		  unsigned int height,
+		  std::string out_fn);
 #endif
   
   /// Outputs the grid

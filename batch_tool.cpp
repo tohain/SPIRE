@@ -212,10 +212,11 @@ public:
   bool operator()( std::vector< std::vector<double>::iterator > pars ){
 
     std::string fn = fn_prefix + "_" + std::to_string( counter ) + ".png";
-    
+
+    sp.validate_uc_scaling();
     sp.update_geometry();
     sp.compute_projection();
-    sp.write_png( fn );
+    sp.save_to_png( fn, invert, "LIN" );
 
     summary << fn << "    ";
 
