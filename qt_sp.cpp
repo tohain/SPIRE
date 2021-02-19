@@ -362,7 +362,7 @@ void sp_qt::save_png_legend( std::string fn,
   double pixsize_fractional = 0.045; // size of the font (height) in
 				     // fractions of the height of the
 				     // image
-  double margin = 1.4; // one line will have the height of
+  double margin = 1.2; // one line will have the height of
 		       // margin*fontsize(in pixels)
   unsigned int min_pixsize = 25;  // the minimum font height(in
 				  // pixels)
@@ -480,7 +480,7 @@ void sp_qt::save_png_legend( std::string fn,
   // put the words below the text. Only start at grid locations, but
   // if a cell is cutoff by the image, check if we can squeeze a
   // shorter word in
-  int ind=0, x=0, y = scale * (img_y + pixsize - 0.5*(1-margin)*pixsize);
+  int ind=0, x=0, y = scale * img_y;
   int word_width_pix;
   int c=0; //current col
   while( ind < parameter_words.size() ){
@@ -497,7 +497,8 @@ void sp_qt::save_png_legend( std::string fn,
     }
     
     // draw it
-    poet.drawText( x, y, parameter_words[ind].c_str() );
+    poet.drawText( x, y, word_width_pix, scale * margin * pixsize, Qt::AlignCenter,
+		   parameter_words[ind].c_str() );
     // increase the col
     c++;
     // set x to the next grid start

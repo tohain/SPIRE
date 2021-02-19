@@ -1723,7 +1723,8 @@ std::vector<double> GUI::check_struct_type_string_consistency( QString inp ){
 
 
 void GUI::start_batch_computing(){
-  
+
+  cb->update_status( true );
   bc->reset_parameters();
 
   bool all_valid = true;
