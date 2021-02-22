@@ -44,6 +44,7 @@ percolation_analysis<T, M>::percolation_analysis(std::vector<T> data,
     dmap (distance_map ),
     it( 0, sx_, sy_, sz_ ) {
   
+
   cluster_labels.resize( structure.size(), -1 );
   cluster_sizes.clear();
 }
@@ -126,7 +127,7 @@ void percolation_analysis<T, M>::find_clusters( int ch_id_ ) {
   ch_id = ch_id_;
   
   // reset the label map and sizes array
-  memset( cluster_labels.data(), -1, sizeof(int) * cluster_labels.size() );
+  cluster_labels.assign( cluster_labels.size(), -1 );
   cluster_sizes.clear();
 
   
@@ -268,6 +269,8 @@ std::unordered_set<U> intersection( std::unordered_set<U> &l, std::unordered_set
  * \param[in] in_x cluster needs to percolate in x direction to pass
  * \param[in] in_x cluster needs to percolate in y direction to pass
  * \param[in] in_x cluster needs to percolate in z direction to pass
+ *
+ * \returns a set of the labels of the percolating clusters
  */
 template <class T, class M>
 std::unordered_set<int> percolation_analysis<T, M>::get_percolating_clusters( bool in_x, bool in_y, bool in_z ) {
@@ -449,9 +452,11 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
   // sort the distances in the map
   std::set<M> distances;
   for( auto it : dmap ){
-    if ( it > 0 )
+    if ( it > 0 ){
       distances.insert( sqrt(it) );
+    }
   }
+
 
   M threshold;
   
@@ -466,7 +471,8 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
     std::cerr << "get_percolation_threshold: something went wrong"
 	      << ", found more than 1 percolating cluster" << std::endl;
   }
-  
+
+    
   // iterate whil we still have a percolating cluster!
   while( percolating_clusters.size() > 0 && distances.size() > 0){
 
@@ -484,19 +490,21 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
     find_clusters( ch_id );
     assign_true_labels();
     percolating_clusters = get_percolating_clusters( true, true, true );
+
   }
 
   //revert the backup
   structure = structure_backup;
-
+  
   // return the diameter, not the radius!
   return 2*threshold;
 }
 
 
 /**
- * Prints label map to a file. Wrapper around \ref print function
- * \param[in] out The filename to write to
+ * Prints label map layer for layer to a file to view in a text
+ * editor. Wrapper around \ref print function \param[in] out The
+ * filename to write to
  */
 template <class T, class M>
 void percolation_analysis<T, M>::print( std::string out ){
@@ -531,8 +539,8 @@ void percolation_analysis<T, M>::print( std::ostream &out) {
 
 
 /**
- * Prints label map to a file. Wrapper around \ref print function
- * \param[in] out The filename to write to
+ * Wrapper around \ref print
+ * function \param[in] out The filename to write to
  */
 template <class T, class M>
 void percolation_analysis<T, M>::print_points( std::string out ){
@@ -542,8 +550,9 @@ void percolation_analysis<T, M>::print_points( std::string out ){
 }
 
 
-/*
- *
+/**
+ * Prints label map to a gnuplottable file. These are not real spatial
+ * corodinates but rather grid indices.
  */
 template <class T, class M>
 void percolation_analysis<T, M>::print_points( std::ostream &out) {

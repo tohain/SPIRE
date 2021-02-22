@@ -86,8 +86,10 @@ private:
 
   /// the grid to analyse
   std::vector<T> structure;
-  /// the distance map of the grid provided. Needs to dilute surfaces
-  const std::vector<M> &dmap;
+  /// the distance map of the grid provided. Needed to dilute surfaces
+  // this could be reference, but for thread safety it's easier for
+  // now to make a deep copy of the data
+  const std::vector<M> dmap;
 
   /// the map assigning each voxel its cluster label
   std::vector<int> cluster_labels;
