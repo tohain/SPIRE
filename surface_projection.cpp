@@ -966,14 +966,25 @@ double surface_projection::get_minimal_channel_diameter( int channel_id ){
  */
 void surface_projection::compute_percolation_threshold() {
 
+  // make sure we have an updated distance map
+  dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
+		     std::vector<double> {dx, dy, dz}, false);
+  dt.compute_distance_map();
+  
+  
   // get number of channels
   int ch_nr = int( get_membranes().size() / 2 ) + 1;
   percolation_thresholds.resize( ch_nr, 0 );
   
-  percolation_analysis<short, float> perc ( get_channel(), get_distance_map(), n_points_x, n_points_y, n_points_z, false );
+  percolation_analysis<short, float> perc ( get_channel(),
+					    dt.get_distance_map(),
+					    n_points_x,
+					    n_points_y,
+					    n_points_z,
+					    false );
 
   for( unsigned int ii=0; ii<ch_nr; ii++ ){
-    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );
+    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );    
   }
 
 }
