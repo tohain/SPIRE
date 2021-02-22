@@ -58,14 +58,9 @@ class tooltips {
   const std::string button_read_pars = "Reads parameters from an ASCI file";
   const std::string button_save = "Save the currently displayed image to a PNG file";
 
-  const std::string button_measure_v_uc = "Measures volume of channels and membranes in a primitive unit cell. This may take up to several minutes. Wait for the status indicator to turn green.";
-  const std::string button_measure_a_uc = "Measures areas of membranes in a primitive unit cell. This may take up to several minutes. Wait for the status indicator to turn green.";  
-  const std::string button_measure_percthres_uc = "Computes the percolation threshold of all channels in the primitive unit cell. That is the diameter of the largest sphere which barely can travel unrestricted through the structure. This may take up to several minutes. Wait for the status indicator to turn green.";
-
-const std::string button_measure_v_slice = "Measures volume of channels and membranes in the slice. This may take up to several minutes. Wait for the status indicator to turn green.";
-  const std::string button_measure_a_slice = "Measures areas of membranes  in the slice. This may take up to several minutes. Wait for the status indicator to turn green.";  
-  const std::string button_measure_percthres_slice = "Computes the percolation threshold of all channels in the slice. That is the diameter of the largest sphere which barely can travel unrestricted through the structure. This may take up to several minutes. Wait for the status indicator to turn green.";  
-
+  const std::string button_measure_v = "Measures volume of channels and membranes. This may take up to several minutes. Wait for the status indicator to turn green.";
+  const std::string button_measure_a = "Measures areas of membranes. This may take up to several minutes. Wait for the status indicator to turn green.";  
+  const std::string button_measure_percthres = "Computes the percolation threshold of all channels. That is the diameter of the largest sphere which barely can travel unrestricted through the structure. This may take up to several minutes. Wait for the status indicator to turn green.";
   
   const std::string button_render = "Computes and displays the projection for the current parameters. This may take up to several minutes. Wait for the status indicator to turn green";  
 

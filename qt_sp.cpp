@@ -175,7 +175,6 @@ void sp_qt::change_slice_position( double val ){
 
 void sp_qt::change_membranes( std::vector<double> val ){
   set_membranes( val );
-  emit parameter_changed();
 }
 
 void sp_qt::compute_projection(){
@@ -293,9 +292,6 @@ void sp_qt::copy_parameters( sp_qt *source ){
   set_k( source->get_k() );
   set_l( source->get_l() );  
 
-  // update orientation
-  set_orientation_from_hkl();  
-
   // slice
   set_slice_thickness( source->get_slice_thickness() );
   set_slice_height( source->get_slice_height() );
@@ -310,14 +306,13 @@ void sp_qt::copy_parameters( sp_qt *source ){
   // uc scale
   set_uc_scale_ab( source->get_uc_scale_ab() );
   set_uc_scale_c( source->get_uc_scale_c() );
-
-  update_a();
   
   // structure
   set_surface_level( source->get_surface_level() );
   set_type( source->get_type() );
   set_membranes( source->get_membranes() );
-
+  set_channel_fill( source->get_channel_fill() );
+    
   try {
     update_geometry();
   } catch ( invalid_parameter_exception e ){
@@ -543,6 +538,12 @@ void sp_qt::update_measurements( QString what ){
   emit send_message( "Computing projection", 1 );
   compute_projection();
 
+  // the distance map of the current object is not up to date, since
+  // the "fill channel" option is perforemd after the last change of
+  // the grid, so keep that in mind!
+
+
+  
   emit send_message( "Computing " + what, 1 );  
   
   if( what == "Volumes" ){
@@ -557,14 +558,20 @@ void sp_qt::update_measurements( QString what ){
     compute_channel_network();
   }
 
-  if( what == "Percolation" ){
-    compute_percolation_threshold();
+  // assuming a periodic structure
+  if( what == "Percolation_P" ){
+    compute_percolation_threshold( true );
   }
+
+  // assuming a aperiodic structure
+  if( what == "Percolation_A" ){
+    compute_percolation_threshold( false );
+  }  
 
   emit send_message("Measurement Done");
   emit set_status( 1, 0 );
 
-  emit measurements_updated();
+  emit measurements_updated( QString( what ) );
 }
 
 

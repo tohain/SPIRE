@@ -109,13 +109,16 @@ public:
 
   /// Computes two base vector normal to the current orientation
   /// forming the smalles possible unit cell
-  void compute_smallest_uc( int reduce = 1 );
+  void compute_smallest_uc( int reduce = 0 );
     
   /// Computes and sets theta and phi from the Miller indeces
   void set_orientation_from_hkl();
 
   /// Sets the slice dimensions to fit a unit cell
   void set_slice_to_uc( double margin = 0.0 );
+
+  /// Sets the slice dimensions to fit the primitive unit cell
+  void set_slice_to_primitive_uc();
   
   /// Adds a membrane
   void add_membrane( double dist, double width );
@@ -136,7 +139,11 @@ public:
   void compute_channel_network();
 
   /// Computes the largest sphere that fits through the strucutre
-  void compute_percolation_threshold();
+  void compute_percolation_threshold( bool periodic );
+
+  /// computes the maximum of the distance map in a channel
+  template<class M>
+  M compute_max_dist_in_channel( std::vector<M> &dmap, int ch_id );
   
   /// computes the minimal diamter of a channel.
   double get_minimal_channel_diameter( int channel_id );
@@ -228,6 +235,8 @@ public:
   std::vector<double> get_channel_volumes() const;
   /// Return the percolation thresholds
   std::vector<double> get_percolation_thresholds() const;
+  /// returns the current maximum pore radius
+  std::vector<double> get_max_pore_radius() const;
   /// Return the topological network of the channels
   std::vector< std::unordered_set<int> > get_channel_network() const;
   /// Return surface areas of the membranes
@@ -484,6 +493,9 @@ protected:
 
   /// The percolation thresholds of the channels
   std::vector<double> percolation_thresholds;
+
+  /// The maximum pore size for all channels (not membranes!)
+  std::vector<double> max_pore_radius;
   
   /// Available surfaces
   const std::vector<std::string> surface_choices = {"Gyroid",

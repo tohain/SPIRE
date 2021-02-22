@@ -830,8 +830,13 @@ void surface_projection::update_containers(){
  */
 void surface_projection::update_geometry(){
 
+  // update uc dimensions and base vectors
   update_a();
+
+  // update theta and phi
   set_orientation_from_hkl();
+  
+  // compute uc in orientation  
   compute_smallest_uc();
   
   L_2[0] = L[0]/2.0;
@@ -841,7 +846,7 @@ void surface_projection::update_geometry(){
   //update nr. of pixels
   set_n_points_y_to_unitcell();
   
-  //update points number
+  // update pixel size
   dx = L[0] / n_points_x;
   dy = L[1] / n_points_y;
   dz = L[2] / n_points_z;  
@@ -959,32 +964,59 @@ double surface_projection::get_minimal_channel_diameter( int channel_id ){
 }
 
 
+/**
+ * computes the maximum of the distance map in a channel
+ */
+template<class M>
+M surface_projection::compute_max_dist_in_channel( std::vector<M> &dmap, int ch_id ){
+
+  M max = std::numeric_limits<M>::min();
+
+  for( unsigned int ii=0; ii < dmap.size(); ii++ ){
+    
+    if( std::fabs( channel[ii] ) == std::fabs( ch_id ) ){
+      if( sqrt(dmap[ii]) > max ){
+	max = sqrt(dmap[ii]);
+      }
+    }
+
+  }
+
+  return max;
+}
+
 
 /**
  * Performs a percolation threshold analysis in order to find the
  * thinnest channel diameter
  */
-void surface_projection::compute_percolation_threshold() {
-
+void surface_projection::compute_percolation_threshold( bool periodic ) {
+  
   // make sure we have an updated distance map
   dt.set_parameters( grid, std::vector<unsigned int> {n_points_x, n_points_y, n_points_z},
-		     std::vector<double> {dx, dy, dz}, false);
+		     std::vector<double> {dx, dy, dz}, periodic );
   dt.compute_distance_map();
-  
+  auto dmap = dt.get_distance_map();
+    
   
   // get number of channels
   int ch_nr = int( get_membranes().size() / 2 ) + 1;
   percolation_thresholds.resize( ch_nr, 0 );
+
+  // max pore sizes
+  max_pore_radius.resize( ch_nr, 0 );
   
   percolation_analysis<short, float> perc ( get_channel(),
-					    dt.get_distance_map(),
+					    dmap,
 					    n_points_x,
 					    n_points_y,
 					    n_points_z,
-					    false );
+					    periodic );
 
   for( unsigned int ii=0; ii<ch_nr; ii++ ){
-    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );    
+    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );
+
+    max_pore_radius[ii] = double( compute_max_dist_in_channel( dmap, (ii*2)+1 ) );
   }
 
 }
@@ -1059,7 +1091,7 @@ void surface_projection::compute_smallest_uc( int reduce ){
   y[2] = mpz_get_si( kernel[5] );
 
   // probably should use something like gmp_clear() here
-  free( kernel );
+  // free( kernel );
   
   // find true length and the longer vector
   std::vector<double> true_x = VEC_MAT_MATH::dot_prod( A_dir, x ); // direct lattice
@@ -1126,6 +1158,12 @@ void surface_projection::set_slice_to_uc( double margin ){
   set_slice_height( (1.0+margin) * b2_y );  
 }
 
+
+void surface_projection::set_slice_to_primitive_uc(){
+  h = 0; k = 0; l = 1;
+  L = a;
+  slice_position = 0.0;
+}
 
 /**
  * This function computes the periodicity length in a given
@@ -1550,6 +1588,10 @@ std::vector<double> surface_projection::get_channel_volumes() const {
 
 std::vector<double> surface_projection::get_percolation_thresholds() const {
   return percolation_thresholds;
+}
+
+std::vector<double> surface_projection::get_max_pore_radius() const {
+  return max_pore_radius;
 }
 
 std::vector< std::unordered_set<int> > surface_projection::get_channel_network() const {

@@ -320,7 +320,9 @@ private:
 
   // measurement tab
   QT_labeled_obj<QTableWidget> *measurements_slice;
-  QT_labeled_obj<QTableWidget> *measurements_uc;  
+  QT_labeled_obj<QTableWidget> *measurements_uc;
+  std::vector<QLabel*> measurements_pixinfo_slice;
+  std::vector<QLabel*> measurements_pixinfo_uc;  
 
   // save tab
   QPushButton *choose_path_prefix;
@@ -379,14 +381,12 @@ private:
 
   QPushButton *button_write_pars;
   QPushButton *button_read_pars;
-  
-  QPushButton *button_measure_vol_uc;
-  QPushButton *button_measure_area_uc;
-  QPushButton *button_measure_percthres_uc;
 
-  QPushButton *button_measure_vol_slice;
-  QPushButton *button_measure_area_slice;
-  QPushButton *button_measure_percthres_slice;  
+  QComboBox *measurement_object;
+  QPushButton *button_measure_vol;
+  QPushButton *button_measure_area;
+  QPushButton *button_measure_percthres;
+
 
   // batch creation
   QLabel *batch_instructions;
@@ -448,8 +448,9 @@ private:
   
   QVBoxLayout *parameters_widget_layout;
   QVBoxLayout *measurement_widget_layout;
-  QHBoxLayout *measurement_widget_buttons_uc_layout;
-  QHBoxLayout *measurement_widget_buttons_slice_layout;  
+  QHBoxLayout *measurement_widget_buttons_layout;
+  QHBoxLayout *measurement_pixinfo_slice_layout;
+  QHBoxLayout *measurement_pixinfo_uc_layout;    
   QVBoxLayout *save_widget_layout;
 
   
@@ -556,7 +557,8 @@ public slots:
   void output_message( QString msg, int type = 1);
 
   void update_stats();
-  void update_measurements();
+  void update_measurements_values( QString what );
+  void update_measurements_structure( QTableWidget *display );
 
   void change_autoupdate( int state );
   void request_compute_projection();
@@ -564,8 +566,11 @@ public slots:
   void measure_vol();
   void measure_area();
   void measure_network();
-  void measure_percolation();
+  void measure_percolation();  
 
+  void deactivate_measurement_buttons();
+  void activate_measurement_buttons();  
+  
   void choose_export_prefix();
   std::string get_prefix();
   void save_grid();

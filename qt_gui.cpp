@@ -50,8 +50,9 @@ void GUI::set_up_ui(){
   measurements_slice->object()->insertColumn(0);
   measurements_slice->object()->insertColumn(1);
   measurements_slice->object()->insertColumn(2);
+  measurements_slice->object()->insertColumn(3);  
   QStringList measurements_slice_header;
-  measurements_slice_header << "Volume" << "Area" << "Perc. threshold";
+  measurements_slice_header << "Volume" << "Area" << "Perc. threshold" << "Max. pore dia.";
   measurements_slice->object()->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   measurements_slice->object()->setHorizontalHeaderLabels( measurements_slice_header );
 
@@ -59,11 +60,23 @@ void GUI::set_up_ui(){
   measurements_uc->object()->insertColumn(0);
   measurements_uc->object()->insertColumn(1);
   measurements_uc->object()->insertColumn(2);
+  measurements_uc->object()->insertColumn(2);  
   QStringList measurements_uc_header;
-  measurements_uc_header << "Volume" << "Area" << "Perc. threshold";
+  measurements_uc_header << "Volume" << "Area" << "Perc. threshold" << "Max. pore dia.";
   measurements_uc->object()->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   measurements_uc->object()->setHorizontalHeaderLabels( measurements_uc_header );
-  
+
+  for( unsigned int ii=0; ii<4; ii++){
+    measurements_pixinfo_slice.push_back( new QLabel( measurement_widget ) );
+    measurements_pixinfo_uc.push_back( new QLabel( measurement_widget ) );
+    measurements_pixinfo_slice[ measurements_pixinfo_slice.size() - 1 ]->setWordWrap(true);
+    measurements_pixinfo_uc[ measurements_pixinfo_uc.size() - 1 ]->setWordWrap(true);
+    measurements_pixinfo_slice[ measurements_pixinfo_slice.size() - 1 ]->setStyleSheet("font: 9pt;");
+    measurements_pixinfo_uc[ measurements_pixinfo_uc.size() - 1 ]->setStyleSheet("font: 9pt;");
+  }
+
+  measurements_pixinfo_slice[0]->setText( "Voxel sizes (dx,dy,dz):" );
+  measurements_pixinfo_uc[0]->setText( "Voxel sizes (dx,dy,dz):" );  
   
   // save tab
   choose_path_prefix = new QPushButton( "Choose location and prefix", save_widget );
@@ -78,14 +91,15 @@ void GUI::set_up_ui(){
   button_read_pars = new QPushButton("Read parameters", parameters_widget );
   button_write_pars = new QPushButton("Write parameters", parameters_widget );  
 
-  button_measure_vol_uc = new QPushButton("Measure Volume", measurement_widget);
-  button_measure_area_uc = new QPushButton("Measure Area", measurement_widget);
-  button_measure_percthres_uc = new QPushButton("Compute percolation threshold", measurement_widget);
+  button_measure_vol = new QPushButton("Measure Volume", measurement_widget);
+  button_measure_area = new QPushButton("Measure Area", measurement_widget);
+  button_measure_percthres = new QPushButton("Compute percolation threshold", measurement_widget);
 
-  button_measure_vol_slice = new QPushButton("Measure Volume", measurement_widget);
-  button_measure_area_slice = new QPushButton("Measure Area", measurement_widget);
-  button_measure_percthres_slice = new QPushButton("Compute percolation threshold", measurement_widget);  
-  
+  measurement_object = new QComboBox( measurement_widget );
+  measurement_object->insertItem( 0, "UC" );
+  measurement_object->insertItem( 1, "Slice" );
+
+
   /*
    * structure control
    */ 
@@ -411,8 +425,9 @@ void GUI::set_up_ui(){
 
   save_widget_layout = new QVBoxLayout( save_widget );
   measurement_widget_layout = new QVBoxLayout( measurement_widget );
-  measurement_widget_buttons_uc_layout = new QHBoxLayout();
-  measurement_widget_buttons_slice_layout = new QHBoxLayout();  
+  measurement_widget_buttons_layout = new QHBoxLayout();
+  measurement_pixinfo_uc_layout = new QHBoxLayout();
+  measurement_pixinfo_slice_layout = new QHBoxLayout();  
 
   // batch creation
   batch_widget_layout = new QVBoxLayout( batch_widget );
@@ -444,19 +459,26 @@ void GUI::set_up_ui(){
   batch_widget_layout->addLayout( batch_widget_buttons_layout );
   batch_widget_layout->addWidget( batch_progress );
 
-  
-  measurement_widget_buttons_uc_layout->addWidget( button_measure_vol_uc );
-  measurement_widget_buttons_uc_layout->addWidget( button_measure_area_uc );  
-  measurement_widget_buttons_uc_layout->addWidget( button_measure_percthres_uc );
+  measurement_widget_buttons_layout->addWidget( measurement_object );
+  measurement_widget_buttons_layout->addWidget( button_measure_vol );
+  measurement_widget_buttons_layout->addWidget( button_measure_area );  
+  measurement_widget_buttons_layout->addWidget( button_measure_percthres );
 
-  measurement_widget_buttons_slice_layout->addWidget( button_measure_vol_slice );
-  measurement_widget_buttons_slice_layout->addWidget( button_measure_area_slice );  
-  measurement_widget_buttons_slice_layout->addWidget( button_measure_percthres_slice );
+  measurement_widget_layout->addLayout( measurements_uc->layout() );
+
+  for( unsigned int ii=0; ii<measurements_pixinfo_uc.size(); ii++){
+    measurement_pixinfo_uc_layout->addWidget( measurements_pixinfo_uc[ii] );
+  }
+  measurement_widget_layout->addLayout( measurement_pixinfo_uc_layout );
 
   measurement_widget_layout->addLayout( measurements_slice->layout() );
-  measurement_widget_layout->addLayout( measurement_widget_buttons_slice_layout );  
-  measurement_widget_layout->addLayout( measurements_uc->layout() );  
-  measurement_widget_layout->addLayout( measurement_widget_buttons_uc_layout );
+
+  for( unsigned int ii=0; ii<measurements_pixinfo_slice.size(); ii++){
+    measurement_pixinfo_slice_layout->addWidget( measurements_pixinfo_slice[ii] );
+  }
+  measurement_widget_layout->addLayout( measurement_pixinfo_slice_layout );
+
+  measurement_widget_layout->addLayout( measurement_widget_buttons_layout );
   
   save_widget_layout->addLayout( path_prefix_control->layout() );
   save_widget_layout->addWidget( choose_path_prefix );
@@ -683,14 +705,9 @@ void GUI::set_up_tooltips(){
 
    fill_channels_control_container->setToolTip( QString( ttips.channel_fill_tooltip.c_str() ) );
 
-
-   button_measure_vol_uc->setToolTip( QString( ttips.button_measure_v_uc.c_str() ) );
-   button_measure_area_uc->setToolTip( QString( ttips.button_measure_a_uc.c_str() ) );   
-   button_measure_percthres_uc->setToolTip( QString( ttips.button_measure_percthres_uc.c_str() ) );
-
-   button_measure_vol_slice->setToolTip( QString( ttips.button_measure_v_slice.c_str() ) );
-   button_measure_area_slice->setToolTip( QString( ttips.button_measure_a_slice.c_str() ) );   
-   button_measure_percthres_slice->setToolTip( QString( ttips.button_measure_percthres_slice.c_str() ) );
+   button_measure_vol->setToolTip( QString( ttips.button_measure_v.c_str() ) );
+   button_measure_area->setToolTip( QString( ttips.button_measure_a.c_str() ) );   
+   button_measure_percthres->setToolTip( QString( ttips.button_measure_percthres.c_str() ) );
    
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );
@@ -780,13 +797,9 @@ void GUI::set_up_signals_and_slots(){
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );  
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
 
-  connect( button_measure_vol_slice, SIGNAL( clicked() ), this, SLOT( measure_vol() ) );
-  connect( button_measure_area_slice, SIGNAL( clicked() ), this, SLOT( measure_area() ) );  
-  connect( button_measure_percthres_slice, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
-
-  connect( button_measure_vol_uc, SIGNAL( clicked() ), this, SLOT( measure_vol() ) );
-  connect( button_measure_area_uc, SIGNAL( clicked() ), this, SLOT( measure_area() ) );  
-  connect( button_measure_percthres_uc, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
+  connect( button_measure_vol, SIGNAL( clicked() ), this, SLOT( measure_vol() ) );
+  connect( button_measure_area, SIGNAL( clicked() ), this, SLOT( measure_area() ) );  
+  connect( button_measure_percthres, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
   
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
@@ -798,7 +811,6 @@ void GUI::set_up_signals_and_slots(){
   connect( rm_membrane_control, SIGNAL( clicked() ), this, SLOT( rm_membrane() ) );  
 
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
-  //connect( sp, &sp_qt::parameter_changed, this, &GUI::read_membranes );
 
   connect( this, &GUI::call_change_channel_color, sp, &sp_qt::change_channel_color );
   
@@ -831,7 +843,7 @@ void GUI::set_up_signals_and_slots(){
   // measurements
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
 
-  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements );  
+  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements_values );  
 
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
 
@@ -895,6 +907,8 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
 
   update_gui_from_sp();
   read_membranes();
+  update_measurements_structure( measurements_slice->object() );
+  update_measurements_structure( measurements_uc->object() );  
   
   //set a black background iamge
   img_pix = new QPixmap( 100, 100 );
@@ -915,9 +929,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget(
   cb_thread = new QThread();
   cb->moveToThread( cb_thread );
   cb_thread->start();
-
-  
-  
+    
   set_up_signals_and_slots();
   
   //measure();
@@ -1124,7 +1136,6 @@ void GUI::update_gui_from_sp(){
 
   update_fill_channels();  
   update_stats( );
-  read_membranes();
 
   std::vector<double> uc_dim = sp->get_ucdim();
   std::vector<double> base = sp->get_uc_base();
@@ -1133,7 +1144,6 @@ void GUI::update_gui_from_sp(){
   orientation_visualisation->load( tmp_arr );
   
 }
-
 
 void GUI::write_membranes(int row, int col){
   
@@ -1194,7 +1204,6 @@ void GUI::read_membranes(){
     add_membrane( membranes[ii], membranes[ii+1] );
   }
   
-
 }
 
 
@@ -1212,7 +1221,12 @@ void GUI::add_membrane( double first, double second ){
 
   membranes_control->item( curRow, 0)->setText( def_locale->toString( first ) );
   membranes_control->item( curRow, 1)->setText( def_locale->toString( second ) );
-    
+
+  write_membranes( 0, 0 );
+
+  update_measurements_structure( measurements_slice->object() );
+  update_measurements_structure( measurements_uc->object() );  
+  
   //reconnect them
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
 }
@@ -1223,9 +1237,12 @@ void GUI::rm_membrane(){
   if( ind > 0 ){
     membranes_control->removeRow( ind );
     write_membranes(0, 0);
+    update_measurements_structure( measurements_slice->object() );
+    update_measurements_structure( measurements_uc->object() );  
   }
-  else
+  else {
     output_message( "Innermost membrane can't be removed" );
+  }
 }
 
 void GUI::save_image_to_file(){
@@ -1348,10 +1365,10 @@ void GUI::update_stats(){
 
 
 
-void GUI::update_measurements(){
+void GUI::update_measurements_structure( QTableWidget *display ){
 
   // reset table view
-  measurements_slice->object()->setRowCount( 0 );
+  display->setRowCount( 0 );
 
   QStringList vertical_labels;
 
@@ -1359,7 +1376,7 @@ void GUI::update_measurements(){
   // create table
   int mem_count=0, ch_count=0;
   for( unsigned int ii=0; ii<mems.size()+1; ii++){
-    measurements_slice->object()->insertRow( ii );
+    display->insertRow( ii );
     if( ii % 2 == 0 ){
       vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
     } else {
@@ -1367,37 +1384,71 @@ void GUI::update_measurements(){
     }	
   }
 
-  for( int r=0; r<measurements_slice->object()->rowCount(); r++){
-    for( int c=0; c<measurements_slice->object()->columnCount(); c++){
-      measurements_slice->object()->setItem( r, c, new QTableWidgetItem() );
-      measurements_slice->object()->item( r, c )->setFlags( Qt::ItemIsEnabled );
+  for( int r=0; r<display->rowCount(); r++){
+    for( int c=0; c<display->columnCount(); c++){
+      display->setItem( r, c, new QTableWidgetItem() );
+      display->item( r, c )->setFlags( Qt::ItemIsEnabled );
     }
   }
   
-  measurements_slice->object()->setVerticalHeaderLabels( vertical_labels );
+  display->setVerticalHeaderLabels( vertical_labels );
 
-  
+}
 
-  /* now fill it with the data */
+void GUI::update_measurements_values( QString what ){ 
 
-  // get it first
-  std::vector<double> vol_data = sp_stats->get_channel_volumes();
-  std::vector<double> area_data = sp_stats->get_membrane_surface_area();
-  std::vector<double> perc_thres = sp_stats->get_percolation_thresholds();
 
-  
-  // vols
-  for( unsigned int ii=0; ii<vol_data.size(); ii++ ){
-    measurements_slice->object()->item( ii, 0)->setText( def_locale->toString( vol_data[ii] ) );
+  QTableWidget *display;
+  std::vector<QLabel*> *pore_display;
+  if( measurement_object->currentIndex() == 0 ){
+    display = measurements_uc->object();
+    pore_display = &measurements_pixinfo_uc;
+  } else {
+    display = measurements_slice->object();
+    pore_display = &measurements_pixinfo_slice;
   }
-  // areas
-  for( unsigned int ii=0; ii<area_data.size(); ii++ ){    
-    measurements_slice->object()->item( (ii*2)+1, 1 )->setText( def_locale->toString( area_data[ii] ) );
+    
+
+  if( what == "Volumes" ){
+    std::vector<double> vol_data = sp_stats->get_channel_volumes();
+    for( unsigned int ii=0; ii<vol_data.size(); ii++ ){
+      display->item( ii, 0)->setText( def_locale->toString( vol_data[ii] ) );
+    }
+
+    std::stringstream pore_content;
+    pore_content << "(" << std::setprecision(3) << sp_stats->get_dx()
+		 << "," << std::setprecision(3) << sp_stats->get_dy()
+		 << "," << std::setprecision(3) << sp_stats->get_dz() << ")";
+    (*pore_display)[1]->setText( pore_content.str().c_str() );
+
+  } else if ( what == "Areas" ){
+    std::vector<double> area_data = sp_stats->get_membrane_surface_area();
+    for( unsigned int ii=0; ii<area_data.size(); ii++ ){    
+      display->item( (ii*2)+1, 1 )->setText( def_locale->toString( area_data[ii] ) );
+    }
+
+    std::stringstream pore_content;
+    pore_content << "(" << std::setprecision(3) << sp_stats->get_dx()
+		 << "," << std::setprecision(3) << sp_stats->get_dy()
+		 << "," << std::setprecision(3) << sp_stats->get_dz() << ")";    
+    (*pore_display)[2]->setText( pore_content.str().c_str() );
+
+  } else if ( what == "Percolation_P" || what == "Percolation_A" ){
+    std::vector<double> perc_thres = sp_stats->get_percolation_thresholds();
+    std::vector<double> max_pore_rad = sp_stats->get_max_pore_radius();
+    for( unsigned int ii=0; ii<perc_thres.size(); ii++){
+      display->item( 2*ii, 2)->setText( def_locale->toString( perc_thres[ii] ) );
+      display->item( 2*ii, 3)->setText( def_locale->toString( 2*max_pore_rad[ii] ) );      
+    }
+
+    std::stringstream pore_content;
+    pore_content << "(" << std::setprecision(3) << sp_stats->get_dx()
+		 << "," << std::setprecision(3) << sp_stats->get_dy()
+		 << "," << std::setprecision(3) << sp_stats->get_dz() << ")";    
+    (*pore_display)[3]->setText( pore_content.str().c_str() );
   }
-  // percolation
-  for( unsigned int ii=0; ii<perc_thres.size(); ii++){
-    measurements_slice->object()->item( 2*ii, 2)->setText( def_locale->toString( perc_thres[ii] ) );
-  }
+
+  activate_measurement_buttons();
   
 }
 
@@ -1448,19 +1499,34 @@ void GUI::request_compute_projection(){
  */
 
 void GUI::measure_vol(){
+
+  deactivate_measurement_buttons();
+
+  // this copies all parameters and calls update_geometry, so also all
+  // internal should be up-to-date!
   sp_stats->copy_parameters( sp );
+  
+  if( measurement_object->currentIndex() == 0 ){
+    // set to primitive uc
+    sp_stats->set_slice_to_primitive_uc();
+    // we are changing some parameters, so call update_geometry again
+    sp_stats->update_geometry();
+  }
 
   if( res_measure_vol >= 0 ){
     sp_stats->set_n_points_x( res_measure_vol );
     sp_stats->set_n_points_y_to_unitcell();
-    sp_stats->set_n_points_z_to_unitcell();    
-  } 
-        
+    sp_stats->set_n_points_z_to_unitcell();
+    sp_stats->update_geometry();
+  }  
+
   emit call_update_stats( QString( "Volumes" ) );
 }
 
-
 void GUI::measure_area(){
+
+  deactivate_measurement_buttons();
+  
   sp_stats->copy_parameters( sp );
 
   if( res_measure_area >= 0 ){
@@ -1481,6 +1547,7 @@ void GUI::measure_area(){
 }
 
 
+
 void GUI::measure_network(){
   sp_stats->copy_parameters( sp );
 
@@ -1494,6 +1561,10 @@ void GUI::measure_network(){
 
 
 void GUI::measure_percolation(){
+
+  deactivate_measurement_buttons();
+
+  
   sp_stats->copy_parameters( sp );
 
   if( res_measure_perc >= 0 ){
@@ -1501,9 +1572,15 @@ void GUI::measure_percolation(){
     sp_stats->set_n_points_y_to_unitcell();
     sp_stats->set_n_points_z_to_unitcell();
   }
-  
-  emit call_update_stats( QString("Percolation" ));
+
+  if( measurement_object->currentIndex() == 0 ){
+    emit call_update_stats( QString("Percolation_P" ));
+  } else {
+    emit call_update_stats( QString("Percolation_A" ));
+  }
 }
+
+
 
 
 void GUI::choose_export_prefix(){
@@ -1924,6 +2001,26 @@ void GUI::finalize_batch_loop(){
   batch_progress->setValue( 1 );
   batch_compute_start->setEnabled( true );  
 }
+
+
+
+void GUI::deactivate_measurement_buttons(){
+  button_measure_vol->setEnabled( false );
+  button_measure_area->setEnabled( false );
+  button_measure_percthres->setEnabled( false );
+}
+
+
+void GUI::activate_measurement_buttons(){
+  button_measure_vol->setEnabled( true );
+  button_measure_area->setEnabled( true );
+  button_measure_percthres->setEnabled( true );
+}
+
+
+
+
+
 
 /*
  * Since QAbstractSpinbox::finishedEditing is a slot without a

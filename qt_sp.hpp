@@ -66,7 +66,7 @@ signals:
   
   void status_updated( QString st );
 
-  void measurements_updated();
+  void measurements_updated( QString what );
   
   void send_message( QString msg, int type = 1 ); 
 
