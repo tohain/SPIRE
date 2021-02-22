@@ -380,8 +380,13 @@ private:
   QPushButton *button_write_pars;
   QPushButton *button_read_pars;
   
-  QPushButton *button_measure_vol_area;
-  QPushButton *button_measure_percthres;
+  QPushButton *button_measure_vol_uc;
+  QPushButton *button_measure_area_uc;
+  QPushButton *button_measure_percthres_uc;
+
+  QPushButton *button_measure_vol_slice;
+  QPushButton *button_measure_area_slice;
+  QPushButton *button_measure_percthres_slice;  
 
   // batch creation
   QLabel *batch_instructions;
@@ -443,7 +448,8 @@ private:
   
   QVBoxLayout *parameters_widget_layout;
   QVBoxLayout *measurement_widget_layout;
-  QHBoxLayout *measurement_widget_buttons_layout;
+  QHBoxLayout *measurement_widget_buttons_uc_layout;
+  QHBoxLayout *measurement_widget_buttons_slice_layout;  
   QVBoxLayout *save_widget_layout;
 
   
@@ -555,7 +561,8 @@ public slots:
   void change_autoupdate( int state );
   void request_compute_projection();
 
-  void measure_vol_area();
+  void measure_vol();
+  void measure_area();
   void measure_network();
   void measure_percolation();
 

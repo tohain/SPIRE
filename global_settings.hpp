@@ -30,6 +30,29 @@ const std::string g_color_b1 = "#5aa02c";
 const std::string g_color_b2 = "#ffcc00";
 const std::string g_color_n  = "#c83737";
 
+//
+// the resolution used to measure the volume of the channels.
+// -1 means the current resolution from the GUI is used
+//
+const int res_measure_vol = 76;
 
+
+//
+// the resolution used to measure the volume of the channels.
+// -1 means the current resolution from the GUI is used
+//
+const int res_measure_area = 76;
+
+//
+// the resolution used to measure the percolation thresdhold
+// -1 means the current resolution from the GUI is used
+//
+const int res_measure_perc = 77;
+
+
+/* 
+ * add some code that tries to read these parameters from a config
+ * file, if it does not succeed, just let them be as is
+ */ 
 
 #endif

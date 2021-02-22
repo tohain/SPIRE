@@ -78,8 +78,13 @@ void GUI::set_up_ui(){
   button_read_pars = new QPushButton("Read parameters", parameters_widget );
   button_write_pars = new QPushButton("Write parameters", parameters_widget );  
 
-  button_measure_vol_area = new QPushButton("Measure Volume/Area", parameters_widget);
-  button_measure_percthres = new QPushButton("Compute percolation threshold", parameters_widget);
+  button_measure_vol_uc = new QPushButton("Measure Volume", measurement_widget);
+  button_measure_area_uc = new QPushButton("Measure Area", measurement_widget);
+  button_measure_percthres_uc = new QPushButton("Compute percolation threshold", measurement_widget);
+
+  button_measure_vol_slice = new QPushButton("Measure Volume", measurement_widget);
+  button_measure_area_slice = new QPushButton("Measure Area", measurement_widget);
+  button_measure_percthres_slice = new QPushButton("Compute percolation threshold", measurement_widget);  
   
   /*
    * structure control
@@ -406,7 +411,8 @@ void GUI::set_up_ui(){
 
   save_widget_layout = new QVBoxLayout( save_widget );
   measurement_widget_layout = new QVBoxLayout( measurement_widget );
-  measurement_widget_buttons_layout = new QHBoxLayout();
+  measurement_widget_buttons_uc_layout = new QHBoxLayout();
+  measurement_widget_buttons_slice_layout = new QHBoxLayout();  
 
   // batch creation
   batch_widget_layout = new QVBoxLayout( batch_widget );
@@ -439,13 +445,18 @@ void GUI::set_up_ui(){
   batch_widget_layout->addWidget( batch_progress );
 
   
-  measurement_widget_layout->addLayout( measurements_slice->layout() );
-  measurement_widget_layout->addLayout( measurements_uc->layout() );  
+  measurement_widget_buttons_uc_layout->addWidget( button_measure_vol_uc );
+  measurement_widget_buttons_uc_layout->addWidget( button_measure_area_uc );  
+  measurement_widget_buttons_uc_layout->addWidget( button_measure_percthres_uc );
 
-  measurement_widget_buttons_layout->addWidget( button_measure_vol_area );
-  measurement_widget_buttons_layout->addWidget( button_measure_percthres );
-  
-  measurement_widget_layout->addLayout( measurement_widget_buttons_layout );
+  measurement_widget_buttons_slice_layout->addWidget( button_measure_vol_slice );
+  measurement_widget_buttons_slice_layout->addWidget( button_measure_area_slice );  
+  measurement_widget_buttons_slice_layout->addWidget( button_measure_percthres_slice );
+
+  measurement_widget_layout->addLayout( measurements_slice->layout() );
+  measurement_widget_layout->addLayout( measurement_widget_buttons_slice_layout );  
+  measurement_widget_layout->addLayout( measurements_uc->layout() );  
+  measurement_widget_layout->addLayout( measurement_widget_buttons_uc_layout );
   
   save_widget_layout->addLayout( path_prefix_control->layout() );
   save_widget_layout->addWidget( choose_path_prefix );
@@ -673,8 +684,14 @@ void GUI::set_up_tooltips(){
    fill_channels_control_container->setToolTip( QString( ttips.channel_fill_tooltip.c_str() ) );
 
 
-   button_measure_vol_area->setToolTip( QString( ttips.button_measure_va.c_str() ) );
-   button_measure_percthres->setToolTip( QString( ttips.button_measure_percthres.c_str() ) );
+   button_measure_vol_uc->setToolTip( QString( ttips.button_measure_v_uc.c_str() ) );
+   button_measure_area_uc->setToolTip( QString( ttips.button_measure_a_uc.c_str() ) );   
+   button_measure_percthres_uc->setToolTip( QString( ttips.button_measure_percthres_uc.c_str() ) );
+
+   button_measure_vol_slice->setToolTip( QString( ttips.button_measure_v_slice.c_str() ) );
+   button_measure_area_slice->setToolTip( QString( ttips.button_measure_a_slice.c_str() ) );   
+   button_measure_percthres_slice->setToolTip( QString( ttips.button_measure_percthres_slice.c_str() ) );
+   
    button_render->setToolTip( QString( ttips.button_render.c_str() ) );
    button_save->setToolTip( QString( ttips.button_save.c_str() ) );
    button_read_pars->setToolTip( QString( ttips.button_read_pars.c_str() ) );
@@ -763,8 +780,13 @@ void GUI::set_up_signals_and_slots(){
   connect( button_render, SIGNAL( clicked() ), sp, SLOT( compute_projection() ) );  
   connect( button_save, SIGNAL( clicked() ), this, SLOT( save_image_to_file() ) );
 
-  connect( button_measure_vol_area, SIGNAL( clicked() ), this, SLOT( measure_vol_area() ) );
-  connect( button_measure_percthres, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
+  connect( button_measure_vol_slice, SIGNAL( clicked() ), this, SLOT( measure_vol() ) );
+  connect( button_measure_area_slice, SIGNAL( clicked() ), this, SLOT( measure_area() ) );  
+  connect( button_measure_percthres_slice, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
+
+  connect( button_measure_vol_uc, SIGNAL( clicked() ), this, SLOT( measure_vol() ) );
+  connect( button_measure_area_uc, SIGNAL( clicked() ), this, SLOT( measure_area() ) );  
+  connect( button_measure_percthres_uc, SIGNAL( clicked() ), this, SLOT( measure_percolation() ) );  
   
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
@@ -809,7 +831,6 @@ void GUI::set_up_signals_and_slots(){
   // measurements
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
 
-  connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_stats );
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements );  
 
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
@@ -1426,13 +1447,28 @@ void GUI::request_compute_projection(){
  * Think if we want to make the resolution here a user parameter
  */
 
-void GUI::measure_vol_area(){
+void GUI::measure_vol(){
   sp_stats->copy_parameters( sp );
 
-  //sp_stats->set_n_points_x( 76 );
-  //sp_stats->set_n_points_y_to_unitcell();
-  //sp_stats->set_n_points_z_to_unitcell();
+  if( res_measure_vol >= 0 ){
+    sp_stats->set_n_points_x( res_measure_vol );
+    sp_stats->set_n_points_y_to_unitcell();
+    sp_stats->set_n_points_z_to_unitcell();    
+  } 
+        
+  emit call_update_stats( QString( "Volumes" ) );
+}
 
+
+void GUI::measure_area(){
+  sp_stats->copy_parameters( sp );
+
+  if( res_measure_area >= 0 ){
+    sp_stats->set_n_points_x( res_measure_area );
+    sp_stats->set_n_points_y_to_unitcell();
+    sp_stats->set_n_points_z_to_unitcell();    
+  } 
+      
 #ifndef USE_CGAL
   auto reply = QMessageBox::warning( this, "Area mesaurement", "You are not using CGAL to "
 				     "compute membrane surface area. Please note that the "
@@ -1441,9 +1477,9 @@ void GUI::measure_vol_area(){
 				     "the real values!" );
 #endif
   
-  emit call_update_stats( QString( "Volumes" ) );
   emit call_update_stats( QString( "Areas" ) );  
 }
+
 
 void GUI::measure_network(){
   sp_stats->copy_parameters( sp );
@@ -1460,10 +1496,11 @@ void GUI::measure_network(){
 void GUI::measure_percolation(){
   sp_stats->copy_parameters( sp );
 
-  sp_stats->set_n_points_x( 76 );
-  sp_stats->set_n_points_y_to_unitcell();
-  sp_stats->set_n_points_z_to_unitcell();
-
+  if( res_measure_perc >= 0 ){
+    sp_stats->set_n_points_x( res_measure_perc );
+    sp_stats->set_n_points_y_to_unitcell();
+    sp_stats->set_n_points_z_to_unitcell();
+  }
   
   emit call_update_stats( QString("Percolation" ));
 }
