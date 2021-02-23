@@ -538,6 +538,9 @@ void sp_qt::update_measurements( QString what ){
   emit send_message( "Computing projection", 1 );
   compute_projection();
 
+  // merge adjacent channels without an active membrane inbetween them
+  merge_adjacent_channels();
+  
   // the distance map of the current object is not up to date, since
   // the "fill channel" option is perforemd after the last change of
   // the grid, so keep that in mind!

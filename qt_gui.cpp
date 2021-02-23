@@ -1371,12 +1371,24 @@ void GUI::update_measurements_structure( QTableWidget *display ){
   // reset table view
   display->setRowCount( 0 );
 
+
+  // try to guess the number of channels
+  auto filled = sp->get_channel_fill();
+  int nr_channels=1;
+  for( unsigned int ii=0; ii<filled.size(); ii++ ){
+    if( ii>0 ){
+      if( filled[ii-1] != filled[ii] ){
+	nr_channels++;
+      }
+    }
+  }
+
   QStringList vertical_labels;
 
   std::vector<double> mems = sp->get_membranes();
   // create table
   int mem_count=0, ch_count=0;
-  for( unsigned int ii=0; ii<mems.size()+1; ii++){
+  for( unsigned int ii=0; ii<nr_channels; ii++){
     display->insertRow( ii );
     if( ii % 2 == 0 ){
       vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
@@ -1791,6 +1803,9 @@ void GUI::check_channel_color(){
       emit call_change_channel_color( ii+1, checked );
     } 
   }
+
+    update_measurements_structure( measurements_slice->object() );
+    update_measurements_structure( measurements_uc->object() );
   
 }
 
