@@ -19,7 +19,7 @@
 #ifndef SP_PROJ_I
 #define SP_PROJ_I
 
-
+#include <unordered_set>
 #include <iostream>
 #include <cassert>
 #include <sstream>
@@ -126,6 +126,9 @@ public:
   /// sets the "color" of a membrane
   void set_channel_color( int mem_id, int val );
 
+  /// merge adjacent, unseparated channels
+  void merge_adjacent_channels();
+  
   /// updates the size and resets the filled channels control
   void update_channel_fill_container();
   
@@ -424,7 +427,10 @@ protected:
 
 
   /// Holds information for the membranes in pairs of (distance,
-  /// width). For n membranes this container has then 2*n entries
+  /// width). For n membranes this container has then 2*n entries This
+  /// does need to be sorted, but needs to have the right size, since
+  /// the number of channels is determined using the size of this
+  /// array
   std::vector<double> membranes;
 
   /// Holds information about the channel color (if it is "filled"

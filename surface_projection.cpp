@@ -1013,9 +1013,15 @@ void surface_projection::compute_percolation_threshold( bool periodic ) {
 					    false );
 
   for( unsigned int ii=0; ii<ch_nr; ii++ ){
-    percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );
 
-    max_pore_radius[ii] = double( compute_max_dist_in_channel( dmap, (ii*2)+1 ) );
+    // if the channel is filled solid, nothing can enter, so perc. threshold is 0
+    if( channel_filled[2*ii] == 1 ){
+      percolation_thresholds[ii] = 0;
+      max_pore_radius[ii] = 0;
+    } else {    
+      percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );
+      max_pore_radius[ii] = double( compute_max_dist_in_channel( dmap, (ii*2)+1 ) );
+    }
   }
 
 }
@@ -1356,6 +1362,52 @@ void surface_projection::set_channel_color( int mem_id, int val ){
       grid[ii] = val;
     }
   }  
+}
+
+
+/**
+ * merges channels which are not separated by a membrane
+ */
+void surface_projection::merge_adjacent_channels(){
+
+  std::unordered_map<int, int> identify;
+
+  // holds the new channel_fill information
+  std::vector<int> channel_filled_new;
+  channel_filled_new.push_back( channel_filled[0] );
+
+  // the new membranes array, this won't hold the correct values,
+  // however, will have the right amount of membranes (entries)
+  std::vector<double> membranes_new;
+
+  int counter=0; // new number of channels
+  for( int ii=0; ii<channel_filled.size(); ii++){
+    
+    if( ii>0 ){
+      if( channel_filled[ii-1] != channel_filled[ii] ){ // new channel
+	channel_filled_new.push_back( channel_filled[ii] );
+	counter++;
+
+	// check if we need to add a membrane
+	if( ii % 2 == 1 ){ //yes!
+	  membranes_new.push_back( membranes[ ii-1 ] );
+	  membranes_new.push_back( membranes[ ii ] );	  
+	}	
+      }
+    }
+    
+    identify.emplace( ii+1, counter+1 );
+  }
+
+  // update the channel information, just put everything positive,
+  // shouldn't matter for percolation analysis
+  for( unsigned int ii=0; ii<channel.size(); ii++ ){    
+    channel[ii] = identify[ std::abs( channel[ii] ) ];
+  }
+
+  set_channel_fill( channel_filled_new );
+  set_membranes( membranes_new );
+  
 }
 
 /**
