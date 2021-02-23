@@ -876,7 +876,7 @@ void GUI::set_up_signals_and_slots(){
 
 
 
-GUI::GUI( QApplication *_app, QLocale *def_locale_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ){
+GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ), gs( gs_ ){
   
   //initialize surface projection
   sp = new sp_qt( );
@@ -1036,14 +1036,14 @@ void GUI::draw_unitcell( QPaintDevice *canvas ){
 
   //uc_artist->pen().setWidth(2);
   QPen *pen = new QPen();
-  pen->setColor( g_color_b1.c_str() );
+  pen->setColor( gs.g_color_b1.c_str() );
   pen->setWidth( stroke_width );
   uc_artist->setPen( *pen );
   
   uc_artist->drawLine( tl_x, tl_y, tr_x, tr_y );
   uc_artist->drawLine( br_x, br_y, bl_x, bl_y );
 
-  pen->setColor( g_color_b2.c_str() );
+  pen->setColor( gs.g_color_b2.c_str() );
   uc_artist->setPen( *pen );
 
   uc_artist->drawLine( tr_x, tr_y, br_x, br_y );
@@ -1134,12 +1134,11 @@ void GUI::update_gui_from_sp(){
   miller_k_control->object()->setValue( sp->get_k() );
   miller_l_control->object()->setValue( sp->get_l() );  
 
-  update_fill_channels();  
   update_stats( );
 
   std::vector<double> uc_dim = sp->get_ucdim();
   std::vector<double> base = sp->get_uc_base();
-  std::string hkl_visual = draw_slice_visualization( base, uc_dim );
+  std::string hkl_visual = draw_slice_visualization( base, uc_dim, gs );
   QByteArray tmp_arr ( hkl_visual.c_str(), -1 );  
   orientation_visualisation->load( tmp_arr );
   
@@ -1226,6 +1225,7 @@ void GUI::add_membrane( double first, double second ){
 
   update_measurements_structure( measurements_slice->object() );
   update_measurements_structure( measurements_uc->object() );  
+  update_fill_channels();
   
   //reconnect them
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
@@ -1238,7 +1238,8 @@ void GUI::rm_membrane(){
     membranes_control->removeRow( ind );
     write_membranes(0, 0);
     update_measurements_structure( measurements_slice->object() );
-    update_measurements_structure( measurements_uc->object() );  
+    update_measurements_structure( measurements_uc->object() );
+    update_fill_channels();    
   }
   else {
     output_message( "Innermost membrane can't be removed" );
@@ -1330,9 +1331,9 @@ void GUI::update_stats(){
   std::stringstream uc_orient_info, orient_info, pix_info, uc_dim_info;
   
   uc_orient_info << "UC in orientation<br/>";
-  uc_orient_info << "<font color=\"" << g_color_b1 << "\">v:  " << uc_dim[0] << "</font><br/>";
-  uc_orient_info << "<font color=\"" << g_color_b2 << "\">w:  " << uc_dim[1] << "</font><br/>";
-  uc_orient_info << "<font color=\"" << g_color_n << "\">n:  " << uc_dim[2] << "</font><br/>"; 
+  uc_orient_info << "<font color=\"" << gs.g_color_b1 << "\">v:  " << uc_dim[0] << "</font><br/>";
+  uc_orient_info << "<font color=\"" << gs.g_color_b2 << "\">w:  " << uc_dim[1] << "</font><br/>";
+  uc_orient_info << "<font color=\"" << gs.g_color_n << "\">n:  " << uc_dim[2] << "</font><br/>"; 
   
   pix_info << "Resolution (pixel size)" << std::endl;
   pix_info << "X: " << std::setw(5) << sp->get_width()
@@ -1513,8 +1514,8 @@ void GUI::measure_vol(){
     sp_stats->update_geometry();
   }
 
-  if( res_measure_vol >= 0 ){
-    sp_stats->set_n_points_x( res_measure_vol );
+  if( gs.res_measure_vol >= 0 ){
+    sp_stats->set_n_points_x( gs.res_measure_vol );
     sp_stats->set_n_points_y_to_unitcell();
     sp_stats->set_n_points_z_to_unitcell();
     sp_stats->update_geometry();
@@ -1529,8 +1530,15 @@ void GUI::measure_area(){
   
   sp_stats->copy_parameters( sp );
 
-  if( res_measure_area >= 0 ){
-    sp_stats->set_n_points_x( res_measure_area );
+  if( measurement_object->currentIndex() == 0 ){
+    // set to primitive uc
+    sp_stats->set_slice_to_primitive_uc();
+    // we are changing some parameters, so call update_geometry again
+    sp_stats->update_geometry();
+  }
+  
+  if( gs.res_measure_area >= 0 ){
+    sp_stats->set_n_points_x( gs.res_measure_area );
     sp_stats->set_n_points_y_to_unitcell();
     sp_stats->set_n_points_z_to_unitcell();    
   } 
@@ -1563,12 +1571,18 @@ void GUI::measure_network(){
 void GUI::measure_percolation(){
 
   deactivate_measurement_buttons();
-
   
   sp_stats->copy_parameters( sp );
 
-  if( res_measure_perc >= 0 ){
-    sp_stats->set_n_points_x( res_measure_perc );
+  if( measurement_object->currentIndex() == 0 ){
+    // set to primitive uc
+    sp_stats->set_slice_to_primitive_uc();
+    // we are changing some parameters, so call update_geometry again
+    sp_stats->update_geometry();
+  }
+  
+  if( gs.res_measure_perc >= 0 ){
+    sp_stats->set_n_points_x( gs.res_measure_perc );
     sp_stats->set_n_points_y_to_unitcell();
     sp_stats->set_n_points_z_to_unitcell();
   }

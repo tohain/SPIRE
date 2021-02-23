@@ -997,7 +997,6 @@ void surface_projection::compute_percolation_threshold( bool periodic ) {
 		     std::vector<double> {dx, dy, dz}, periodic );
   dt.compute_distance_map();
   auto dmap = dt.get_distance_map();
-    
   
   // get number of channels
   int ch_nr = int( get_membranes().size() / 2 ) + 1;
@@ -1011,7 +1010,7 @@ void surface_projection::compute_percolation_threshold( bool periodic ) {
 					    n_points_x,
 					    n_points_y,
 					    n_points_z,
-					    periodic );
+					    false );
 
   for( unsigned int ii=0; ii<ch_nr; ii++ ){
     percolation_thresholds[ii] = perc.get_percolation_threshold( (ii*2)+1 );

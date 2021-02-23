@@ -18,16 +18,18 @@
 
 #include <QApplication>
 #include "qt_gui.hpp"
+#include "global_settings.hpp"
 
 int main( int argc, char *argv[]){
-
+  
   QApplication app( argc, argv );
 
   QLocale default_locale = QLocale();
 		       
   app.setWindowIcon(QIcon(":/resources/icon/icon.ico"));
-  
-  GUI gui( &app, &default_locale );
+
+  global_settings gs ( "global_settings.conf" );
+  GUI gui( &app, &default_locale, gs );
   gui.show();
   
   return app.exec();

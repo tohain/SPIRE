@@ -60,9 +60,8 @@
 #include "slice_orientation_visualisation.hpp"
 #include "vec_mat_math.hpp"
 
-#include "global_settings.hpp"
 #include "batch_lib.hpp"
-
+#include "global_settings.hpp"
 
 /**
  * a short qt wrapper around the batch_lib to it has signals and slots
@@ -271,7 +270,7 @@ class GUI : public QWidget {
   Q_OBJECT
 
 public:
-  explicit GUI( QApplication *app, QLocale *def_locale_, QWidget *parent = 0 );
+  explicit GUI( QApplication *app, QLocale *def_locale_, global_settings &gs, QWidget *parent = 0 );
 
 
   ~GUI();
@@ -288,6 +287,9 @@ private:
   
   // locale
   QLocale *def_locale;
+
+  // global settings
+  global_settings &gs;
   
   //tooltips
   tooltips ttips;
