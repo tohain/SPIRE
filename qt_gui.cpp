@@ -1574,6 +1574,15 @@ void GUI::measure_percolation(){
   
   sp_stats->copy_parameters( sp );
 
+  // unset all channel fills so the distance map will be computed
+  // correctly. Don't change the membranes though!
+  auto channel_fill = sp_stats->get_channel_fill();
+  for( unsigned int ii=0; ii<channel_fill.size(); ii+=2 ){
+    channel_fill[ii] = 0;
+  }
+  sp_stats->set_channel_fill( channel_fill );
+  
+  
   if( measurement_object->currentIndex() == 0 ){
     // set to primitive uc
     sp_stats->set_slice_to_primitive_uc();
