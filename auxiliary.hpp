@@ -62,6 +62,19 @@ public:
   }
 
 
+  static void strip ( std::string &in, char c = ' '){
+
+    while( *in.begin() == c ){
+      in.erase( in.begin() );
+    }
+
+    while( *(--in.end()) == c ){
+      in.erase( (--in.end()) );
+    }    
+
+  }
+  
+
 
   /** euclid's algorithm to find the greatest common divisor of two
    * integers implemented as presented in
