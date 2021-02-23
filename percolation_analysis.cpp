@@ -56,7 +56,7 @@ percolation_analysis<T, M>::percolation_analysis(std::vector<T> data,
  * \param[in] nbs The vector to write the id's of neighbors into
  */
 template <class T, class M>
-void percolation_analysis<T, M>::get_nbs( int id, int ch_id, std::vector<int> &nbs ){
+void percolation_analysis<T, M>::get_nbs( int id, std::vector<int> &nbs ){
 
   it.set(id);
   nbs.clear();
@@ -145,7 +145,7 @@ void percolation_analysis<T, M>::find_clusters( int ch_id_ ) {
 	    
       // get neighbors
       it.set(id);
-      get_nbs( id, ch_id, nbs );
+      get_nbs( id, nbs );
 
       // no neighbor, create new cluster
       if( nbs.size() == 0 ){
@@ -431,7 +431,7 @@ unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
 template <class T, class M>
 void percolation_analysis<T, M>::dilute_surface( M threshold, T marker ) {
   for( unsigned int ii=0; ii<structure.size(); ii++){
-    if( sqrt(dmap[ii]) <= threshold && structure[ii] != 1 ){
+    if( sqrt(dmap[ii]) <= threshold ){
       structure[ii] = marker;
     }    
   }

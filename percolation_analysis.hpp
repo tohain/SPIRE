@@ -82,7 +82,7 @@ public:
 private:
 
   /// returns the neighbors of voxel id which belong to the channel id ch_id
-  void get_nbs( int id, int ch_id, std::vector<int> &nbs );
+  void get_nbs( int id, std::vector<int> &nbs );
 
   /// the grid to analyse
   std::vector<T> structure;
