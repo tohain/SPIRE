@@ -175,6 +175,7 @@ void sp_qt::change_slice_position( double val ){
 
 void sp_qt::change_membranes( std::vector<double> val ){
   set_membranes( val );
+  emit updated_membranes();
 }
 
 void sp_qt::compute_projection(){

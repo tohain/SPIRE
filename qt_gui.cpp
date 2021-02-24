@@ -822,6 +822,7 @@ void GUI::set_up_signals_and_slots(){
   // read the updated parameters
   connect( sp, &sp_qt::parameter_changed, this, &GUI::update_gui_from_sp );
 
+  connect( sp, &sp_qt::updated_membranes, this, &GUI::read_membranes );
 
   connect( this, &GUI::call_change_channel_color, sp, &sp_qt::change_channel_color );
   connect( sp, &sp_qt::updated_channel_fill, this, &GUI::update_measurements_structure );
@@ -1162,10 +1163,7 @@ void GUI::write_membranes(int row, int col){
 
     double dist, width;
     try {
-      /*
-      dist = std::stod( membranes_control->item( rr, 0 )->text().toStdString() );
-      width = std::stod( membranes_control->item( rr, 1 )->text().toStdString() );
-      */
+
       bool ok;
       
       dist = def_locale->toDouble( membranes_control->item( rr, 0 )->text(), &ok );
@@ -1202,11 +1200,19 @@ void GUI::write_membranes(int row, int col){
 
 void GUI::read_membranes(){
 
-  membranes_control->setRowCount( 0 );
-  
   std::vector<double> membranes = sp->get_membranes();
+
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
-    add_membrane( membranes[ii], membranes[ii+1] );
+
+    if( ii/2 >= membranes_control->rowCount() ){
+      membranes_control->insertRow( ii/2  );
+
+      membranes_control->setItem( ii/2, 0, new QTableWidgetItem() );
+      membranes_control->setItem( ii/2, 1, new QTableWidgetItem() );  
+    }
+    
+    membranes_control->item( ii/2, 0)->setText( def_locale->toString( membranes.at(ii) ) );
+    membranes_control->item( ii/2, 1)->setText( def_locale->toString( membranes.at(ii+1) ) ); 
   }
   
 }
