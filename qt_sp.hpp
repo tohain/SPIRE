@@ -72,6 +72,7 @@ signals:
 
   void set_status( int what, int state );					       
 
+  void updated_channel_fill();					
 
 					
 public slots:  

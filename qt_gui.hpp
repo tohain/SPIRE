@@ -560,7 +560,7 @@ public slots:
 
   void update_stats();
   void update_measurements_values( QString what );
-  void update_measurements_structure( QTableWidget *display );
+  void update_measurements_structure();
 
   void change_autoupdate( int state );
   void request_compute_projection();

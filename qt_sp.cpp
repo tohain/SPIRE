@@ -611,4 +611,5 @@ void sp_qt::set_slice_dim_to_uc(){
 
 void sp_qt::change_channel_color( int id, int val ){
   set_channel_color( id, val );
+  emit updated_channel_fill();
 }

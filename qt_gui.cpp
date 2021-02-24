@@ -372,6 +372,8 @@ void GUI::set_up_ui(){
 		    "using <a href=\"https://cs.uwaterloo.ca/~astorjoh/iml.html\">"
 		    "Integer Matrix Library</a>"
 		    " published under <a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a><br/>"
+		    "using <a href=\"http://www.libpng.org/pub/png/libpng.html\">libpng</a>"
+		    " published under <a href=\"http://www.libpng.org/pub/png/src/libpng-LICENSE.txt\">PNG License</a><br/>"
 		    );
   refs_ack->setTextFormat(Qt::RichText);
   refs_ack->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -392,7 +394,8 @@ void GUI::set_up_ui(){
     ":/resources/licenses/LICENSE_GPLv3.txt",
     ":/resources/licenses/LICENSE_lGPLv3.txt",
     ":/resources/licenses/LICENSE_GPLv2.txt",
-    ":/resources/licenses/LICENSE_mBSD.txt" };
+    ":/resources/licenses/LICENSE_mBSD.txt",
+    ":/resources/licenses/LICENSE_PNG.txt"};
   
   for( auto &it : licenses_fn ){
     reading_device.setFileName( it.c_str() );
@@ -811,8 +814,6 @@ void GUI::set_up_signals_and_slots(){
   connect( rm_membrane_control, SIGNAL( clicked() ), this, SLOT( rm_membrane() ) );  
 
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
-
-  connect( this, &GUI::call_change_channel_color, sp, &sp_qt::change_channel_color );
   
   // redraw picture when surface_projection class updated the projection
   connect( sp, &sp_qt::projection_changed, this, &GUI::update_view );
@@ -821,6 +822,11 @@ void GUI::set_up_signals_and_slots(){
   // read the updated parameters
   connect( sp, &sp_qt::parameter_changed, this, &GUI::update_gui_from_sp );
 
+
+  connect( this, &GUI::call_change_channel_color, sp, &sp_qt::change_channel_color );
+  connect( sp, &sp_qt::updated_channel_fill, this, &GUI::update_measurements_structure );
+
+  
   // actiave autoupdate
   connect( autoupdate_control, SIGNAL( stateChanged(int) ), this, SLOT( change_autoupdate(int) ) );
 
@@ -842,11 +848,12 @@ void GUI::set_up_signals_and_slots(){
 
   // measurements
   connect( this, &GUI::call_update_stats, sp_stats, &sp_qt::update_measurements );
-
   connect( sp_stats, &sp_qt::measurements_updated, this, &GUI::update_measurements_values );  
-
   connect( this, &GUI::call_set_measurement_status, this, &GUI::set_measurements_status );
 
+
+
+  
   // batch
   connect( batch_choose_folder->object(), &QPushButton::clicked, this, &GUI::set_batch_output );
   connect( batch_compute_start, &QPushButton::clicked, this, &GUI::start_batch_computing );
@@ -907,8 +914,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidge
 
   update_gui_from_sp();
   read_membranes();
-  update_measurements_structure( measurements_slice->object() );
-  update_measurements_structure( measurements_uc->object() );  
+  update_measurements_structure();
   
   //set a black background iamge
   img_pix = new QPixmap( 100, 100 );
@@ -1223,8 +1229,7 @@ void GUI::add_membrane( double first, double second ){
 
   write_membranes( 0, 0 );
 
-  update_measurements_structure( measurements_slice->object() );
-  update_measurements_structure( measurements_uc->object() );  
+  update_measurements_structure();
   update_fill_channels();
   
   //reconnect them
@@ -1237,8 +1242,7 @@ void GUI::rm_membrane(){
   if( ind > 0 ){
     membranes_control->removeRow( ind );
     write_membranes(0, 0);
-    update_measurements_structure( measurements_slice->object() );
-    update_measurements_structure( measurements_uc->object() );
+    update_measurements_structure();
     update_fill_channels();    
   }
   else {
@@ -1366,11 +1370,9 @@ void GUI::update_stats(){
 
 
 
-void GUI::update_measurements_structure( QTableWidget *display ){
+void GUI::update_measurements_structure(){
 
-  // reset table view
-  display->setRowCount( 0 );
-
+  std::vector<QTableWidget*> displays = { measurements_slice->object(), measurements_uc->object() };
 
   // try to guess the number of channels
   auto filled = sp->get_channel_fill();
@@ -1383,28 +1385,36 @@ void GUI::update_measurements_structure( QTableWidget *display ){
     }
   }
 
-  QStringList vertical_labels;
-
-  std::vector<double> mems = sp->get_membranes();
-  // create table
-  int mem_count=0, ch_count=0;
-  for( unsigned int ii=0; ii<nr_channels; ii++){
-    display->insertRow( ii );
-    if( ii % 2 == 0 ){
-      vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
-    } else {
-      vertical_labels << QString("Membrane " ) + def_locale->toString( (ii+1)/2 );
-    }	
-  }
-
-  for( int r=0; r<display->rowCount(); r++){
-    for( int c=0; c<display->columnCount(); c++){
-      display->setItem( r, c, new QTableWidgetItem() );
-      display->item( r, c )->setFlags( Qt::ItemIsEnabled );
-    }
-  }
   
-  display->setVerticalHeaderLabels( vertical_labels );
+  for( auto display : displays ){
+  
+    // reset table view
+    display->setRowCount( 0 );
+    
+    QStringList vertical_labels;
+
+    std::vector<double> mems = sp->get_membranes();
+    // create table
+    int mem_count=0, ch_count=0;
+    for( unsigned int ii=0; ii<nr_channels; ii++){
+      display->insertRow( ii );
+      if( ii % 2 == 0 ){
+	vertical_labels << QString("Channel " ) + def_locale->toString( (ii+2)/2 );
+      } else {
+	vertical_labels << QString("Membrane " ) + def_locale->toString( (ii+1)/2 );
+      }	
+    }
+
+    for( int r=0; r<display->rowCount(); r++){
+      for( int c=0; c<display->columnCount(); c++){
+	display->setItem( r, c, new QTableWidgetItem() );
+	display->item( r, c )->setFlags( Qt::ItemIsEnabled );
+      }
+    }
+  
+    display->setVerticalHeaderLabels( vertical_labels );
+
+  }
 
 }
 
@@ -1791,22 +1801,10 @@ void GUI::check_channel_color(){
   std::vector<int> ch_fl = sp->get_channel_fill();
   
   for( unsigned int ii=0; ii<fill_channels.size(); ii++){
-    
-    int checked;
-    if( fill_channels[ii]->checkState() == Qt::Checked ){
-      checked = 1;
-    } else {
-      checked = 0;
-    }
-
-    if( ch_fl[ii] != checked ){
-      emit call_change_channel_color( ii+1, checked );
+    if( ch_fl[ii] != fill_channels[ii]->isChecked() ){
+      emit call_change_channel_color( ii+1, fill_channels[ii]->isChecked() );
     } 
-  }
-
-    update_measurements_structure( measurements_slice->object() );
-    update_measurements_structure( measurements_uc->object() );
-  
+  }  
 }
 
 
