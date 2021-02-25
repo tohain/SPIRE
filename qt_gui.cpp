@@ -916,6 +916,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidge
   update_gui_from_sp();
   read_membranes();
   update_measurements_structure();
+  update_fill_channels();
   
   //set a black background iamge
   img_pix = new QPixmap( 100, 100 );
