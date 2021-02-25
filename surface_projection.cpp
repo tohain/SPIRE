@@ -483,6 +483,19 @@ double surface_projection::level_set_lonsdaleite_topo( double x, double y, doubl
   
 }
 
+/**
+ * level-set surface derived of the beta-m rod packing from Myfanwy Evans.
+ */
+double surface_projection::level_set_beta_m( double x, double y, double z, std::vector<double> a){
+
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];
+
+  return  - 0.453698 - 0.0508876*cos(4*+freq_z*z) + 0.0246954*cos(8*+freq_z*z) - 0.0299736*cos(+freq_y*y)*cos(+freq_z*z) - 0.029121*cos(+freq_y*y)*sin(+freq_z*z) + 0.0318125*sin(+freq_y*y)*cos(+freq_z*z) + 0.0300074*sin(+freq_y*y)*sin(+freq_z*z) + 0.0248666*cos(+freq_y*y)*cos(3*+freq_z*z) - 0.0285876*cos(+freq_y*y)*sin(3*+freq_z*z) - 0.0263617*sin(+freq_y*y)*cos(3*+freq_z*z) + 0.0298722*sin(+freq_y*y)*sin(3*+freq_z*z) + 0.0240451*cos(+freq_y*y)*cos(5*+freq_z*z) - 0.0253762*sin(+freq_y*y)*cos(5*+freq_z*z) - 0.0202399*sin(+freq_y*y)*sin(5*+freq_z*z) - 0.055993*sin(2*+freq_y*y)*sin(2*+freq_z*z) + 0.0481202*sin(2*+freq_y*y)*cos(4*+freq_z*z) + 0.0364665*sin(2*+freq_y*y)*sin(6*+freq_z*z) - 0.023334*sin(2*+freq_y*y)*cos(8*+freq_z*z) + 0.0299096*cos(3*+freq_y*y)*cos(+freq_z*z) + 0.0289738*cos(3*+freq_y*y)*sin(+freq_z*z) + 0.0259809*sin(3*+freq_y*y)*cos(+freq_z*z) + 0.0245037*sin(3*+freq_y*y)*sin(+freq_z*z) - 0.0247124*cos(3*+freq_y*y)*cos(3*+freq_z*z) + 0.0281133*cos(3*+freq_y*y)*sin(3*+freq_z*z) - 0.0211865*sin(3*+freq_y*y)*cos(3*+freq_z*z) + 0.0242902*sin(3*+freq_y*y)*sin(3*+freq_z*z) - 0.0235118*cos(3*+freq_y*y)*cos(5*+freq_z*z) - 0.0204666*sin(3*+freq_y*y)*cos(5*+freq_z*z) - 0.049812*cos(4*+freq_y*y) - 0.0475483*cos(4*+freq_y*y)*sin(2*+freq_z*z) + 0.040436*cos(4*+freq_y*y)*cos(4*+freq_z*z) + 0.0300637*cos(4*+freq_y*y)*sin(6*+freq_z*z) - 0.0248009*sin(5*+freq_y*y)*cos(+freq_z*z) - 0.0236462*sin(5*+freq_y*y)*sin(+freq_z*z) + 0.0204857*sin(5*+freq_y*y)*cos(3*+freq_z*z) - 0.0232936*sin(5*+freq_y*y)*sin(3*+freq_z*z) + 0.035298*sin(6*+freq_y*y)*sin(2*+freq_z*z) - 0.0294159*sin(6*+freq_y*y)*cos(4*+freq_z*z) - 0.0210446*sin(6*+freq_y*y)*sin(6*+freq_z*z) + 0.0237782*cos(8*+freq_y*y) + 0.0215553*cos(8*+freq_y*y)*sin(2*+freq_z*z) - 0.0305981*cos(freq_x*x)*cos(+freq_z*z) + 0.0313299*cos(freq_x*x)*sin(+freq_z*z) - 0.0294264*sin(freq_x*x)*cos(+freq_z*z) + 0.0305071*sin(freq_x*x)*sin(+freq_z*z) + 0.0295082*cos(freq_x*x)*cos(3*+freq_z*z) + 0.0265513*cos(freq_x*x)*sin(3*+freq_z*z) + 0.0286748*sin(freq_x*x)*cos(3*+freq_z*z) + 0.0261469*sin(freq_x*x)*sin(3*+freq_z*z) + 0.0206635*cos(freq_x*x)*cos(5*+freq_z*z) - 0.0239158*cos(freq_x*x)*sin(5*+freq_z*z) - 0.023653*sin(freq_x*x)*sin(5*+freq_z*z) - 0.029252*cos(freq_x*x)*cos(+freq_y*y) - 0.0282707*cos(freq_x*x)*sin(+freq_y*y) + 0.0307069*sin(freq_x*x)*cos(+freq_y*y) + 0.0294426*sin(freq_x*x)*sin(+freq_y*y) + 0.0241254*cos(freq_x*x)*cos(3*+freq_y*y) - 0.0281409*cos(freq_x*x)*sin(3*+freq_y*y) - 0.0254223*sin(freq_x*x)*cos(3*+freq_y*y) + 0.0295007*sin(freq_x*x)*sin(3*+freq_y*y) + 0.0234048*cos(freq_x*x)*cos(5*+freq_y*y) - 0.0248106*sin(freq_x*x)*cos(5*+freq_y*y) - 0.0566482*sin(2*freq_x*x)*sin(2*+freq_z*z) - 0.0483339*sin(2*freq_x*x)*cos(4*+freq_z*z) + 0.0361377*sin(2*freq_x*x)*sin(6*+freq_z*z) + 0.0226728*sin(2*freq_x*x)*cos(8*+freq_z*z) - 0.0548306*sin(2*freq_x*x)*sin(2*+freq_y*y) + 0.0469057*sin(2*freq_x*x)*cos(4*+freq_y*y) + 0.0356463*sin(2*freq_x*x)*sin(6*+freq_y*y) - 0.0228161*sin(2*freq_x*x)*cos(8*+freq_y*y) + 0.0263664*cos(3*freq_x*x)*cos(+freq_z*z) - 0.0271995*cos(3*freq_x*x)*sin(+freq_z*z) - 0.0283589*sin(3*freq_x*x)*cos(+freq_z*z) + 0.0291457*sin(3*freq_x*x)*sin(+freq_z*z) - 0.0251584*cos(3*freq_x*x)*cos(3*+freq_z*z) - 0.0225056*cos(3*freq_x*x)*sin(3*+freq_z*z) + 0.0268198*sin(3*freq_x*x)*cos(3*+freq_z*z) + 0.0246469*sin(3*freq_x*x)*sin(3*+freq_z*z) + 0.0206956*cos(3*freq_x*x)*sin(5*+freq_z*z) - 0.0221321*sin(3*freq_x*x)*sin(5*+freq_z*z) + 0.0295008*cos(3*freq_x*x)*cos(+freq_y*y) + 0.0282876*cos(3*freq_x*x)*sin(+freq_y*y) + 0.0250938*sin(3*freq_x*x)*cos(+freq_y*y) + 0.0240085*sin(3*freq_x*x)*sin(+freq_y*y) - 0.0241402*cos(3*freq_x*x)*cos(3*+freq_y*y) + 0.0280226*cos(3*freq_x*x)*sin(3*+freq_y*y) - 0.0206287*sin(3*freq_x*x)*cos(3*+freq_y*y) + 0.0238636*sin(3*freq_x*x)*sin(3*+freq_y*y) - 0.0234013*cos(3*freq_x*x)*cos(5*+freq_y*y) - 0.0501812*cos(4*freq_x*x) + 0.048289*cos(4*freq_x*x)*sin(2*+freq_z*z) + 0.0408058*cos(4*freq_x*x)*cos(4*+freq_z*z) - 0.0299837*cos(4*freq_x*x)*sin(6*+freq_z*z) - 0.0467589*cos(4*freq_x*x)*sin(2*+freq_y*y) + 0.0399015*cos(4*freq_x*x)*cos(4*+freq_y*y) + 0.0297458*cos(4*freq_x*x)*sin(6*+freq_y*y) + 0.0231305*cos(5*freq_x*x)*cos(+freq_z*z) - 0.0238986*cos(5*freq_x*x)*sin(+freq_z*z) + 0.0202514*sin(5*freq_x*x)*cos(+freq_z*z) - 0.0211176*sin(5*freq_x*x)*sin(+freq_z*z) - 0.0220369*cos(5*freq_x*x)*cos(3*+freq_z*z) - 0.0202506*cos(5*freq_x*x)*sin(3*+freq_z*z) - 0.024754*sin(5*freq_x*x)*cos(+freq_y*y) - 0.0236202*sin(5*freq_x*x)*sin(+freq_y*y) + 0.0201427*sin(5*freq_x*x)*cos(3*+freq_y*y) - 0.0234172*sin(5*freq_x*x)*sin(3*+freq_y*y) + 0.0364306*sin(6*freq_x*x)*sin(2*+freq_z*z) + 0.0300542*sin(6*freq_x*x)*cos(4*+freq_z*z) - 0.0210157*sin(6*freq_x*x)*sin(6*+freq_z*z) + 0.0352837*sin(6*freq_x*x)*sin(2*+freq_y*y) - 0.0296025*sin(6*freq_x*x)*cos(4*+freq_y*y) - 0.0212976*sin(6*freq_x*x)*sin(6*+freq_y*y) + 0.0242218*cos(8*freq_x*x) - 0.0228334*cos(8*freq_x*x)*sin(2*+freq_z*z) + 0.0222653*cos(8*freq_x*x)*sin(2*+freq_y*y);
+  
+}
+
 
 /**
  * Computes and sets the theta and phi angles to match the orientation
@@ -650,7 +663,9 @@ void surface_projection::set_grid(){
       level = level_set_primitive( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 3 ){ // lonsdaleite
       level = level_set_lonsdaleite( points[ii], points[ii+1], points[ii+2], inv_a );            
-    }
+    } else if( type == 4 ){ // beta-m rods
+      level = level_set_beta_m( points[ii], points[ii+1], points[ii+2], inv_a );            
+    }    
     /*
     else if( type == 3 ){ //lonsdaleite_topo
       level = level_set_lonsdaleite_topo( points[ii], points[ii+1], points[ii+2], inv_a );
@@ -1719,6 +1734,7 @@ double surface_projection::get_surface_level() const {
 
 double surface_projection::get_channel_vol_prop() const {
   double val =  s_tables.get_prop( surface_choices[type], surface_level );
+  std::cout << "vol_prop=" << val << std::endl;
   return val;
 }
 
@@ -1904,7 +1920,8 @@ void surface_projection::set_slice_position ( double val ){
  * up/interpolates the appropriate surface_level value in a table
  */
 void surface_projection::set_channel_vol_prop( double vol ){
-    surface_level = s_tables.get_level( surface_choices[ type ], vol );    
+    surface_level = s_tables.get_level( surface_choices[ type ], vol );
+    std::cout << "level_set=" << s_tables.get_level( surface_choices[ type ], vol ) << std::endl;
 }
 
 

@@ -44,45 +44,32 @@ public:
     */
 
 
-    std::map<double, double>::const_iterator it;
-    std::map<double, double>::const_iterator it_begin;
-    std::map<double, double>::const_reverse_iterator it_rbegin;    
-    std::map<double, double>::const_iterator it_end;
+    const std::map<double, double>* map;
+
 
     if( surface == "Primitive" ){
-      it = P_SURFACE_VOL.begin();
-      it_begin = P_SURFACE_VOL.begin();
-      it_rbegin = P_SURFACE_VOL.rbegin();
-      it_end = P_SURFACE_VOL.end();
+      map = &P_SURFACE_VOL;
     } else if ( surface == "Diamond" ){
-      it = D_SURFACE_VOL.begin();
-      it_begin = D_SURFACE_VOL.begin();
-      it_rbegin = D_SURFACE_VOL.rbegin();
-      it_end = D_SURFACE_VOL.end();            
+      map = &D_SURFACE_VOL;
     } else if ( surface == "Gyroid" ){
-      it = G_SURFACE_VOL.begin();
-      it_begin = G_SURFACE_VOL.begin();
-      it_rbegin = G_SURFACE_VOL.rbegin();
-      it_end = G_SURFACE_VOL.end();
+      map = &G_SURFACE_VOL;
     } else if ( surface.substr(0,11) == "Lonsdaleite" ){
-      it = L_SURFACE_VOL.begin();
-      it_begin = L_SURFACE_VOL.begin();
-      it_rbegin = L_SURFACE_VOL.rbegin();
-      it_end = L_SURFACE_VOL.end();      
+      map = &L_SURFACE_VOL;
     } else {
-      throw invalid_parameter_exception( "surface_tables.hpp (line: " + std::to_string(__LINE__) + "): Unkown surface type" );
+      map = &GENERAL_INV;
+      std::cerr << "surface_tables.hpp (line: "
+		<< std::to_string(__LINE__)
+		<< "): Unkown surface type" << std::endl;
     }
-   
+
+
+    auto it = map->upper_bound( val );
     
-    while( it->first < val && it != it_end )
-      it++;
 
-    //leaves the iterator at the upper border
-
-    if( it == it_begin ){
+    if( it == map->begin() ){
       return it->second;
-    } else if ( it == (--it_end) ){
-      return it_rbegin->second;
+    } else if ( it == map->end() ){
+      return map->rbegin()->second;
     } else {
 
       double hi_v = it->second, hi_p = it->first;
@@ -100,59 +87,49 @@ public:
 
   const double get_prop( std::string surface, double val ) const {
 
-    std::map<double, double>::const_iterator it;
-    std::map<double, double>::const_iterator it_begin;
-    std::map<double, double>::const_reverse_iterator it_rbegin;    
-    std::map<double, double>::const_iterator it_end;    
+    const std::map<double, double>* map;
 
     if( surface == "Primitive" ){
-      it = P_SURFACE_VOL_INV.begin();
-      it_begin = P_SURFACE_VOL_INV.begin();
-      it_rbegin = P_SURFACE_VOL_INV.rbegin();
-      it_end = P_SURFACE_VOL_INV.end();
+      map = &P_SURFACE_VOL_INV;
     } else if ( surface == "Diamond" ){
-      it = D_SURFACE_VOL_INV.begin();
-      it_begin = D_SURFACE_VOL_INV.begin();
-      it_rbegin = D_SURFACE_VOL_INV.rbegin();
-      it_end = D_SURFACE_VOL_INV.end();      
+      map = &D_SURFACE_VOL_INV;
     } else if ( surface == "Gyroid" ){
-      it = G_SURFACE_VOL_INV.begin();
-      it_begin = G_SURFACE_VOL_INV.begin();
-      it_rbegin = G_SURFACE_VOL_INV.rbegin();
-      it_end = G_SURFACE_VOL_INV.end();
+      map = &G_SURFACE_VOL_INV;
     } else if ( surface.substr(0, 11)  == "Lonsdaleite" ){
-      it = L_SURFACE_VOL_INV.begin();
-      it_begin = L_SURFACE_VOL_INV.begin();
-      it_rbegin = L_SURFACE_VOL_INV.rbegin();
-      it_end = L_SURFACE_VOL_INV.end();      
-      
+      map = &L_SURFACE_VOL_INV;      
     } else {
-      throw invalid_parameter_exception( "surface_tables.hpp (line: " + std::to_string(__LINE__) + "): Unkown surface type" );
+      map = &GENERAL_INV;
+      std::cerr << "surface_tables.hpp (line: "
+		<< std::to_string(__LINE__)
+		<< "): Unkown surface type" << std::endl;
     }
    
     
-    while( it->first < val && it != it_end )
-      it++;
+    auto it = map->upper_bound( val );
 
-    //leaves the iterator at the upper border
 
-    if( it == it_begin ){
+
+    if( it == map->begin() ){
       return it->second;
-    } else if ( it == (--it_end) ){
-      return (it_rbegin)->second;
+    } else if ( it == map->end() ){
+      return map->rbegin()->second;
     } else {
-
       double hi_v = it->second, hi_p = it->first;
       it--;
       double lo_v = it->second, lo_p = it->first;
 
       double fraction = (val - lo_p) / (hi_p - lo_p);
       return lo_v + fraction * (hi_v - lo_v);
-    }
-   
+    }   
   }  
   
 private:
+
+  
+
+
+  const std::map<double, double> GENERAL = {{-1, -1}, {0, 0}, {1, 1}};
+  const std::map<double, double> GENERAL_INV = {{-1, -1}, {0, 0}, {1, 1}};  
   
 
   const std::map<double, double> D_SURFACE_VOL = {{1, -3.5}, {1, -3.4}, {1, -3.3}, {1, -3.2}, {1, -3.1}, {1, -3}, {1, -2.9}, {1, -2.8}, {1, -2.7}, {1, -2.6}, {1, -2.5}, {1, -2.4}, {1, -2.3}, {1, -2.2}, {1, -2.1}, {1, -2}, {1, -1.9}, {1, -1.8}, {1, -1.7}, {1, -1.6}, {1, -1.5}, {1, -1.4}, {1, -1.3}, {1, -1.2}, {1, -1.1}, {0.998869, -1}, {0.985201, -0.9}, {0.957571, -0.8}, {0.91154, -0.7}, {0.851888, -0.6}, {0.791613, -0.5}, {0.732402, -0.4}, {0.673542, -0.3}, {0.615889, -0.2}, {0.557682, -0.1}, {0.5, 1.97065e-15}, {0.442318, 0.1}, {0.384112, 0.2}, {0.326458, 0.3}, {0.267598, 0.4}, {0.208387, 0.5}, {0.148112, 0.6}, {0.08846, 0.7}, {0.0424287, 0.8}, {0.0147988, 0.9}, {0.001131, 1}, {0, 1.1}, {0, 1.2}, {0, 1.3}, {0, 1.4}, {0, 1.5}, {0, 1.6}, {0, 1.7}, {0, 1.8}, {0, 1.9}, {0, 2}, {0, 2.1}, {0, 2.2}, {0, 2.3}, {0, 2.4}, {0, 2.5}, {0, 2.6}, {0, 2.7}, {0, 2.8}, {0, 2.9}, {0, 3}, {0, 3.1}, {0, 3.2}, {0, 3.3}, {0, 3.4}, {0, 3.5}};

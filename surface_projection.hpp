@@ -375,7 +375,10 @@ protected:
   /// lonsdaleit surface, only reproducing the topology of
   /// the surface, but not being a minimal surface
   double level_set_lonsdaleite_topo( double x, double y, double z, std::vector<double> a);  
-    
+
+  /// Nodal approximation of the Beta-M rod packing
+  double level_set_beta_m( double x, double y, double z, std::vector<double> a);
+  
   /// Computes the position of the voxels in the slice
   void set_up_points( );
   
@@ -508,6 +511,7 @@ protected:
 						    "Diamond",
 						    "Primitive",
 						    "Lonsdaleite",
+						    "Beta-M rods",
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -518,6 +522,7 @@ protected:
 							   {1.0,1.0,1.0}, // dia
 							   {1.0,1.0,1.0}, // prim 
 							   {1.0, sqrt(3.0), 1.732692}, //lon_0.2
+							   {1.0, 1.0, 1.0}, // Beta-M rod packing
   };
 
   /// The base vectors of the direct lattice as column vectors
