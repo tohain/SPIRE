@@ -44,6 +44,8 @@
 #include <random>
 #endif
 
+#include "global_settings.hpp"
+
 #ifdef HAVE_PNG
 #include <png.h>
 #endif
@@ -75,7 +77,7 @@ public:
 #include "homotopic_thinning.hpp"
 #include "surface_areas_tables.hpp"
 #include "percolation_analysis.hpp"
-
+#include "level_sets.hpp"
 
 /** \brief The computational core class of this code. Computes the projection calculations and stores al * l parameters.
  *
@@ -88,7 +90,7 @@ class surface_projection {
 public:
 
   /// Default Constructor
-  surface_projection();
+  surface_projection( global_settings &gs );
   /// Destructor
   ~surface_projection();
 
@@ -358,27 +360,7 @@ protected:
   
   /// Quick and dirty modulo between two doubles
   inline double mod( double lhs, double rhs );
-    
-  /// Nodal approximation of the level set function of a g surface
-  double level_set_gyroid( double x, double y, double z, std::vector<double> a);
-
-  /// Nodal approximation of the level set function of a d surface
-  double level_set_diamond( double x, double y, double z, std::vector<double> a);
-
-  /// Nodal approximation of the level set function of a p surface
-  double level_set_primitive( double x, double y, double z, std::vector<double> a);
-
-  /// Nodal approximation of the level set function of a w surface with tolerance 0.2
-  double level_set_lonsdaleite( double x, double y, double z, std::vector<double> a);
-
-  /// Nodal approximation of the level set function of a
-  /// lonsdaleit surface, only reproducing the topology of
-  /// the surface, but not being a minimal surface
-  double level_set_lonsdaleite_topo( double x, double y, double z, std::vector<double> a);  
-
-  /// Nodal approximation of the Beta-M rod packing
-  double level_set_beta_m( double x, double y, double z, std::vector<double> a);
-  
+      
   /// Computes the position of the voxels in the slice
   void set_up_points( );
   
@@ -512,6 +494,7 @@ protected:
 						    "Primitive",
 						    "Lonsdaleite",
 						    "Beta-M rods",
+						    "Sigma-P rods",
   };
 
   /// The dimension of the unitcell to keep the symmetry. Now the
@@ -523,6 +506,7 @@ protected:
 							   {1.0,1.0,1.0}, // prim 
 							   {1.0, sqrt(3.0), 1.732692}, //lon_0.2
 							   {1.0, 1.0, 1.0}, // Beta-M rod packing
+							   {1.0, 1.0, 1.0}, // Sigma_P rod packing
   };
 
   /// The base vectors of the direct lattice as column vectors
@@ -561,6 +545,9 @@ protected:
 
   /// The 2D projection
   std::vector<float> projection;
+
+  /// the global settings
+  global_settings &gs;
   
 };
 

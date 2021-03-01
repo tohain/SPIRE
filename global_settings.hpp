@@ -77,7 +77,10 @@ public:
 	    }
 	    if( pair[0] == "res_measure_perc" ){
 	      res_measure_perc = std::stoi( pair[1] );
-	    }	    	    
+	    }
+	    if( pair[0] == "level_min_width" ){
+	      level_min_width = std::stod( pair[1] );
+	    }
 	  }
 	}	
       }      
@@ -93,6 +96,13 @@ public:
     std::cout << "res_measure_area=" << res_measure_area << std::endl;
     std::cout << "res_measure_perc=" << res_measure_perc << std::endl;    
   }
+
+  //
+  // the thickness in "level-set units" of the initial main membrane
+  // at f(x,y,z)=0
+  //
+  double level_min_width = 0.05;
+
   
   //
   // the color of the base vectors

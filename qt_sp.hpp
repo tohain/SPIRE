@@ -36,7 +36,7 @@
 #include <sstream>
 
 #include "surface_projection.hpp"
-
+#include "global_settings.hpp"
 
 /** \brief A wrapper class around surface_projection to use with a QT interface
  *
@@ -46,7 +46,7 @@ class sp_qt : public QObject, public surface_projection {
   Q_OBJECT;
   
 public:
-  sp_qt ();
+  sp_qt ( global_settings &gs );
   ~sp_qt();
 
 

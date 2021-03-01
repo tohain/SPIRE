@@ -887,7 +887,7 @@ void GUI::set_up_signals_and_slots(){
 GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ), gs( gs_ ){
   
   //initialize surface projection
-  sp = new sp_qt( );
+  sp = new sp_qt( gs );
   sp->set_n_points_x( 150 );
   sp->set_n_points_z( 75 );  
   sp->update_geometry();
@@ -895,7 +895,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidge
 
   //initialize surface projection
   
-  sp_stats = new sp_qt(  );
+  sp_stats = new sp_qt( gs );
   sp_stats->set_n_points_x( 76 );  
   sp_stats->set_n_points_z( 76 );  
   sp_stats->update_geometry();
