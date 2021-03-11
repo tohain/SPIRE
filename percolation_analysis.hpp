@@ -35,8 +35,13 @@
 #include "iterable_voxel.hpp"
 
 /**
- * This class implements some percolation analysis to find the largest
- * sphere that can travel through the structures
+ * \brief This class implements some percolation analysis to find the largest
+ *        sphere that can travel through the structures
+ *
+ * Implementing the well-known Hoshen-Kopelman algorithm for cluster
+ * identification (a union-finding algorithm).
+ * ref.: J. Hoshen and R. Kopelman, Phys. Rev. B 14, 3438
+ * DOI: https://doi.org/10.1103/PhysRevB.14.3438
  */
 template <class T, class M>
 class percolation_analysis {
@@ -86,7 +91,7 @@ private:
 
   /// the grid to analyse
   std::vector<T> structure;
-  /// the distance map of the grid provided. Needed to dilute surfaces
+  /// the distance map of the grid provided. Needed to dilate surfaces
   // this could be reference, but for thread safety it's easier for
   // now to make a deep copy of the data
   const std::vector<M> dmap;
@@ -97,8 +102,8 @@ private:
   std::vector<int> cluster_sizes;
 
 
-  /// dilutes the surface on pixel
-  void dilute_surface( M threshold, T marker = 1 );
+  /// dilates the surface on pixel
+  void dilate_surface( M threshold, T marker = 1 );
   
   /// The ch_id of the latest cluster analysis
   int ch_id;
@@ -108,7 +113,7 @@ private:
   /// is it periodic
   bool periodic;
 
-  
+  // used to compute neighbors in periodic boxes
   iterable_voxel it;  
 };
 

@@ -20,8 +20,15 @@
 #include "slice_orientation_visualisation.hpp"
 
 /**
- * draws a visualization of the slice and the orientation of the viewing angle inside it
- * \param[in] base A 1d array containing the three base vectors in column-major order. First vector is x direction, last one is normal onto viewing plane
+ * draws a visualization of the slice and the orientation of the
+ * viewing angle inside it \param[in] base A 1d array containing the
+ * three base vectors in column-major order. First vector is x
+ * direction, last one is normal onto viewing plane
+ *
+ * \param[in] base The orthogonal base of the slice
+ * \param[in] L the edge lengths of the slice
+ * \param[in] gs The global settings object
+ * \param[out] A string containing the visualisation as svg
  */
 std::string draw_slice_visualization( std::vector<double> base, std::vector<double> L, global_settings &gs ){
 

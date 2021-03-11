@@ -45,6 +45,11 @@ public:
 };
 
 
+/** 
+ * \brief a short class containing somer vector and matrix
+ * operations. Quick and dirty, should probably use professional
+ * libraries, but does the job
+ */
 class VEC_MAT_MATH {
 
 public:

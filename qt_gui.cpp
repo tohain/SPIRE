@@ -19,6 +19,7 @@
 
 #include "qt_gui.hpp"
 
+/// initialize and creates the GUI
 void GUI::set_up_ui(){
 
   // the widgets for the tabs
@@ -628,7 +629,10 @@ void GUI::set_up_ui(){
 }
 
 
-
+/**
+ * Updates the batch parameter tab, depending if level set or
+ * vol. proportion is chosen.
+ */
 void GUI::update_batch_parameters_gui(){
 
   delete( batch_widget_parameters_layout );
@@ -671,7 +675,7 @@ void GUI::update_batch_parameters_gui(){
 
 
 
-
+/// assigns all the tooltips to the objects
 void GUI::set_up_tooltips(){
 
    uc_size_control_a->object()->setToolTip( QString( ttips.aa_tooltip.c_str() ) );
@@ -741,7 +745,7 @@ void GUI::set_up_tooltips(){
 }
 
 
-
+/// connects all the signals and slots
 void GUI::set_up_signals_and_slots(){
 
   
@@ -883,7 +887,7 @@ void GUI::set_up_signals_and_slots(){
 }
 
 
-
+/// Constructor. initializes background objects and threads
 GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ), gs( gs_ ){
   
   //initialize surface projection
@@ -944,7 +948,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidge
   emit call_compute_projection();  
 }
 
-
+/// destructor. free memory
 GUI::~GUI(){
 
   // close the threads and wait for them to finish
@@ -970,6 +974,8 @@ GUI::~GUI(){
 
 }
 
+
+/// quit app in a nice way. not used right now
 void GUI::quit_app(){
 
   auto reply = QMessageBox::question( this, "Really quit?", "Are you sure you want to quit?", QMessageBox::Yes|QMessageBox::No );
@@ -986,6 +992,8 @@ void GUI::quit_app(){
 }
 
 
+/// overlays the unit map on the provided canvas. Assumes pixsizes and
+/// dimension of the canvas equal to projection image
 void GUI::draw_unitcell( QPaintDevice *canvas ){
 
   // get a new painter
@@ -1060,6 +1068,8 @@ void GUI::draw_unitcell( QPaintDevice *canvas ){
   
 }
 
+/// updates the projection from the image of the \ref
+/// surface_projection object. Does not recompute the projection
 void GUI::update_view(){
 
   
@@ -1089,7 +1099,8 @@ void GUI::update_view(){
 
 
 
-
+/// reimplement the paintEvet so the image will be redrawn to the
+/// correct size and aspect ratio when windows is resized
 void GUI::paintEvent( QPaintEvent * event ){
 
    if( img_pix != NULL ){
@@ -1102,14 +1113,13 @@ void GUI::paintEvent( QPaintEvent * event ){
     draw_area->setPixmap(img_pix->scaled(w,h,Qt::KeepAspectRatio));
   }
 
-  
-
 }
 
 
 
 
-
+/// reads the parameters from the surface_projection objects and
+/// writes them to the GUI
 void GUI::update_gui_from_sp(){
 
 
@@ -1152,6 +1162,7 @@ void GUI::update_gui_from_sp(){
   
 }
 
+/// writes the membranes from the table view object to the surface_projection object
 void GUI::write_membranes(int row, int col){
   
   //get the data from the table
@@ -1199,6 +1210,8 @@ void GUI::write_membranes(int row, int col){
   
 }
 
+
+/// reads the membranes from the surface_projection object to the GUI
 void GUI::read_membranes(){
 
   std::vector<double> membranes = sp->get_membranes();
@@ -1218,7 +1231,7 @@ void GUI::read_membranes(){
   
 }
 
-
+/// add a membrane to the tableview and surface_projection object
 void GUI::add_membrane( double first, double second ){
 
   //temporarliry disconnect signals
@@ -1244,6 +1257,7 @@ void GUI::add_membrane( double first, double second ){
 }
 
 
+/// delete a membrane
 void GUI::rm_membrane(){
   int ind = membranes_control->currentRow();
   if( ind > 0 ){
@@ -1257,21 +1271,14 @@ void GUI::rm_membrane(){
   }
 }
 
+/// saves the current image to a file. Adds a legend in the margin if desired
 void GUI::save_image_to_file(){
 
   QString filename = QFileDialog::getSaveFileName( this, "Select File", "./", tr("*.png"), NULL, QFileDialog::DontUseNativeDialog );
   
   if( !filename.endsWith( ".png", Qt::CaseInsensitive ) ){
     filename.append(".png");
-  } 
-
-  
-  
-
-  /*
-
-  */
-  
+  }  
 
   if( render_pars_to_img_control->isChecked() ){
 
@@ -1326,6 +1333,7 @@ void GUI::output_message( QString msg, int type ){
 }
 
 
+
 void GUI::change_orientation( int val ){
 
   int h = miller_h_control->object()->value();
@@ -1336,6 +1344,8 @@ void GUI::change_orientation( int val ){
   
 }
 
+
+/// updates the status bar
 void GUI::update_stats(){
 
   auto uc_dim = sp->get_uc_dim_in_orientation();

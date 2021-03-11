@@ -21,7 +21,7 @@
 
 #include <map>
 
-/* \brief This class holds ready to use values for some parameters the
+/** \brief This class holds ready to use values for some parameters the
  * built in surfaces.
  *
  *
@@ -35,13 +35,19 @@ class SURFACE_AREAS_TABLES {
 public:
   SURFACE_AREAS_TABLES(){}
 
+  /** 
+   * \brief returns the level set value for a given channel proportion
+   * 
+   * Computes the level set value for a given surface and channel
+   * proportion. Interpolates linear bewtween two samples and returns
+   * the minimum/maximum values if the input is outside of the sampled
+   * area
+   *
+   * \param[in] surface The surface type
+   * \param[in] val The channel proportion value
+   * \param[out] The level set value
+   */
   const double get_level( std::string surface, double val ) const {
-
-    /*
-    if( val > 1 || val < 0 ){
-      throw invalid_parameter_exception( "Invalid volume proportions, must be in [0,1]" );
-    }
-    */
 
 
     const std::map<double, double>* map;
@@ -85,6 +91,18 @@ public:
 
 
 
+  /** 
+   * \brief returns the volume proportion value for a given level set
+   * 
+   * Computes the volume proportion for a given surface and level
+   * set. Interpolates linear bewtween two samples and returns the
+   * minimum/maximum values if the input is outside of the sampled
+   * area
+   *
+   * \param[in] surface The surface type
+   * \param[in] val the level set value
+   * \param[out] The channel proportion value
+   */
   const double get_prop( std::string surface, double val ) const {
 
     const std::map<double, double>* map;
@@ -106,8 +124,6 @@ public:
    
     
     auto it = map->upper_bound( val );
-
-
 
     if( it == map->begin() ){
       return it->second;

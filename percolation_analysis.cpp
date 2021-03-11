@@ -50,9 +50,11 @@ percolation_analysis<T, M>::percolation_analysis(std::vector<T> data,
 }
 
 
-/*
+/**
+ * Computes all neighboring voxels to the voxel with id and writes
+ * them in nbs
+ *
  * \param[in] id The index of the particle to get the neighbors for
- * \param[in] ch_id The id of the channel currently considered
  * \param[in] nbs The vector to write the id's of neighbors into
  */
 template <class T, class M>
@@ -115,7 +117,8 @@ void percolation_analysis<T, M>::get_nbs( int id, std::vector<int> &nbs ){
 
 /**
  * Implementation of Hoshen-Koppelmann algorithm to find clusters in
- * the structure
+ * the structure. Essentially (re)populates the cluster_labels and
+ * cluster_sizes arrays
  *
  * \param[in] ch_id The value of the 'occupied' sites, thus the sites to assume to belong to clusters
  *
@@ -152,7 +155,7 @@ void percolation_analysis<T, M>::find_clusters( int ch_id_ ) {
 
 	// increase label
 	k++;
-	// assigne label
+	// assign label
 	cluster_labels[id] = k;
 	// initialise cluster size
 	cluster_sizes.push_back( 1 );
@@ -245,7 +248,15 @@ void percolation_analysis<T, M>::assign_true_labels(){
 }
 
 
-
+/**
+ * the intersection of two unordered sets. Unfortunatle O(n^2) but I
+ * can't think fo a faster way for unordered containers. In this case
+ * they are not large anyways, so we should be fine here
+ *
+ * \param[in] l The first set
+ * \param[in] r The second set
+ * \param[out] The intersection of the two input sets
+ */ 
 template <class U>
 std::unordered_set<U> intersection( std::unordered_set<U> &l, std::unordered_set<U> &r){
 
@@ -270,7 +281,7 @@ std::unordered_set<U> intersection( std::unordered_set<U> &l, std::unordered_set
  * \param[in] in_x cluster needs to percolate in y direction to pass
  * \param[in] in_x cluster needs to percolate in z direction to pass
  *
- * \returns a set of the labels of the percolating clusters
+ * \param[out] A set of the labels of the percolating clusters
  */
 template <class T, class M>
 std::unordered_set<int> percolation_analysis<T, M>::get_percolating_clusters( bool in_x, bool in_y, bool in_z ) {
@@ -388,8 +399,10 @@ std::unordered_set<int> percolation_analysis<T, M>::get_percolating_clusters( bo
 }
 
 /**
- * Returns an array containing the masses of the clusters. Essentially
+ * Returns an array containing the sizes of the clusters. Essentially
  * picks out the non-negative values from the \ref cluster_sizes array
+ *
+ * \param[out] A vector with the number of particles in each cluster
  */
 template <class T, class M>
 std::vector<unsigned int> percolation_analysis<T, M>::get_cluster_sizes() const {
@@ -405,6 +418,8 @@ std::vector<unsigned int> percolation_analysis<T, M>::get_cluster_sizes() const 
 /**
  * Returns the number of clusters found, by counting non-negative
  * entries in \ref cluster_sizes
+ *
+ * \param[out] The number of clusters
  */
 template <class T, class M>
 unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
@@ -420,7 +435,7 @@ unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
 
 
 /**
- * Dilutes the membranes. Meaning all pixels with a value in the
+ * Dilates the membranes. Meaning all pixels with a value in the
  * distance map lower than the threshold are marked as parte of the
  * membrane. This lets the membrane grow step by step
  *
@@ -429,7 +444,7 @@ unsigned int percolation_analysis<T, M>::get_nr_clusters() const {
  *
  */
 template <class T, class M>
-void percolation_analysis<T, M>::dilute_surface( M threshold, T marker ) {
+void percolation_analysis<T, M>::dilate_surface( M threshold, T marker ) {
   for( unsigned int ii=0; ii<structure.size(); ii++){
     if( sqrt(dmap[ii]) <= threshold ){
       structure[ii] = marker;
@@ -438,6 +453,16 @@ void percolation_analysis<T, M>::dilute_surface( M threshold, T marker ) {
 }
 
 
+/**
+ * Computes the percolation threshold, i.e. the diamter of the
+ * narrowest channel in the structure. Each step the surface is
+ * dilated by one step and a cluster analysis is run. If none
+ * percolating cluster is found, the process stops and the distance of
+ * the lastly dilated pixel is the (radius) percolation threshold
+ *
+ * \param[in] ch_id The id of the channel to inspect
+ * \param[out] The percolation threshold
+ */
 template <class T, class M>
 M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
 
@@ -480,11 +505,11 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
     threshold = *distances.begin();
     distances.erase( distances.begin() );    
     
-    //dilute surface. In general it would be nice to write the same
+    //dilate surface. In general it would be nice to write the same
     //voxel value as the membrane channel, but we can not know that
     //for sure, and in the end it doesn't matter as long as it is
     //different from ch_id
-    dilute_surface( threshold, ch_id + 1 );
+    dilate_surface( threshold, ch_id + 1 );
 
     // recompute clusters
     find_clusters( ch_id );
@@ -503,8 +528,8 @@ M percolation_analysis<T, M>::get_percolation_threshold( int ch_id ){
 
 /**
  * Prints label map layer for layer to a file to view in a text
- * editor. Wrapper around \ref print function \param[in] out The
- * filename to write to
+ * editor. Wrapper around \ref print function 
+ * \param[in] The filename to write the label map to
  */
 template <class T, class M>
 void percolation_analysis<T, M>::print( std::string out ){
@@ -514,8 +539,10 @@ void percolation_analysis<T, M>::print( std::string out ){
 }
 
 
-/*
- *
+/**
+ * Prints label map layer for layer to a file to view in a text
+ * editor. 
+ * \param[in] out The output stream
  */
 template <class T, class M>
 void percolation_analysis<T, M>::print( std::ostream &out) {
@@ -569,6 +596,7 @@ void percolation_analysis<T, M>::print_points( std::ostream &out) {
   }
 }
 
+// explicit instantiation to avoid linker errors
 
 template class percolation_analysis<short, int>;
 template class percolation_analysis<int, int>;

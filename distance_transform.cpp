@@ -170,7 +170,7 @@ void distance_transform<T, M>::set_parameters( std::vector<T> data,
 
 
 /**
- * Destructor, just frees memory
+ * Destructor
  */
 template <class T, class M>
 distance_transform<T, M>::~distance_transform(){
@@ -188,6 +188,7 @@ distance_transform<T, M>::~distance_transform(){
  *
  * \param[in] grid The 1D array to transform
  * \param[in] pixsize The size of a pixel in length units
+ * \param[out] The distance transform of input array
  */
 template <class T, class M>
 std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &grid, bool periodic, double pixsize ){
@@ -239,12 +240,8 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
   //find the envelope
   for( int ii=1; ii<grid_ext.size(); ii++){
     //intersection of two parabolas
-    
-    /* the position of the index in length units
-     * oo, oo_vk: intermediate index for periodic boundary conditions:
-     * mapping out of bound indeces back into array limits
-     */
-    
+
+    // the index in length units
     M ii_l = ii * pixsize;
     
     //this needs to be in length units already! so convert pixel
@@ -318,6 +315,7 @@ std::vector<M> distance_transform<T, M>::do_distance_transform( std::vector<M> &
  *
  *\param[in] data the grid on which to evaluate the function
  *\param[in] max The max value the cost function will take 
+ *\param[in] The function values applied on the input
  */
 template <class T, class M> template <class U>
 std::vector<M> distance_transform<T, M>::eval_grid_function( std::vector<U> &data, double max ){
@@ -513,12 +511,11 @@ void distance_transform<T, M>::compute_distance_map(){
 /*
  * This function returns one dimensional id's (index arrays) of all
  * the voxels which lie within a sphere with the given radius around
- * the given voxel. So far, only voxels are returned which lie within
- * the pore space, i.e. have a distance map value > 0
+ * the given voxel. 
  *
  * \param[in] r Radius of the sphere
  * \param]in] id 1d index of the center voxel
- *
+ * \param[out] A set of all voxel within a ball of radius r around voxel id
  */ 
 template<class T, class M>
 std::unordered_set<unsigned int> distance_transform<T, M>::get_voxels_in_ball( double r, int id ){
@@ -581,7 +578,8 @@ std::unordered_set<unsigned int> distance_transform<T, M>::get_voxels_in_ball( d
 
 }
 
-/*
+/** \brief Compute Maximum sphere cover transform 
+ *
  * This function computes the maximum sphere cover transfrom. It's
  * idea is based on the fact, that the euclidean distance map provides
  * the largest possible sphere radius for its voxel. We then start at
@@ -590,6 +588,8 @@ std::unordered_set<unsigned int> distance_transform<T, M>::get_voxels_in_ball( d
  * anyways. We then mark them as "marked" and proceed to the next
  * lower value and repeat this. A pixel only gets a value if it is not
  * yet marked as "marked".
+ *
+ * So far this is more a proof-of-concept, not optimized in any kind
  */ 
 template <class T, class M>
 void distance_transform<T, M>::compute_max_radius_covering(){

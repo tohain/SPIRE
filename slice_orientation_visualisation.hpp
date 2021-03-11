@@ -28,6 +28,10 @@
 #include "drawme.hpp"
 #include "global_settings.hpp"
 
-std::string draw_slice_visualization( std::vector<double> base, std::vector<double> L, global_settings &gs  );
+/// creates an svg in a single string visualizing the slice orientation
+/// in the simulation box
+std::string draw_slice_visualization( std::vector<double> base,
+				      std::vector<double> L,
+				      global_settings &gs  );
 
 #endif

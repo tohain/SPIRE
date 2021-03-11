@@ -49,6 +49,9 @@
  * eval_grid_function function. So make sure it can be converted to a
  * floating point number
  * 
+ * ToDo: remove implicit integral type <-> floating point type conversions
+ *
+ *
  */
 template <class T, class M = float>
 class distance_transform {
@@ -80,7 +83,7 @@ public:
   /// get distance map
   std::vector<M> get_distance_map() const ;
 
-  
+  /// returns the max. radius cover transform
   std::vector<M> get_max_radius_covering() const ;
 
   /// Update the parameters
