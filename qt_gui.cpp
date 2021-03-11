@@ -1,5 +1,4 @@
-/* Projection tool - compute planar projections of triply periodic
- * minimal surfaces 
+/* SPIRE - Structure Projection Image Recognition Environment
  * Copyright (C) 2021 Tobias Hain
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -342,7 +341,7 @@ void GUI::set_up_ui(){
 
 
   about_us = new QLabel( about_widget );
-  about_us->setText("Projection tool<br/>"
+  about_us->setText("SPIRE - Structure Projection Image Recognition Environment<br/>"
 		    "Created by Tobias Hain<br/>"
 		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a><br/>"
 		    "based on the idea by Mark Mieczkowski");

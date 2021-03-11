@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6.4)
-project (surface_projection)
+project (SPIRE)
 set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
 
@@ -41,37 +41,37 @@ if(BUILD_QT_GUI)
   find_library(gmp gmp)
   find_package(BLAS)  
   
-  add_executable(projection_tool_qt ${SRC_BASE} ${SRC_QT_GUI} ${SRC_IML} resources.qrc)
+  add_executable(SPIRE ${SRC_BASE} ${SRC_QT_GUI} ${SRC_IML} resources.qrc)
 
 
   #check if we have CGAL
   find_package(CGAL REQUIRED)    
   if( CGAL_FOUND )
     add_compile_definitions(USE_CGAL)
-    target_link_libraries(projection_tool_qt CGAL::CGAL)
+    target_link_libraries(SPIRE CGAL::CGAL)
   endif()
 
   find_package(PNG REQUIRED)
   if( PNG_FOUND )
     add_compile_definitions(HAVE_PNG)
-    target_link_libraries(projection_tool_qt PNG::PNG)
-    target_include_directories(projection_tool_qt PRIVATE PNG_INCLUDE_DIRS)
+    target_link_libraries(SPIRE PNG::PNG)
+    target_include_directories(SPIRE PRIVATE PNG_INCLUDE_DIRS)
   endif()
   
-  target_link_libraries(projection_tool_qt BLAS::BLAS gmp)
+  target_link_libraries(SPIRE BLAS::BLAS gmp)
   
-  target_link_libraries(projection_tool_qt Qt5::Widgets Qt5::Gui Qt5::Svg)
+  target_link_libraries(SPIRE Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
 
 
 if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
-  add_executable(get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
+  add_executable(SPIRE_get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
 endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
 
 
 if( BUILD_BATCH_TOOL )
 
-  add_executable(batch_tool ${SRC_BASE} ${SRC_IML} batch_tool.cpp resources.qrc)
+  add_executable(SPIRE_batch_tool ${SRC_BASE} ${SRC_IML} batch_tool.cpp resources.qrc)
 
   find_library(gmp gmp)
   find_package(BLAS)  
@@ -81,15 +81,15 @@ if( BUILD_BATCH_TOOL )
 
   if( PNG_FOUND )
     add_compile_definitions(HAVE_PNG)
-    target_link_libraries(batch_tool PNG::PNG)
-    target_include_directories(batch_tool PRIVATE PNG_INCLUDE_DIRS)
+    target_link_libraries(SPIRE_batch_tool PNG::PNG)
+    target_include_directories(SPIRE_batch_tool PRIVATE PNG_INCLUDE_DIRS)
   endif()
   
-  target_link_libraries(batch_tool BLAS::BLAS gmp)
+  target_link_libraries(SPIRE_batch_tool BLAS::BLAS gmp)
 
   if( CGAL_FOUND )
     add_compile_definitions(USE_CGAL)
-    target_link_libraries(batch_tool CGAL::CGAL)
+    target_link_libraries(SPIRE_batch_tool CGAL::CGAL)
   endif()
 
 endif( BUILD_BATCH_TOOL )
