@@ -1,6 +1,8 @@
-# surface_projection
-A tool to compute projections of 3D surfaces
+# SPIRE: Structure Projection Image Recognition Environment
 
+A tool to compute planar projections of 3D surfaces
+
+License: GPLv3
 
 ## Install
 
@@ -44,9 +46,10 @@ There are some options to be used with the cmake command to be considered:
 
 ### Windows
 
-A pre-compiled binary for Windows users including all necessary libraries is provided. Just download the archive, extract it and run surface_projection.exe.
 
-To compile from source, use your favourite build system. Tested with mingw32-64.
+Pre-compiled Windows binaries, including all dependencies, are available online. Just extract the archive and run the executable.
+
+If you wish to compile from source and need help, please contact hain@uni-potsdam.de . I used QT Creator with mingw to compile these binaries, so if you are using that I could maybe help you with that.
 
 
 
@@ -170,3 +173,16 @@ but rather a predefined resolution for which the algorithm have the
 best cost-yield efficancy. They may be tuned in the config file found
 in the same directoy as the binary.
 
+#### Batch creation
+
+This tab allows you to automate bulk creation of projections. You can provide parameter list ( provide a list of comma sperated values, e.g. 1,2,3,4, ) or a range ( start:stop:step, e.g. 0:1:0.2 will sweep through the the value 0,0.2,0.4,0.6,0.8.1 ). Surface type only accept strings of the options provided in the dropdown menue in the parameter tab. The surface control parameter will be the same as chosen in the parameter tab. So if you chose "level-set" in the parameter tab, the same parameter will be presented in the bulk tab.
+
+All files will be name using a prefix and an incremental integer. If you chose prefix as "projection" the files will be called "projection_1.png", "projection_2.png", "projection_3.png", .... An overview file called "[prefix]_summary.txt" will be generated containing a list of the parameters used in each file.
+
+The option "render parameters" writes the parameters in the marign of the projections. In its basic form only the parameters which will differ between two projections will be written, enabling the option "render all parameters" will write *ALL* relevant paramters in the margins.
+
+#### Export
+
+This tab is not needed for the usage of SPIRE. However, it allows you to export the 3D voxel array to a text file with the following structure:
+# pos_x pos_y pos_y marked? channel_number
+You can use this file to further analyse or visualise the three dimensional structure in the slixe
