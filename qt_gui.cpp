@@ -1189,6 +1189,9 @@ void GUI::write_membranes(int row, int col){
 /// reads the membranes from the surface_projection object to the GUI
 void GUI::read_membranes(){
 
+  //temporarliry disconnect signals
+  disconnect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
+  
   std::vector<double> membranes = sp->get_membranes();
 
   for(unsigned int ii=0; ii<membranes.size(); ii+=2){
@@ -1203,6 +1206,9 @@ void GUI::read_membranes(){
     membranes_control->item( ii/2, 0)->setText( def_locale->toString( membranes.at(ii) ) );
     membranes_control->item( ii/2, 1)->setText( def_locale->toString( membranes.at(ii+1) ) ); 
   }
+
+  //reconnect them
+  connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
   
 }
 

@@ -620,4 +620,5 @@ void sp_qt::read_pars_from_file( QString fn ){
   
   emit geometry_changed();
   emit parameter_changed();
+  emit updated_membranes();
 }
