@@ -7,6 +7,7 @@
   <file>resources/licenses/LICENSE_lGPLv3.txt</file>
   <file>resources/licenses/LICENSE_GPLv2.txt</file>
   <file>resources/licenses/LICENSE_mBSD.txt</file>
-  <file>resources/licenses/LICENSE_PNG.txt</file>  
+  <file>resources/licenses/LICENSE_PNG.txt</file>
+  <file>resources/licenses/LICENSE_ZLIB.txt</file>
 </qresource>
 </RCC>

@@ -29,6 +29,7 @@
 #include <QImage>
 #include <QPen>
 #include <QPainter>
+#include <QFileDialog>
 
 #include <iostream>
 #include <iomanip>
@@ -117,6 +118,8 @@ public slots:
   void save_surface_points( int id, QString fn_prefix );
 
   void change_channel_color( int id, int val );
+
+  void read_pars_from_file( QString fn );
   
 };
 

@@ -128,31 +128,6 @@ void GUI::set_up_ui(){
     surface_type_control->object()->insertItem( ii, QString( sfc_types.at(ii).c_str() ) );
   }
 
-  /*
-   * Resolution control
-   */
-  x_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "X resolution", parameters_widget );
-  x_points_control->object()->setRange(1, 600);
-
-  z_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "Z resolution", parameters_widget );  
-  z_points_control->object()->setRange(1, 250);
-
-
-  invert_control = new QT_labeled_obj<QCheckBox>( "vl", "", parameters_widget );
-  invert_control->object()->setText( "Invert image" );
-  invert_control->object()->setCheckState( Qt::Checked );
-
-  autoupdate_control = new QCheckBox( parameters_widget );
-  autoupdate_control->setText( "Autoupdate" );
- 
-  render_pars_to_img_control = new QCheckBox( parameters_widget );
-  render_pars_to_img_control->setText( "Render Parameters" );   
-
-  image_scaling_control = new QT_labeled_obj<QComboBox>( "vl", "Scaling", parameters_widget );
-  std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
-  for(unsigned int ii=0; ii<imgs_types.size(); ii++){
-    image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
-  }
   
   //Set up the draw area
   draw_area = new QLabel( this );
@@ -174,15 +149,15 @@ void GUI::set_up_ui(){
   slice_thickness_control->object()->setSingleStep(0.001);
   slice_thickness_control->object()->setDecimals( 3 );
 
-  slice_width_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Width", parameters_widget);
-  slice_width_control->object()->setRange(0.001,10000);
-  slice_width_control->object()->setSingleStep(0.001);
-  slice_width_control->object()->setDecimals( 3 );
-
   slice_height_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Height", parameters_widget);
   slice_height_control->object()->setRange(0.001,10000);
   slice_height_control->object()->setSingleStep(0.001);
   slice_height_control->object()->setDecimals( 3 );
+
+  slice_width_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Width", parameters_widget);
+  slice_width_control->object()->setRange(0.001,10000);
+  slice_width_control->object()->setSingleStep(0.001);
+  slice_width_control->object()->setDecimals( 3 );
   
   slice_position_control = new QT_labeled_obj<QDoubleSpinBox>( "hl", "Slice Position", parameters_widget);    
   slice_position_control->object()->setSingleStep(0.01);
@@ -227,6 +202,33 @@ void GUI::set_up_ui(){
 
   fill_channels_control_container->setWidget( fill_channels_control_content );  
 
+
+  /*
+   * Resolution control
+   */
+  x_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "X resolution", parameters_widget );
+  x_points_control->object()->setRange(1, 600);
+
+  z_points_control = new QT_labeled_obj<QSpinBox> ( "vl", "Z resolution", parameters_widget );  
+  z_points_control->object()->setRange(1, 250);
+
+  image_scaling_control = new QT_labeled_obj<QComboBox>( "vl", "Scaling", parameters_widget );
+  std::vector<std::string> imgs_types = sp->get_img_scaling_choices();
+  for(unsigned int ii=0; ii<imgs_types.size(); ii++){
+    image_scaling_control->object()->insertItem( ii, QString( imgs_types.at(ii).c_str() ) );
+  }
+  
+  invert_control = new QT_labeled_obj<QCheckBox>( "vl", "", parameters_widget );
+  invert_control->object()->setText( "Invert image" );
+  invert_control->object()->setCheckState( Qt::Checked );
+
+  autoupdate_control = new QCheckBox( parameters_widget );
+  autoupdate_control->setText( "Autoupdate" );
+ 
+  render_pars_to_img_control = new QCheckBox( parameters_widget );
+  render_pars_to_img_control->setText( "Render Parameters" );   
+
+  
 
   /*
    * batch creation
@@ -317,43 +319,21 @@ void GUI::set_up_ui(){
   
   // about widget
 
-  qt_logo = new QLabel( about_widget );
-  qt_logo->setPixmap( QPixmap( ":/resources/logos/qt.png" ) );
-
-  qt_text = new QLabel( about_widget );
-  qt_text->setText("This software is using QT libraries<br/>Published under the lGPL v3 license<br/>"
-		   "<a href=\"https://www.qt.io/\">Homepage</a>");
-  qt_text->setTextFormat(Qt::RichText);
-  qt_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  qt_text->setOpenExternalLinks(true);
-
-#ifdef USE_CGAL
-  cgal_logo = new QLabel( about_widget );
-  cgal_logo->setPixmap( QPixmap( ":/resources/logos/cgal.png" ) );
-
-  cgal_text = new QLabel( about_widget );
-  cgal_text->setText("This software is using CGAL<br/>Published under the GPL v3 license<br/>"
-		   "<a href=\"https://www.cgal.org/index.html\">Homepage</a>");
-  cgal_text->setTextFormat(Qt::RichText);
-  cgal_text->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  cgal_text->setOpenExternalLinks(true);
-#endif
-
 
   about_us = new QLabel( about_widget );
   about_us->setText("SPIRE - Structure Projection Image Recognition Environment<br/>"
-		    "Created by Tobias Hain<br/>"
-		    "<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a><br/>"
+		    "Created by Tobias Hain"
+		    " (<a href=\"mailto:hain@uni-potsdam.de\">hain@uni-potsdam.de</a>)<br/>"
+		    "published under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">"
+		    "GPLv3 license</a><br/>"
 		    "based on the idea by Mark Mieczkowski");
   about_us->setTextFormat(Qt::RichText);
   about_us->setTextInteractionFlags(Qt::TextBrowserInteraction);
   about_us->setOpenExternalLinks(true);
 
   refs_ack = new QLabel( about_widget );
-  refs_ack->setText("published under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\"> GPLv3 license</a><br/>"
-		    "<br/>"
-		    "<br/>"
-		    "Using work from<br/>"
+  refs_ack->setText("Using work from OTHER authors:<br/>"
+		    "============================<br/>"
 		    "Pedro F. Felzenszwalb and Daniel P. Huttenlocher<br/>"
 		    "<a href=\"http://dx.doi.org/10.4086/toc.2012.v008a019\">"
 		    " DOI: 10.4086/toc.2012.v008a019 </a><br/>"
@@ -363,8 +343,8 @@ void GUI::set_up_ui(){
 		    "J. Hoshen and R. Kopelman<br/>"
 		    "<a href=\"https://doi.org/10.1103/PhysRevB.14.3438\">"
 		    " DOI: https://doi.org/10.1103/PhysRevB.14.3438 </a><br/>"
-		    "using <a href=\"https://www.openblas.net/\">libOpenBLAS</a><br/>"
-		    "published under the 3-clause license BSD license<br/>"
+		    "using <a href=\"https://www.openblas.net/\">libOpenBLAS</a>"
+		    " published under the 3-clause license BSD license<br/>"
 		    "using <a href=\"https://gmplib.org/\">libmgp</a>"		    
 		    " published under <a href=\"https://www.gnu.org/licenses/lgpl-3.0.html\">GNU LGPL v3</a><br/>"
 		    "using <a href=\"https://www.mpfr.org//\">libmpfr</a>"
@@ -374,6 +354,14 @@ void GUI::set_up_ui(){
 		    " published under <a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.html\">GNU GPL v2</a><br/>"
 		    "using <a href=\"http://www.libpng.org/pub/png/libpng.html\">libpng</a>"
 		    " published under <a href=\"http://www.libpng.org/pub/png/src/libpng-LICENSE.txt\">PNG License</a><br/>"
+		    "using <a href=\"https://zlib.net/zlib.html\">zlib</a>"
+		    " published under <a href=\"https://zlib.net/zlib_license.html\">zlib License</a><br/>"
+		    "using <a href=\"https://www.qt.io/\">QT</a>"
+		    " published under <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GPL v3</a><br/>"
+#ifdef USE_CGAL
+		    "using <a href=\"https://www.cgal.org/index.html\">CGAL</a>"
+		    " published under <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\"></a>GPL v3<br/>"
+#endif
 		    );
   refs_ack->setTextFormat(Qt::RichText);
   refs_ack->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -395,7 +383,8 @@ void GUI::set_up_ui(){
     ":/resources/licenses/LICENSE_lGPLv3.txt",
     ":/resources/licenses/LICENSE_GPLv2.txt",
     ":/resources/licenses/LICENSE_mBSD.txt",
-    ":/resources/licenses/LICENSE_PNG.txt"};
+    ":/resources/licenses/LICENSE_PNG.txt",
+    ":/resources/licenses/LICENSE_ZLIB.txt"};
   
   for( auto &it : licenses_fn ){
     reading_device.setFileName( it.c_str() );
@@ -609,18 +598,6 @@ void GUI::set_up_ui(){
 
   about_widget_layout->addWidget( refs_ack );
   
-  about_qt_layout = new QHBoxLayout();
-  about_qt_layout->addWidget( qt_logo );
-  about_qt_layout->addWidget( qt_text );
-  about_widget_layout->addLayout( about_qt_layout );
-  
-#ifdef USE_CGAL
-  about_cgal_layout = new QHBoxLayout();
-  about_cgal_layout->addWidget( cgal_logo );
-  about_cgal_layout->addWidget( cgal_text );
-  about_widget_layout->addLayout( about_cgal_layout );
-#endif
-
   license_widget_layout = new QVBoxLayout( license_widget );
 
   license_widget_layout->addWidget( licenses );
@@ -809,8 +786,7 @@ void GUI::set_up_signals_and_slots(){
   
   connect( button_read_pars, SIGNAL( clicked() ), this, SLOT( read_parameters() ) );
   connect( button_write_pars, SIGNAL( clicked() ), this, SLOT( write_parameters() ) );
-  
-
+  connect( this, &GUI::call_read_pars_from_file, sp, &sp_qt::read_pars_from_file );
 
 
   connect( add_membrane_control, SIGNAL( clicked() ), this, SLOT( add_membrane() ) );
@@ -1870,10 +1846,12 @@ void GUI::read_parameters(){
 
   if( !filename.isNull() ){
 
-    sp->read_parameters( filename.toStdString() );
+    emit call_read_pars_from_file( filename );
+    
+    //sp->read_parameters( filename.toStdString() );
 
-    update_gui_from_sp();
-    emit call_compute_projection();    
+    //update_gui_from_sp();
+    //emit call_compute_projection();    
   }
   
 }

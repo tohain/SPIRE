@@ -411,11 +411,6 @@ private:
 
 
   //about
-  QLabel *qt_logo, *qt_text;
-#ifdef USE_CGAL
-  QLabel *cgal_logo, *cgal_text;
-  QHBoxLayout *about_cgal_layout;
-#endif
   QLabel *about_us;
   QLabel *refs_ack;
 
@@ -528,7 +523,9 @@ signals:
 
   void emit_start_batch();
   void emit_stop_batch( bool go_on );			 
-			 
+
+  void call_read_pars_from_file( QString fn );				    
+				    
 public slots:
 
   void change_surface_par_type( int index );

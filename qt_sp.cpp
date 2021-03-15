@@ -613,3 +613,11 @@ void sp_qt::change_channel_color( int id, int val ){
   set_channel_color( id, val );
   emit updated_channel_fill();
 }
+
+void sp_qt::read_pars_from_file( QString fn ){
+
+  read_parameters( fn.toStdString() );
+  
+  emit geometry_changed();
+  emit parameter_changed();
+}
