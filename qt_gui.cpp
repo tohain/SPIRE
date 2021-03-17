@@ -1207,6 +1207,8 @@ void GUI::read_membranes(){
     membranes_control->item( ii/2, 1)->setText( def_locale->toString( membranes.at(ii+1) ) ); 
   }
 
+  update_fill_channels();
+
   //reconnect them
   connect( membranes_control, &QTableWidget::cellChanged, this, &GUI::write_membranes );
   
