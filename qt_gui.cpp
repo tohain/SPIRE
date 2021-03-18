@@ -863,7 +863,7 @@ void GUI::set_up_signals_and_slots(){
 
 
 /// Constructor. initializes background objects and threads
-GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidget *parent ) : QWidget( parent ), app(_app), def_locale( def_locale_ ), gs( gs_ ){
+GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, int seed, QWidget *parent  ) : QWidget( parent ), app(_app), def_locale( def_locale_ ), gs( gs_ ){
   
   //initialize surface projection
   sp = new sp_qt( gs );
@@ -882,7 +882,7 @@ GUI::GUI( QApplication *_app, QLocale *def_locale_, global_settings &gs_, QWidge
 
 
   // initialise batch creation object
-  bc = new qt_bc( *sp  );
+  bc = new qt_bc( *sp, seed  );
 
   // initialise the callback instance
   cb = new gui_callback( *sp, *bc, "./projection" );

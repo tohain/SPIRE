@@ -16,6 +16,7 @@
  */
 
 #include <QApplication>
+#include <ctime>
 #include "qt_gui.hpp"
 #include "global_settings.hpp"
 
@@ -28,7 +29,7 @@ int main( int argc, char *argv[]){
   app.setWindowIcon(QIcon(":/resources/icon/icon.ico"));
 
   global_settings gs ( "global_settings.conf" );
-  GUI gui( &app, &default_locale, gs );
+  GUI gui( &app, &default_locale, gs, time(NULL) );
   gui.show();
   
   return app.exec();

@@ -20,8 +20,8 @@
 /**
  * Constructor
  */
-batch_creation::batch_creation( surface_projection &sp_ ) :
-  sp( sp_ ) {
+batch_creation::batch_creation( surface_projection &sp_, int seed ) :
+  sp( sp_ ), rng( seed ) {
 }
 
 
@@ -296,6 +296,10 @@ void batch_creation::reset_parameters(){
   ops.values.clear();
 }
 
+/**
+ * computes the total number of possible combinations. Some might be
+ * skipped though, due to orientation or other criteria
+ */
 long batch_creation::total_combinations(){
 
   // to measure progress, get total amount of elements
@@ -304,4 +308,24 @@ long batch_creation::total_combinations(){
     total_elements *= ops.values[ii].size();
   }
   return total_elements;
+}
+
+/**
+ * Draws and sets random parameters to the sp object. Only values for
+ * parameters present in the ops.parameters array are generated. The
+ * first two values in the corresponding values array are taken as
+ * lower and upper boundary of uniformly distributed samples
+ */
+void batch_creation::set_random_parameters(){
+
+  for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
+
+    // get the random number
+    double val = rng.rand_uniform( ops.values[ii][0], ops.values[ii][1] );
+
+    sp.set_parameter( ops.parameters[ii], val );
+
+  }
+
+
 }

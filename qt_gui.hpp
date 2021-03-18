@@ -71,7 +71,7 @@ class qt_bc : public QObject, public batch_creation {
 
 public:
   
-  qt_bc ( surface_projection &sp_ ) : batch_creation( sp_ ) {
+  qt_bc ( surface_projection &sp_, int seed ) : batch_creation( sp_, seed ) {
   }
 
   void set_callback( sp_callback *callback ){
@@ -269,7 +269,7 @@ class GUI : public QWidget {
   Q_OBJECT
 
 public:
-  explicit GUI( QApplication *app, QLocale *def_locale_, global_settings &gs, QWidget *parent = 0 );
+  explicit GUI( QApplication *app, QLocale *def_locale_, global_settings &gs, int seed, QWidget *parent = 0 );
 
 
   ~GUI();

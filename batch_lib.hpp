@@ -82,7 +82,7 @@ public:
   } batch_options;
 
   /// Constructor
-  batch_creation( surface_projection &sp );
+  batch_creation( surface_projection &sp, int seed );
   
   /// Parses a string of comma separated values or a range into a
   /// vector of doubles
@@ -112,10 +112,13 @@ public:
   void print_cur_parameters( std::vector< std::vector<double>::iterator > its,
 			     std::ostream &out = std::cout);
 
+  /// get random parameters
+  void set_random_parameters();
 
   batch_options ops;
   surface_projection &sp;
-  
+
+  boost_rand rng;
 };
 
 

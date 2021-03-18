@@ -26,9 +26,11 @@
 #include <string>
 #include <vector>
 #include <iomanip>
-#include <cmath>
 #include <algorithm>
 
+#include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include <cstring>
 
 #include "percolation_analysis.hpp"
@@ -44,6 +46,9 @@ typedef struct {
   std::vector<double> filled_channels;
   std::vector<double> resolution;
   std::string fn_prefix;
+
+  std::string mode = "ordered";
+  unsigned long N;
 } cmd_options;
 
 void print_help(){
@@ -59,11 +64,16 @@ void print_help(){
 	    << "   --resolution      : two comma separated integers. Resolution in" << std::endl
 	    << "                       x,y dimension" << std::endl
 	    << "   --fn_prefix       : prefix to attach to all output files" << std::endl
+	    << "   --mode            : (ordered) iterate through all paramter combinations" << std::endl
+    	    << "                     : (random)  pick random parameters" << std::endl
+	    << "   --N               : number of projections to be computed (random mode only)" << std::endl
 
 	    << std::endl
 
 	    << "sweep parameters, each parameter can be assign a comma separated list," << std::endl
 	    << "or a range given as start:stop:step" << std::endl
+	    << "in case of random mode, provide upper and lower bound for the interval"
+	    << "in which samples are drawn uniformly" << std::endl
 	    << std::endl
 	    << "last given parameter is increased most frequently, first least frequently" << std::endl
 	    << "recommending using miller indeces as last ones, otherwise configurations" << std::endl
@@ -181,6 +191,14 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
 
     if( strcmp( argv[ii], "--fn_prefix" ) == 0 ){
       ops.fn_prefix = std::string( argv[ii+1] );
+    }
+
+    if( strcmp( argv[ii], "--mode" ) == 0 ){
+      ops.mode = std::string( argv[ii+1] );
+    }
+
+    if( strcmp( argv[ii], "--N" ) == 0 ){
+      ops.N = strtoul( argv[ii+1], NULL, 10 );
     }    
     
   }
@@ -244,10 +262,11 @@ int main( int argc, char* argv[] ){
     print_help();
   }
 
+  global_settings gs ( "global_settins.conf" );
   cmd_options ops;
-  surface_projection sp;
-  batch_creation bc ( sp );
-
+  surface_projection sp ( gs );
+  batch_creation bc ( sp, time(NULL) );
+  
   try {
     parse_cmd_options( argc, argv, bc, ops );
     if( !check_and_set_fixed_pars( ops, sp ) ){
@@ -259,10 +278,23 @@ int main( int argc, char* argv[] ){
   }
 
   // get the functor
+
   cmd_callback cmdcb ( sp, bc, ops.fn_prefix );
   
-  long elements_created = bc.do_loop( cmdcb  );
-  std::cout << "made " << elements_created << " projections" << std::endl;
+  if( ops.mode == "ordered" ){    
+    long elements_created = bc.do_loop( cmdcb  );
+    std::cout << "made " << elements_created << " projections" << std::endl;
+  } else if ( ops.mode == "random" ){
+
+    std::cout << "creating " << ops.N << " random projections" << std::endl;
+
+    std::vector<std::vector<double>::iterator > dummy_it;    
+    for( unsigned long ii=0; ii<ops.N; ii++ ){
+      bc.set_random_parameters();
+      cmdcb( dummy_it );
+    }
+    
+  }
   
   return EXIT_SUCCESS;
 }
