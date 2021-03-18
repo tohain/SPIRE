@@ -49,6 +49,7 @@ typedef struct {
 
   std::string mode = "ordered";
   unsigned long N;
+  bool quadratic = false;
 } cmd_options;
 
 void print_help(){
@@ -67,7 +68,8 @@ void print_help(){
 	    << "   --mode            : (ordered) iterate through all paramter combinations" << std::endl
     	    << "                     : (random)  pick random parameters" << std::endl
 	    << "   --N               : number of projections to be computed (random mode only)" << std::endl
-
+	    << "   --quadratic       : only allows quadratic projections, height is set to width (random mode only)" << std::endl
+    
 	    << std::endl
 
 	    << "sweep parameters, each parameter can be assign a comma separated list," << std::endl
@@ -199,7 +201,11 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
 
     if( strcmp( argv[ii], "--N" ) == 0 ){
       ops.N = strtoul( argv[ii+1], NULL, 10 );
-    }    
+    }
+
+    if( strcmp( argv[ii], "--quadratic") == 0 ){
+      ops.quadratic = true;
+    }
     
   }
     
@@ -280,6 +286,7 @@ int main( int argc, char* argv[] ){
   // get the functor
 
   cmd_callback cmdcb ( sp, bc, ops.fn_prefix );
+  cmdcb.set_img_mode( true, "LIN" );
   
   if( ops.mode == "ordered" ){    
     long elements_created = bc.do_loop( cmdcb  );
@@ -290,7 +297,12 @@ int main( int argc, char* argv[] ){
 
     std::vector<std::vector<double>::iterator > dummy_it;    
     for( unsigned long ii=0; ii<ops.N; ii++ ){
-      bc.set_random_parameters();
+
+
+      bc.set_random_parameters( ops.quadratic );
+
+
+
       cmdcb( dummy_it );
     }
     

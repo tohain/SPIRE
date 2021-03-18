@@ -315,17 +315,17 @@ long batch_creation::total_combinations(){
  * parameters present in the ops.parameters array are generated. The
  * first two values in the corresponding values array are taken as
  * lower and upper boundary of uniformly distributed samples
+ *
+ * \param[in] qudratic if set to true, only qudartic projections are sampled (height set to width)
  */
-void batch_creation::set_random_parameters(){
+void batch_creation::set_random_parameters( bool quadratic ){
 
   for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
-
-    // get the random number
-    double val = rng.rand_uniform( ops.values[ii][0], ops.values[ii][1] );
-
-    sp.set_parameter( ops.parameters[ii], val );
-
+      // get the random number
+      double val = rng.rand_uniform( ops.values[ii][0], ops.values[ii][1] );
+      sp.set_parameter( ops.parameters[ii], val );
   }
 
+  if( quadratic ) sp.set_slice_height( sp.get_slice_width() ); // set the slice height to slice width
 
 }
