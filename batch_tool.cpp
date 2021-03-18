@@ -295,16 +295,21 @@ int main( int argc, char* argv[] ){
 
     std::cout << "creating " << ops.N << " random projections" << std::endl;
 
+    long long counter = 0;
+    std::ofstream f_out ( ops.fn_prefix + "_faulty.txt" );
+    
     std::vector<std::vector<double>::iterator > dummy_it;    
     for( unsigned long ii=0; ii<ops.N; ii++ ){
 
+      if( !bc.set_random_parameters( ops.quadratic ) ){
+	f_out << counter << " " << " caught invalid_parameter_exception" << std::endl;
+      }
 
-      bc.set_random_parameters( ops.quadratic );
-
-
-
+      counter++;
       cmdcb( dummy_it );
     }
+
+    f_out.close();
     
   }
   

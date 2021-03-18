@@ -317,15 +317,28 @@ long batch_creation::total_combinations(){
  * lower and upper boundary of uniformly distributed samples
  *
  * \param[in] qudratic if set to true, only qudartic projections are sampled (height set to width)
+ * \param[out] Returns true if all parameters set without errors, false otherwise
  */
-void batch_creation::set_random_parameters( bool quadratic ){
+bool batch_creation::set_random_parameters( bool quadratic ){
 
+  bool caught_exception = false;
+  
   for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
       // get the random number
       double val = rng.rand_uniform( ops.values[ii][0], ops.values[ii][1] );
-      sp.set_parameter( ops.parameters[ii], val );
+
+      try {
+	sp.set_parameter( ops.parameters[ii], val );
+      } catch (invalid_parameter_exception e ){
+	// we probably tried to set (hkl)=(000). In this case the
+	// value is set to 001, so nothing inherently "bad" happens,
+	// fixing it is not worth the effort right now, but keep it in
+	// mind.
+	caught_exception = true;
+      }
   }
 
   if( quadratic ) sp.set_slice_height( sp.get_slice_width() ); // set the slice height to slice width
 
+  return !caught_exception;
 }
