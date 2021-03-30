@@ -73,7 +73,7 @@ double level_set::gyroid( double x, double y, double z, std::vector<double> inv_
      * transform the into the canonical hex base
      */
     double x_ = inv_a[0] * (x + y/sqrt(3));
-    double y_ = inv_a[0] * (2.0/sqrt(3)) * y;
+    double y_ = inv_a[1] * (2.0/sqrt(3)) * y;
     double z_ = inv_a[2] * z;  
     
     return  -cos(2*z_) + cos(x_) + cos(y_) + cos(x_ - y_) + sin(z_)*(-sin(x_) + sin(y_) + sin(x_ - y_) );
