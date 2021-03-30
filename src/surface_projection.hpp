@@ -78,12 +78,15 @@ public:
 #include "percolation_analysis.hpp"
 #include "level_sets.hpp"
 
-/** \brief The computational core class of this code. Computes the projection calculations and stores al * l parameters.
+/** \brief The computational core class of this code. Computes the
+ * projection calculations and stores all parameters relevant for the
+ * projection.
  *
  * This class contains all neccessary function to compute the 2D
- * projection of a surface. It also stores all parameters. The GUI is
- * basically only a front end to use the code provided in this
- * class. A terminal interface should be easy to implement if wanted.
+ * projection of a surface. It also stores all relevant
+ * parameters. The GUI is basically only a front end to use the code
+ * provided in this class. A terminal interface should be easy to
+ * implement if wanted.
  */
 class surface_projection {
 public:

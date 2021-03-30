@@ -31,10 +31,11 @@
 #include <cstdlib>
 #include <string>
 
-/*
- * This class provides functionality to compute the skeleton of a 3D
- * Object. It is an implementation of the algorithms described in
+/**
+ * \brief This class provides functionality to compute the skeleton of a 3D
+ * Object. 
  *
+ * Implements algorithms from
  * Pudney (1998): https://doi.org/10.1006/cviu.1998.0680
  * Bertrand, Malandain (1994): https://doi.org/10.1016/0167-8655(94)90046-9
  * Vincent (1991) : https://doi.org/10.1117/12.45227

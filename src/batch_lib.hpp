@@ -40,7 +40,7 @@
 #include <png.h>
 
 
-  /// define a call-back functor, implemented by the caller
+ /// define a call-back functor, implemented by the caller
 class sp_callback {
 public:
   sp_callback( surface_projection &sp_ ) : sp( sp_ ), external_counter (0) {}
@@ -69,10 +69,18 @@ public:
   std::string scaling;
 };
 
+
+/** \brief This library provides an interface to create large batches
+ * of projections at a time.  
+ *
+ * Currently it provides functionality to iterate over a set of
+ * parameters, or pick a random configuration
+ */
 class batch_creation {
 
 public:
-  
+
+  /// Small object to hold parameters for batch creation
   typedef struct {
 
     std::vector<std::string> parameters;

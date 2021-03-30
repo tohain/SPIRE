@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 2.6.4)
 project (SPIRE)
 set (CMAKE_CXX_STANDARD 11) # needed for Mac OS X
 
-
 #add an option to build the gui or only terminal appliaction
 option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
 
@@ -10,13 +9,13 @@ option(BUILD_QT_GUI "Builds the GUI (QT) instead of terminal interface" ON)
 option(BUILD_COMPUTE_CHANNEL_PROPORTIONS "Builds a tool to compute volume channel proportions" OFF)
 
 #add an option to build the gui or only terminal appliaction
-option(BUILD_BATCH_TOOL "Builds a tool to generate batches of files" OFF)
+option(BUILD_BATCH_TOOL "Builds a tool to generate batches of projections" OFF)
 
 #source files independent of interface
-SET(SRC_BASE img_out.cpp surface_projection.cpp distance_transform.cpp homotopic_thinning.cpp iterable_voxel.cpp percolation_analysis.cpp batch_lib.cpp level_sets.cpp)
+SET(SRC_BASE ./src/img_out.cpp ./src/surface_projection.cpp ./src/distance_transform.cpp ./src/homotopic_thinning.cpp ./src/iterable_voxel.cpp ./src/percolation_analysis.cpp ./src/batch_lib.cpp ./src/level_sets.cpp)
 
 #the source files for the QT gui
-SET(SRC_QT_GUI qt_gui.cpp qt_main.cpp qt_sp.cpp slice_orientation_visualisation.cpp drawme.cpp)
+SET(SRC_QT_GUI ./src/qt_gui.cpp ./src/qt_main.cpp ./src/qt_sp.cpp ./src/slice_orientation_visualisation.cpp ./src/drawme.cpp)
 
 #
 # external libraries
@@ -37,11 +36,12 @@ if(BUILD_QT_GUI)
   set(CMAKE_AUTORCC ON)
   set(CMAKE_AUTOUIC ON)
 
+  add_executable(SPIRE ${SRC_BASE} ${SRC_QT_GUI} ${SRC_IML} resources.qrc)
+
   find_package(Qt5 COMPONENTS Widgets Gui Svg REQUIRED)
   find_library(gmp gmp)
   find_package(BLAS)  
-  
-  add_executable(SPIRE ${SRC_BASE} ${SRC_QT_GUI} ${SRC_IML} resources.qrc)
+  target_link_libraries(SPIRE BLAS::BLAS gmp)
 
 
   #check if we have CGAL
@@ -57,35 +57,31 @@ if(BUILD_QT_GUI)
     target_link_libraries(SPIRE PNG::PNG)
     target_include_directories(SPIRE PRIVATE PNG_INCLUDE_DIRS)
   endif()
-  
-  target_link_libraries(SPIRE BLAS::BLAS gmp)
-  
+    
   target_link_libraries(SPIRE Qt5::Widgets Qt5::Gui Qt5::Svg)
 endif(BUILD_QT_GUI)
 
 
 if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
-  add_executable(SPIRE_get_channel_proportions ${SRC_BASE} get_channel_proportions.cpp)  
+  add_executable(SPIRE_get_channel_proportions ${SRC_BASE} ./src/get_channel_proportions.cpp)  
 endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
 
 
 if( BUILD_BATCH_TOOL )
 
-  add_executable(SPIRE_batch_tool ${SRC_BASE} ${SRC_IML} batch_tool.cpp resources.qrc)
+  add_executable(SPIRE_batch_tool ${SRC_BASE} ${SRC_IML} ./src/batch_tool.cpp resources.qrc)
 
   find_library(gmp gmp)
   find_package(BLAS)  
   find_package(CGAL REQUIRED)
-
   find_package(PNG REQUIRED)
+  target_link_libraries(SPIRE_batch_tool BLAS::BLAS gmp)  
 
   if( PNG_FOUND )
     add_compile_definitions(HAVE_PNG)
     target_link_libraries(SPIRE_batch_tool PNG::PNG)
     target_include_directories(SPIRE_batch_tool PRIVATE PNG_INCLUDE_DIRS)
-  endif()
-  
-  target_link_libraries(SPIRE_batch_tool BLAS::BLAS gmp)
+  endif()  
 
   if( CGAL_FOUND )
     add_compile_definitions(USE_CGAL)

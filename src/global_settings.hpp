@@ -27,6 +27,10 @@
 #include <fstream>
 #include "auxiliary.hpp"
 
+/**
+ * \brief This class holds some parameters which are used globally across the
+ * entire tool.
+ */
 class global_settings {
 
 public:
