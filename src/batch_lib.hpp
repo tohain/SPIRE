@@ -121,7 +121,7 @@ public:
 			     std::ostream &out = std::cout);
 
   /// get random parameters
-  void set_random_parameters();
+  bool set_random_parameters( bool quadratic );
 
   batch_options ops;
   surface_projection &sp;

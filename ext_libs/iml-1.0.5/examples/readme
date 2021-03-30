@@ -1,5 +1,0 @@
-There are three examples illustrating how to call the system solving
-functions in the library. To compile the examples, the library should be
-installed first.
-
-See doc/liblink for the approach to compile and link the example program.
