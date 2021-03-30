@@ -49,7 +49,7 @@ There are some options to be used with the cmake command to be considered:
 
 Pre-compiled Windows binaries, including all dependencies, are available online. Just extract the archive and run the executable.
 
-If you wish to compile from source and need help, please contact hain@uni-potsdam.de . I used QT Creator with mingw to compile these binaries, so if you are using that I could maybe help you with that.
+If you wish to compile from source and need help, please contact hain [at] uni-potsdam.de . I used QT Creator with mingw to compile these binaries, so if you are using that I could maybe help you with that.
 
 
 
