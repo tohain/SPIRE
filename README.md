@@ -1,4 +1,4 @@
-# SPIRE: Structure Projection Image Recognition Environment
+S# SPIRE: Structure Projection Image Recognition Environment
 
 A tool to compute planar projections of 3D surfaces
 
@@ -25,7 +25,7 @@ Optional:
 
 The code will build and have most of its functionality without CGAL, some measurements (surface area of membranes) can **NOT** be computed correctly.
 
-To build, navigate in the source directory (containing qt_main.cpp) and execute the commands:
+To build, navigate to the root directory of the git repository and execute:
 
 ```
 mkdir build && cd build
@@ -33,7 +33,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_QT_GUI=On ../
 make
 ```
 
-If successfull, the compiled binary ( projection_tool_qt ) should be in the directory <sources>/build/projection_tool_qt.
+If successfull, the compiled binary ( "SPIRE" ) should be in the directory <sources>/build/SPIRE.
 
 There are some options to be used with the cmake command to be considered:
 
