@@ -56,9 +56,9 @@ double level_set::gyroid( double x, double y, double z, std::vector<double> inv_
     
     double freq_x = inv_a[0];
     double freq_y = inv_a[1];
-    double freq_z = inv_a[2];  
-    
-    return  + 0.0005309 - 0.362586*cos(2*+freq_z*z) + 0.223975*cos(2*+freq_y*y) + 0.226369*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.448045*cos(freq_x*x)*cos(+freq_y*y) - 0.452775*cos(freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.217121*cos(freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
+    double freq_z = inv_a[2];      
+
+    return + 0.0010124 - 0.360068*cos(2*+freq_z*z) + 0.221998*cos(2*+freq_y*y) + 0.225139*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.445276*cos(freq_x*x)*cos(+freq_y*y) - 0.451854*cos(freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.211026*cos(freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
     
   }
   
