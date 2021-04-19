@@ -21,12 +21,8 @@ SET(SRC_QT_GUI ./src/qt_gui.cpp ./src/qt_main.cpp ./src/qt_sp.cpp ./src/slice_or
 # external libraries
 #
 SET(IML_DIR ./ext_libs/iml-1.0.5/src/)
-SET(SRC_IML ${IML_DIR}/nullspace.c ${IML_DIR}/basisop.c /
-  ${IML_DIR}/certsolve.c ${IML_DIR}/error.c /
-  ${IML_DIR}/latreduce.c ${IML_DIR}/memalloc.c /
-  ${IML_DIR}/mtrans.c ${IML_DIR}/nonsysolve.c /
-  ${IML_DIR}/nullspace.c ${IML_DIR}/padiclift.c /
-  ${IML_DIR}/reconsolu.c ${IML_DIR}/RNSop.c )
+SET(SRC_IML ${IML_DIR}/nullspace.c ${IML_DIR}/basisop.c ${IML_DIR}/certsolve.c ${IML_DIR}/error.c ${IML_DIR}/latreduce.c ${IML_DIR}/memalloc.c ${IML_DIR}/mtrans.c ${IML_DIR}/nonsysolve.c ${IML_DIR}/nullspace.c ${IML_DIR}/padiclift.c ${IML_DIR}/reconsolu.c ${IML_DIR}/RNSop.c )
+
 include_directories(./ext_libs/iml-1.0.5/src)
 
 if(BUILD_QT_GUI)
