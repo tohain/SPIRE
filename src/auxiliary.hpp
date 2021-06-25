@@ -154,6 +154,7 @@ public:
 
   }
 
+  
 private:  
   boost::random::mt19937 rng;
   boost::random::uniform_real_distribution<> pdf;

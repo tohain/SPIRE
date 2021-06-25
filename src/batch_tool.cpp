@@ -74,8 +74,10 @@ void print_help(){
 
 	    << "sweep parameters, each parameter can be assign a comma separated list," << std::endl
 	    << "or a range given as start:stop:step" << std::endl
-	    << "in case of random mode, provide upper and lower bound for the interval"
-	    << "in which samples are drawn uniformly" << std::endl
+	    << "Random mode: provide comma separated tupel. First character indicates"
+	    << " random distribution, further floats are distribution parameters:" << std::endl
+	    << "0: uniform, with parameters lower and upper bound: 0,lo,hi" << std::endl
+	    << "1: normal, with parameters mu and sigma: 0,mu,sigma" << std::endl    
 	    << std::endl
 	    << "last given parameter is increased most frequently, first least frequently" << std::endl
 	    << "recommending using miller indeces as last ones, otherwise configurations" << std::endl

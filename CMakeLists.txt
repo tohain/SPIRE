@@ -36,6 +36,8 @@ if(BUILD_QT_GUI)
 
   find_package(Qt5 COMPONENTS Widgets Gui Svg REQUIRED)
   find_library(gmp gmp)
+
+  SET(BLA_VENDOR OpenBLAS)
   find_package(BLAS)  
   target_link_libraries(SPIRE BLAS::BLAS gmp)
 

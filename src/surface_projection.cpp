@@ -18,11 +18,11 @@
 
 #include "surface_projection.hpp"
 // set static members
-const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "vol_prop", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l" };
+const std::vector<std::string> surface_projection::parameter_names = std::vector<std::string> { "struct_types", "uc_scale_ab", "uc_scale_c", "surface_level", "vol_prop", "slice_thickness", "slice_height", "slice_width", "slice_position", "miller_h", "miller_k", "miller_l", "membrane_width" };
 
-const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Level Set", "Volume Proportion", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l" };
+const std::vector<std::string> surface_projection::parameter_names_hr = std::vector<std::string> { "Structure Type", "Unit Cell Scale Factor (xy)", "Unit Cell Scale Factor (z)", "Level Set", "Volume Proportion", "Slice Thickness", "Slice Height", "Slice Width", "Slice Position", "Orientation h", "Orientation k", "Orientation l", "Membrane(s) width" };
 
-const std::vector<std::string> surface_projection::parameter_names_short = std::vector<std::string> { "Surface", "UC scale xy", "UC scale z", "Level Set", "Vol. prop.", "Thickness", "Height", "Width", "Position", "h", "k", "l" };
+const std::vector<std::string> surface_projection::parameter_names_short = std::vector<std::string> { "Surface", "UC scale xy", "UC scale z", "Level Set", "Vol. prop.", "Thickness", "Height", "Width", "Position", "h", "k", "l", "mem. width" };
 
 
 #ifdef USE_CGAL
@@ -2067,6 +2067,13 @@ void surface_projection::set_parameter( std::string par, double val ){
   if( par == parameter_names[11] ){
     set_l( static_cast<int>( round( val ) ) );
   }
+
+  // setting all membrane width to the new value!
+  if( par == parameter_names[12] ){
+    for( unsigned int ii=1; ii<membranes.size(); ii+=2 ){
+      membranes.at(ii) = val;
+    }
+  }
   
 }
 
@@ -2122,6 +2129,18 @@ double surface_projection::get_parameter( std::string par ){
   }
   if( par == parameter_names[11] ){
     return static_cast<double> ( get_l() );    
+  }
+
+
+  // this one is sketchy beacuse only one membrane width can be
+  // returned. So we aim for the main membrane at d=0
+  if( par == parameter_names[12] ){
+    //find main membrane
+    for( unsigned int ii=0; ii<membranes.size(); ii+=2 ){
+      if( membranes.at(ii) == 0 ){
+	return membranes.at(ii+1);
+      }
+    }
   }
   
 }

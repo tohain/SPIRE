@@ -30,7 +30,7 @@
 #include <iomanip>
 #include <cmath>
 #include <algorithm>
-
+#include <random>
 #include <cstring>
 
 #include "percolation_analysis.hpp"
@@ -126,7 +126,8 @@ public:
   batch_options ops;
   surface_projection &sp;
 
-  boost_rand rng;
+  std::mt19937 generator;
+  //boost_rand rng;
 };
 
 

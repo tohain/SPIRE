@@ -21,7 +21,9 @@
  * Constructor
  */
 batch_creation::batch_creation( surface_projection &sp_, int seed ) :
-  sp( sp_ ), rng( seed ) {
+  sp( sp_ ), generator( std::mt19937() ) {
+
+  generator.seed( seed );
 }
 
 
@@ -55,13 +57,15 @@ void batch_creation::add_parameter( std::string parameter, std::string in ){
 
     int size = std::fabs( (end-start) / step );
     ops.values[ ops.values.size() -1 ].reserve( size + 1 );
-      
+
+
+    
     if ( start < end ){
       for( double ii=start; ii<=end; ii+=step ){
 	ops.values[ ops.values.size() -1 ].push_back( ii );
       }
     } else {
-      for( double ii=start; ii>=end; ii+=step ){      
+      for( double ii=start; ii>=end; ii-=step ){
 	ops.values[ ops.values.size() -1 ].push_back( ii );
       }
     }
@@ -184,15 +188,15 @@ long batch_creation::do_loop( sp_callback &callback ){
   std::vector< std::vector<double>::iterator > its;
   for( unsigned int ii=0; ii<ops.values.size(); ii++ ){
     // find the position of the miller indeces, will need them later
-    if( ops.parameters[ii] == surface_projection::parameter_names[8] ){
+    if( ops.parameters[ii] == surface_projection::parameter_names[9] ){
       h_pos = ii;
       nr_miller_provided++;
     }
-    if( ops.parameters[ii] == surface_projection::parameter_names[9] ){
+    if( ops.parameters[ii] == surface_projection::parameter_names[10] ){
       k_pos = ii;
       nr_miller_provided++;
     }
-    if( ops.parameters[ii] == surface_projection::parameter_names[10] ){
+    if( ops.parameters[ii] == surface_projection::parameter_names[11] ){
       l_pos = ii;
       nr_miller_provided++;
     }    
@@ -322,11 +326,23 @@ long batch_creation::total_combinations(){
 bool batch_creation::set_random_parameters( bool quadratic ){
 
   bool caught_exception = false;
+
+
   
   for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
-      // get the random number
-      double val = rng.rand_uniform( ops.values[ii][0], ops.values[ii][1] );
 
+    double val;
+
+    // get the distribution first
+    if( int( ops.values[ii][0] ) == 0 ){   // uniform distribtion      
+      std::uniform_real_distribution<double> dist (ops.values[ii][1], ops.values[ii][2] );
+      val = dist( generator );            
+    } else if ( int( ops.values[ii][0] == 1 ) ) {      
+      std::normal_distribution<double> dist ( ops.values[ii][1], ops.values[ii][2] );      
+      val = dist( generator );
+    }
+
+      
       try {
 	sp.set_parameter( ops.parameters[ii], val );
       } catch (invalid_parameter_exception e ){
