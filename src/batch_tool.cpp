@@ -46,6 +46,7 @@ typedef struct {
   std::vector<double> filled_channels;
   std::vector<double> resolution;
   std::string fn_prefix;
+  std::string sum_format;
 
   std::string mode = "ordered";
   unsigned long N;
@@ -69,6 +70,7 @@ void print_help(){
     	    << "                     : (random)  pick random parameters" << std::endl
 	    << "   --N               : number of projections to be computed (random mode only)" << std::endl
 	    << "   --quadratic       : only allows quadratic projections, height is set to width (random mode only)" << std::endl
+	    << "   --summary_format  : the format of the summary file (human,csv)" << std::endl
     
 	    << std::endl
 
@@ -197,6 +199,10 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
       ops.fn_prefix = std::string( argv[ii+1] );
     }
 
+    if( strcmp( argv[ii], "--summary_format" ) == 0 ){
+      ops.sum_format = std::string( argv[ii+1] );
+    }    
+
     if( strcmp( argv[ii], "--mode" ) == 0 ){
       ops.mode = std::string( argv[ii+1] );
     }
@@ -221,13 +227,26 @@ class cmd_callback : public sp_callback {
 public:
   cmd_callback( surface_projection &sp,
 		batch_creation &bc_,
-		std::string prefix ) :
+		std::string prefix,
+		std::string summary_format_ ) :
     sp_callback( sp ),
     fn_prefix( prefix ),
     bc( bc_ ),
-    counter (0)
+    counter (0),
+    summary_format( summary_format_ )
   {
     summary.open( fn_prefix + "_summary.txt" );
+    if( summary_format != "human" && summary_format != "csv" ){
+      std::cerr << "unkown summary format, using \"csv\"" << std::endl;
+      summary_format = "csv";
+    }
+    if( summary_format == "csv" ){
+      summary << "filename";
+      for( unsigned int ii=0; ii<surface_projection::parameter_names.size(); ii++){
+	summary << "," << surface_projection::parameter_names.at(ii);
+      }
+      summary << std::endl;
+    }
   }
 
   ~cmd_callback(){
@@ -243,12 +262,19 @@ public:
     sp.compute_projection();
     sp.save_to_png( fn, invert, "LIN" );
 
-    summary << fn << "    ";
+    // write the summary file entry
 
-    for( auto it : surface_projection::parameter_names ){
-      summary << it << "=" << sp.get_parameter( it ) << " ";
+    summary << fn;;
+    if( summary_format == "human" ){
+      summary << "    ";
+      for( auto it : surface_projection::parameter_names ){
+	summary << it << "=" << sp.get_parameter( it ) << " ";
+      }
+    } else if ( summary_format == "csv" ){
+      for( unsigned int ii=0; ii<surface_projection::parameter_names.size(); ii++){
+	summary << "," << sp.get_parameter( surface_projection::parameter_names.at(ii) );
+      }
     }
-
     summary << std::endl;
     
       
@@ -261,6 +287,7 @@ public:
   batch_creation &bc;
   std::string fn_prefix;
   std::ofstream summary;
+  std::string summary_format;
 };
 
 
@@ -288,7 +315,7 @@ int main( int argc, char* argv[] ){
 
   // get the functor
 
-  cmd_callback cmdcb ( sp, bc, ops.fn_prefix );
+  cmd_callback cmdcb ( sp, bc, ops.fn_prefix, ops.sum_format );
   cmdcb.set_img_mode( true, "LIN" );
   
   if( ops.mode == "ordered" ){    
