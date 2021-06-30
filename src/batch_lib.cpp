@@ -333,6 +333,12 @@ bool batch_creation::set_random_parameters( bool quadratic ){
 
     double val;
 
+    // check if we have enough parameters
+    if( ops.values[ii].size() != 3 ){
+      std::cerr << ops.parameters[ii] << ": not enough parameters provided! Provide three comma-separated parameters!" << std::endl;
+      return false;
+    }
+    
     // get the distribution first
     if( int( ops.values[ii][0] ) == 0 ){   // uniform distribtion      
       std::uniform_real_distribution<double> dist (ops.values[ii][1], ops.values[ii][2] );

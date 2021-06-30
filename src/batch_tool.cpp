@@ -77,7 +77,7 @@ void print_help(){
 	    << "Random mode: provide comma separated tupel. First character indicates"
 	    << " random distribution, further floats are distribution parameters:" << std::endl
 	    << "0: uniform, with parameters lower and upper bound: 0,lo,hi" << std::endl
-	    << "1: normal, with parameters mu and sigma: 0,mu,sigma" << std::endl    
+	    << "1: normal, with parameters mu and sigma: 1,mu,sigma" << std::endl    
 	    << std::endl
 	    << "last given parameter is increased most frequently, first least frequently" << std::endl
 	    << "recommending using miller indeces as last ones, otherwise configurations" << std::endl
@@ -268,6 +268,7 @@ int main( int argc, char* argv[] ){
 
   if( argc == 1 ){
     print_help();
+    return EXIT_SUCCESS;
   }
 
   global_settings gs ( "global_settins.conf" );
