@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <iostream>
-
+#include <random>
 
 class image_manipulation {
 
@@ -27,8 +27,10 @@ public:
    * \param[in] The standard deviation of the 2D gaussian in x and y direction
    * \param[in] magnitude the height of the 2D gaussian
    */
-  static void gaussian_blur( unsigned char* img, unsigned int width, unsigned height, unsigned int kernel_size );
+  static void gaussian_blur( unsigned char* img, unsigned int width, unsigned int height, unsigned int kernel_size );
 
+  static void gaussian_noise( unsigned char* img, unsigned int width, unsigned int height, double magnitude );
+  
 };
 
 

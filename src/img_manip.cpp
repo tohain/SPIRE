@@ -84,6 +84,37 @@ void image_manipulation::gaussian_blur( unsigned char* img, unsigned int width, 
     img[i] = soft_img[i];
   }
 
+  delete[] (soft_img);
+}
+
+
+void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width, unsigned int height, double magnitude ){
+  
+  // bring in the random numbers
+  std::mt19937 generator;
+  std::normal_distribution<double> dist (0, 1.0/6.0);
+
+  // create a new image
+  short *noisy_img = new short[width*height]();
+  
+  for( unsigned int ii=0; ii< width*height; ii++){
+    noisy_img[ii] = img[ii] + static_cast<short>( dist(generator) * magnitude);
+  }
+
+  //rescale
+  short min=0, max=0;
+  for( unsigned int i=0; i < width*height; i++){
+    if( noisy_img[i] > max )
+      max = noisy_img[i];
+    if( noisy_img[i] < min )
+      min = noisy_img[i];
+  }
+
+  for( unsigned int i=0; i < width*height; i++){
+    img[i] = (unsigned char) (((float)noisy_img[i] - min) / (max - min) * 255.0);    
+  }
+
+  delete[] (noisy_img);
 }
 
   
