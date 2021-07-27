@@ -20,6 +20,7 @@
 #include "distance_transform.hpp"
 #include "img_out.hpp"
 #include "homotopic_thinning.hpp"
+#include "img_manip.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -51,6 +52,11 @@ typedef struct {
   std::string mode = "ordered";
   unsigned long N;
   bool quadratic = false;
+
+  double gaussian_noise = -1;
+  double gaussian_blur = -1;
+  std::vector<double> grains = std::vector<double> (0,0);
+  std::string post_processing = "";
 } cmd_options;
 
 void print_help(){
@@ -59,7 +65,7 @@ void print_help(){
 	    << std::endl
 	    << "fixed parameters for the entire sweep:" << std::endl
 	    << "   --membranes       : comma separated pairs of pos,width" << std::endl
-            << "                       ALWAYS includes a membrane of 0,0.3." << std::endl
+            << "                       ALWAYS includes a membrane of 0,0.03" << std::endl
 	    << "                       can be disabled using filled_channels" << std::endl
 	    << "   --filled_channels : comma separated number of 1 or 0." << std::endl
 	    << "                       1 is a filled channel, 0 can disable membranes" << std::endl
@@ -71,6 +77,14 @@ void print_help(){
 	    << "   --N               : number of projections to be computed (random mode only)" << std::endl
 	    << "   --quadratic       : only allows quadratic projections, height is set to width (random mode only)" << std::endl
 	    << "   --summary_format  : the format of the summary file (human,csv)" << std::endl
+	    << "   --gaussian_noise  : adds gaussian noise to the image. provide magnitude as parameter" << std::endl
+	    << "   --guassian_blur   : adds a gaussian blur to the image. Provide kernel size as parameter" << std::endl
+	    << "   --add_grains      : adds grains to the image; comma separated parameters:" << std::endl
+	    << "                     : grain_size_mu,grain_size_sigma,grain_number_mu,grain_number_sigam,intensity" << std::endl
+
+	    << "   --post_processing : post_processing mode, only applies specified filters to space" << std::endl
+	    << "                       separated list of files. Must come last or will cause errors!" << std::endl
+	    << "                       OVERTWRITES FILES!!!!" << std::endl
     
 	    << std::endl
 
@@ -214,6 +228,27 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
     if( strcmp( argv[ii], "--quadratic") == 0 ){
       ops.quadratic = true;
     }
+
+
+    // post processing
+    if( strcmp( argv[ii], "--gaussian_noise" ) == 0 ){
+      ops.gaussian_noise = std::stod( argv[ii+1] );
+    }
+    if( strcmp( argv[ii], "--gaussian_blur" ) == 0 ){
+      ops.gaussian_blur = std::stod( argv[ii+1] );
+    }
+
+    if( strcmp( argv[ii], "--add_grains" ) == 0 ){
+      auto split = my_utility::str_split( std::string( argv[ii+1] ), ',' );
+      ops.grains.resize( split.size() );
+      for( unsigned int i=0; i<split.size(); i++){
+	ops.grains[i] = std::stod( split[i] );
+      }
+    }
+    
+    if( strcmp( argv[ii], "--post_processing" ) == 0 ){
+      ops.post_processing = std::string( argv[ii+1] );
+    }    
     
   }
     
@@ -228,12 +263,18 @@ public:
   cmd_callback( surface_projection &sp,
 		batch_creation &bc_,
 		std::string prefix,
-		std::string summary_format_ ) :
+		std::string summary_format_,
+		double gaussian_noise_,
+		double gaussian_blur_,
+		std::vector<double> grains_ ) :
     sp_callback( sp ),
     fn_prefix( prefix ),
     bc( bc_ ),
     counter (0),
-    summary_format( summary_format_ )
+    summary_format( summary_format_ ),
+    gaussian_noise( gaussian_noise_ ),
+    gaussian_blur( gaussian_blur_ ),
+    grains( grains_ )
   {
     summary.open( fn_prefix + "_summary.txt" );
     if( summary_format != "human" && summary_format != "csv" ){
@@ -260,8 +301,25 @@ public:
     sp.validate_uc_scaling();
     sp.update_geometry();
     sp.compute_projection();
-    sp.save_to_png( fn, invert, "LIN" );
 
+
+    unsigned char *img = sp.get_image( invert, "LIN" );
+
+    if( gaussian_blur > 0 ){
+      image_manipulation::gaussian_blur( img, sp.get_width(), sp.get_height(), gaussian_blur );
+    }
+
+    if( grains.size() > 0 ){
+      image_manipulation::add_grains( img, sp.get_width(), sp.get_height(), grains[0], grains[1], grains[2], grains[3], grains[4] );
+    }    
+
+    if( gaussian_noise > 0 ){
+      image_manipulation::gaussian_noise( img, sp.get_width(), sp.get_height(), gaussian_noise );
+    }
+
+    image_manipulation::write_png( fn, img, sp.get_width(), sp.get_height() );
+    delete[] (img);
+    
     // write the summary file entry
 
     summary << fn;;
@@ -288,6 +346,9 @@ public:
   std::string fn_prefix;
   std::ofstream summary;
   std::string summary_format;
+  double gaussian_blur;
+  double gaussian_noise;
+  std::vector<double> grains;
 };
 
 
@@ -298,6 +359,7 @@ int main( int argc, char* argv[] ){
     return EXIT_SUCCESS;
   }
 
+  
   global_settings gs ( "global_settins.conf" );
   cmd_options ops;
   surface_projection sp ( gs );
@@ -305,7 +367,7 @@ int main( int argc, char* argv[] ){
   
   try {
     parse_cmd_options( argc, argv, bc, ops );
-    if( !check_and_set_fixed_pars( ops, sp ) ){
+    if( ops.post_processing == "" && !check_and_set_fixed_pars( ops, sp ) ){
       return EXIT_FAILURE;
     }
   } catch ( std::string s ){
@@ -313,9 +375,38 @@ int main( int argc, char* argv[] ){
     return EXIT_FAILURE;
   }
 
+
+  // check if we're only post-processing than nothing needs to be
+  // initialized
+  if( ops.post_processing != "" ){
+    
+    // get an array of filenames
+    std::vector<std::string> files = my_utility::str_split( ops.post_processing, ' ' );
+    for( unsigned int ii=0; ii<files.size(); ii++){
+      unsigned char *img;
+      int width, height;
+      image_manipulation::read_png( files[ii], &img, &width, &height );
+      if( ops.gaussian_blur > 0 ){
+	image_manipulation::gaussian_blur( img, width, height, ops.gaussian_blur );
+      }
+
+      if( ops.grains.size() > 0 ){
+	image_manipulation::add_grains( img, width, height, ops.grains[0], ops.grains[1], ops.grains[2], ops.grains[3], ops.grains[4] );
+      }      
+      
+      if( ops.gaussian_noise > 0 ){
+	image_manipulation::gaussian_noise( img, width, height, ops.gaussian_noise );
+      }
+      image_manipulation::write_png( files[ii], img, width, height );
+      delete[] (img);
+    }
+    return EXIT_SUCCESS;
+  }
+  
+
   // get the functor
 
-  cmd_callback cmdcb ( sp, bc, ops.fn_prefix, ops.sum_format );
+  cmd_callback cmdcb ( sp, bc, ops.fn_prefix, ops.sum_format, ops.gaussian_noise, ops.gaussian_blur, ops.grains );
   cmdcb.set_img_mode( true, "LIN" );
   
   if( ops.mode == "ordered" ){    

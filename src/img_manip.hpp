@@ -4,7 +4,8 @@
 #include <cmath>
 #include <iostream>
 #include <random>
-
+#include <cstring>
+#include <ctime>
 
 #ifdef HAVE_PNG
 #include <png.h>
@@ -51,6 +52,26 @@ public:
   static void gaussian_noise( unsigned char* img, unsigned int width, unsigned int height, double magnitude );
 
 
+
+  /**
+   * \brief Adds grains to the image
+   *
+   * Adds grains to the image, i.e. grainy gaussian noise.
+   *
+   * \param[in] img The image to add noise to
+   * \param[in] width The width of the image in pixels
+   * \param[in] height The height of the image in pixels
+   * \param[in] grain_size_center The center of the normal distribution for grain_size
+   * \param[in] grain_size_width The standard deviation of the normal distribution for grain_size
+   * \param[in] grain_number_center The center of the normal distribution for grain_number
+   * \param[in] grain_number_width The standard deviation of the normal distribution for grain_number
+   * \param[in] magnitude The intensity of the grains
+   */
+  static void add_grains( unsigned char* img, unsigned int width, unsigned int height,
+			  int grain_size_center, int grain_size_width,
+			  int grain_number_center, int grain_number_width,
+			  double magnitude );
+  
 
 #ifdef HAVE_PNG
   /**

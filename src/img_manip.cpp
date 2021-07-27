@@ -92,6 +92,7 @@ void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width,
   
   // bring in the random numbers
   std::mt19937 generator;
+  generator.seed( time(NULL) );
   std::normal_distribution<double> dist (0, 1.0/6.0);
 
   // create a new image
@@ -100,6 +101,85 @@ void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width,
   for( unsigned int ii=0; ii< width*height; ii++){
     noisy_img[ii] = img[ii] + static_cast<short>( dist(generator) * magnitude);
   }
+
+  //rescale
+  short min=0, max=0;
+  for( unsigned int i=0; i < width*height; i++){
+    if( noisy_img[i] > max )
+      max = noisy_img[i];
+    if( noisy_img[i] < min )
+      min = noisy_img[i];
+  }
+
+  for( unsigned int i=0; i < width*height; i++){
+    img[i] = (unsigned char) (((float)noisy_img[i] - min) / (max - min) * 255.0);    
+  }
+
+  delete[] (noisy_img);
+}
+
+
+
+
+void image_manipulation::add_grains( unsigned char* img, unsigned int width, unsigned int height,
+				     int grain_size_center, int grain_size_width,
+				     int grain_number_center, int grain_number_width,
+				     double magnitude ){
+  
+  // bring in the random numbers
+  std::mt19937 generator;
+  generator.seed( time(NULL) );
+
+  std::normal_distribution<double> dist (0, 1.0/6.0);
+
+  std::uniform_int_distribution<int> uniform_w (0, width);
+  std::uniform_int_distribution<int> uniform_h (0, height);
+
+  std::normal_distribution<double> grain_number_dist (grain_number_center, grain_number_width);
+  std::normal_distribution<double> grain_size_dist (grain_size_center, grain_size_width);  
+  
+  // create a new image and copy data
+  short *noisy_img = new short[width*height]();
+  for( unsigned int i=0; i<width*height; i++){
+    noisy_img[i] = img[i];
+  }
+  
+  unsigned int N = grain_number_dist( generator );
+  
+  for( unsigned int ii=0; ii < N; ii++){
+
+    int grain_size = grain_size_dist( generator );
+    
+    // pick a random location on the image
+    int cx = uniform_w( generator );
+    int cy = uniform_h( generator );
+    
+    //pick a random intensity
+    double intensity = magnitude * dist( generator );
+    
+    for( int yy=-grain_size; yy <= grain_size; yy++ ){
+      int xb = sqrt( grain_size*grain_size - yy*yy );
+      for( int xx = -xb; xx<=xb; xx++){
+
+	int ind_x = cx + xx;
+	int ind_y = cy + yy;
+
+	if( ind_x < 0 )
+	  ind_x += width;
+	if( ind_x >= width )
+	  ind_x -= width;
+	if( ind_y < 0 )
+	  ind_y += height;
+	if( ind_y >= height )
+	  ind_y -= height;
+
+	int ind = ind_x + ind_y * width;	
+
+	noisy_img[ind] += intensity;
+      }
+    }
+  }
+  
 
   //rescale
   short min=0, max=0;
