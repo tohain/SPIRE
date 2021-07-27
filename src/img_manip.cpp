@@ -120,3 +120,120 @@ void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width,
   
 
 
+#ifdef HAVE_PNG
+
+void image_manipulation::read_png( std::string fn, unsigned char **img, int *width, int *height ){
+
+  // start of by opening the file
+  FILE *fp = fopen( fn.c_str(), "rb" );
+  if(!fp)
+    return;
+
+  unsigned char header[8];
+  fread(header, 1, 8, fp);
+  if( png_sig_cmp( header, 0, 8 ) ){
+    std::cerr << "not a png file!" << std::endl;
+  }
+
+  png_structp png_ptr = png_create_read_struct( PNG_LIBPNG_VER_STRING,
+						NULL,
+						NULL,
+						NULL );
+
+  if( !png_ptr ){
+    png_destroy_read_struct( &png_ptr, NULL, NULL );    
+    return;
+  }
+
+  png_infop info_ptr = png_create_info_struct( png_ptr );
+  if( !png_ptr ){
+    png_destroy_read_struct( &png_ptr, &info_ptr, NULL );    
+    return;
+  }
+  
+  png_infop end_info = png_create_info_struct( png_ptr );
+  if( !end_info ){
+    png_destroy_read_struct( &png_ptr, &info_ptr, &end_info );
+    return;
+  }
+
+  png_init_io( png_ptr, fp );
+  png_set_sig_bytes( png_ptr, 8 );
+
+  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+  *width = png_get_image_width( png_ptr,info_ptr);
+  *height = png_get_image_height( png_ptr,info_ptr);  
+  
+  int color_type = png_get_color_type( png_ptr, info_ptr );
+  int bit_depth = png_get_bit_depth( png_ptr, info_ptr );
+  
+  png_bytep *row_pointers;
+  row_pointers = png_get_rows(png_ptr, info_ptr );
+
+
+  // allocate the memory
+  *img = new unsigned char[*width*(*height)]();
+  
+  for(unsigned int ii=0; ii<*height; ii++){
+    for( unsigned int jj=0; jj<*width; jj++){
+      (*img)[jj+ii*(*width)] = row_pointers[ii][jj];
+    }
+  }
+  
+  // free memory
+  png_destroy_read_struct( &png_ptr, &info_ptr, &end_info );
+  
+}
+
+
+/**
+ * writes the current projection to a png image
+ */
+void image_manipulation::write_png( std::string out_fn,
+				    unsigned char *img,
+				    unsigned int width,
+				    unsigned int height ){
+
+  //unsigned char *img = get_image( invert, scaling );
+  
+  // convert 1d to 2d array
+  png_bytep *rows = new png_bytep[height];
+  // set up png array
+  for( unsigned int ii=0; ii < height; ii++ ){
+    rows[ii] = img + ii * width * sizeof( png_byte );
+  }
+  
+  FILE *fp = fopen( out_fn.c_str(), "wb" );
+  if( !fp ){
+    throw std::string ("error opening file");
+  }
+
+  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
+  png_infop png_info = png_create_info_struct( png_ptr );
+
+  png_init_io(png_ptr, fp);
+  
+  png_set_IHDR(png_ptr, png_info, width, height,
+	       8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+	       PNG_COMPRESSION_TYPE_DEFAULT,
+	       PNG_COMPRESSION_TYPE_DEFAULT);
+
+  png_write_info( png_ptr, png_info );
+  png_write_image( png_ptr, rows );
+
+  png_write_end( png_ptr, png_info );
+
+  png_destroy_write_struct(&png_ptr, &png_info);
+  
+  fclose(fp);
+
+  delete[]( rows );
+}
+
+
+
+#endif
+
+
+
