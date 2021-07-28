@@ -92,7 +92,8 @@ void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width,
   
   // bring in the random numbers
   std::mt19937 generator;
-  generator.seed( time(NULL) );
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  generator.seed( seed );
   std::normal_distribution<double> dist (0, 1.0/6.0);
 
   // create a new image
@@ -128,7 +129,8 @@ void image_manipulation::add_grains( unsigned char* img, unsigned int width, uns
   
   // bring in the random numbers
   std::mt19937 generator;
-  generator.seed( time(NULL) );
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  generator.seed( seed );
 
   std::normal_distribution<double> dist (0, 1.0/6.0);
 
