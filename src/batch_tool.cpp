@@ -56,7 +56,7 @@ typedef struct {
   double gaussian_noise = -1;
   double gaussian_blur = -1;
   std::vector<double> grains = std::vector<double> (0,0);
-  std::string post_processing = "";
+  std::vector<std::string> post_processing = std::vector<std::string> (0,"");
 } cmd_options;
 
 void print_help(){
@@ -247,7 +247,9 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
     }
     
     if( strcmp( argv[ii], "--post_processing" ) == 0 ){
-      ops.post_processing = std::string( argv[ii+1] );
+      for( int jj=ii+1; jj<argc; jj++){
+	ops.post_processing.push_back( std::string( argv[jj] ) );
+      }
     }    
     
   }
@@ -305,13 +307,13 @@ public:
 
     unsigned char *img = sp.get_image( invert, "LIN" );
 
-    if( gaussian_blur > 0 ){
-      image_manipulation::gaussian_blur( img, sp.get_width(), sp.get_height(), gaussian_blur );
-    }
-
     if( grains.size() > 0 ){
       image_manipulation::add_grains( img, sp.get_width(), sp.get_height(), grains[0], grains[1], grains[2], grains[3], grains[4] );
     }    
+
+    if( gaussian_blur > 0 ){
+      image_manipulation::gaussian_blur( img, sp.get_width(), sp.get_height(), gaussian_blur );
+    }
 
     if( gaussian_noise > 0 ){
       image_manipulation::gaussian_noise( img, sp.get_width(), sp.get_height(), gaussian_noise );
@@ -367,7 +369,7 @@ int main( int argc, char* argv[] ){
   
   try {
     parse_cmd_options( argc, argv, bc, ops );
-    if( ops.post_processing == "" && !check_and_set_fixed_pars( ops, sp ) ){
+    if( ops.post_processing.size() == 0 && !check_and_set_fixed_pars( ops, sp ) ){
       return EXIT_FAILURE;
     }
   } catch ( std::string s ){
@@ -378,26 +380,26 @@ int main( int argc, char* argv[] ){
 
   // check if we're only post-processing than nothing needs to be
   // initialized
-  if( ops.post_processing != "" ){
+  if( ops.post_processing.size() > 0 ){
     
     // get an array of filenames
-    std::vector<std::string> files = my_utility::str_split( ops.post_processing, ' ' );
-    for( unsigned int ii=0; ii<files.size(); ii++){
+    for( unsigned int ii=0; ii<ops.post_processing.size(); ii++){
       unsigned char *img;
       int width, height;
-      image_manipulation::read_png( files[ii], &img, &width, &height );
-      if( ops.gaussian_blur > 0 ){
-	image_manipulation::gaussian_blur( img, width, height, ops.gaussian_blur );
-      }
+      image_manipulation::read_png( ops.post_processing[ii], &img, &width, &height );
 
       if( ops.grains.size() > 0 ){
 	image_manipulation::add_grains( img, width, height, ops.grains[0], ops.grains[1], ops.grains[2], ops.grains[3], ops.grains[4] );
       }      
+
+      if( ops.gaussian_blur > 0 ){
+	image_manipulation::gaussian_blur( img, width, height, ops.gaussian_blur );
+      }
       
       if( ops.gaussian_noise > 0 ){
 	image_manipulation::gaussian_noise( img, width, height, ops.gaussian_noise );
       }
-      image_manipulation::write_png( files[ii], img, width, height );
+      image_manipulation::write_png( ops.post_processing[ii], img, width, height );
       delete[] (img);
     }
     return EXIT_SUCCESS;
