@@ -6,6 +6,7 @@
 #include <random>
 #include <cstring>
 #include <ctime>
+#include <chrono>
 
 #ifdef HAVE_PNG
 #include <png.h>

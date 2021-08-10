@@ -321,33 +321,35 @@ long batch_creation::total_combinations(){
  * lower and upper boundary of uniformly distributed samples
  *
  * \param[in] qudratic if set to true, only qudartic projections are sampled (height set to width)
+ * \param[in] skip A list of parameters which are to be skipped
  * \param[out] Returns true if all parameters set without errors, false otherwise
  */
-bool batch_creation::set_random_parameters( bool quadratic ){
+bool batch_creation::set_random_parameters( bool quadratic, std::vector<std::string> skip ){
 
   bool caught_exception = false;
-
 
   
   for( unsigned int ii=0; ii<ops.parameters.size(); ii++){
 
-    double val;
-
-    // check if we have enough parameters
-    if( ops.values[ii].size() != 3 ){
-      std::cerr << ops.parameters[ii] << ": not enough parameters provided! Provide three comma-separated parameters!" << std::endl;
-      return false;
-    }
-    
-    // get the distribution first
-    if( int( ops.values[ii][0] ) == 0 ){   // uniform distribtion      
-      std::uniform_real_distribution<double> dist (ops.values[ii][1], ops.values[ii][2] );
-      val = dist( generator );            
-    } else if ( int( ops.values[ii][0] == 1 ) ) {      
-      std::normal_distribution<double> dist ( ops.values[ii][1], ops.values[ii][2] );      
-      val = dist( generator );
-    }
-
+    if( std::find( skip.begin(), skip.end(), ops.parameters[ii] ) == skip.end() ){
+      
+      double val;
+      
+      // check if we have enough parameters
+      if( ops.values[ii].size() != 3 ){
+	std::cerr << ops.parameters[ii] << ": not enough parameters provided! Provide three comma-separated parameters!" << std::endl;
+	return false;
+      }
+      
+      // get the distribution first
+      if( int( ops.values[ii][0] ) == 0 ){   // uniform distribtion      
+	std::uniform_real_distribution<double> dist (ops.values[ii][1], ops.values[ii][2] );
+	val = dist( generator );            
+      } else if ( int( ops.values[ii][0] == 1 ) ) {      
+	std::normal_distribution<double> dist ( ops.values[ii][1], ops.values[ii][2] );      
+	val = dist( generator );
+      }
+      
       
       try {
 	sp.set_parameter( ops.parameters[ii], val );
@@ -358,9 +360,12 @@ bool batch_creation::set_random_parameters( bool quadratic ){
 	// mind.
 	caught_exception = true;
       }
+      
+    } 
+    
   }
-
+  
   if( quadratic ) sp.set_slice_height( sp.get_slice_width() ); // set the slice height to slice width
-
+   
   return !caught_exception;
 }

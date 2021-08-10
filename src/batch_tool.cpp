@@ -57,6 +57,11 @@ typedef struct {
   double gaussian_blur = -1;
   std::vector<double> grains = std::vector<double> (0,0);
   std::vector<std::string> post_processing = std::vector<std::string> (0,"");
+
+
+  std::vector<std::string> to_skip;
+  std::vector<int> strides;
+  
 } cmd_options;
 
 void print_help(){
@@ -81,6 +86,9 @@ void print_help(){
 	    << "   --guassian_blur   : adds a gaussian blur to the image. Provide kernel size as parameter" << std::endl
 	    << "   --add_grains      : adds grains to the image; comma separated parameters:" << std::endl
 	    << "                     : grain_size_mu,grain_size_sigma,grain_number_mu,grain_number_sigam,intensity" << std::endl
+	    << "   --skip            : comma separated list of parameters and strides (parameter0,n0,parameter1,n1,...) " << std::endl
+	    << "                     : to keep constant for a number of computed projections" << std::endl
+
 
 	    << "   --post_processing : post_processing mode, only applies specified filters to space" << std::endl
 	    << "                       separated list of files. Must come last or will cause errors!" << std::endl
@@ -180,16 +188,17 @@ std::vector<double> split_and_map( std::string in ){
 
 
 void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options &ops ){
+
+  size_t pos_found = std::string::npos;
   
-  char *found_it = NULL;
-  
-  for( int ii=1; ii<argc; ii++) {    
+  for( int ii=1; ii<argc; ii++) {
+    
     for( unsigned int jj=0; jj<surface_projection::parameter_names.size(); jj++){
 
       // check all the iterable parameters
-      found_it = strstr( argv[ii], surface_projection::parameter_names[jj].c_str() );
-      
-      if( found_it != NULL ){
+      pos_found = std::string( argv[ii] ).find( surface_projection::parameter_names[jj] );
+            
+      if( pos_found != std::string::npos && (pos_found == 2 || pos_found == 1 ) ) {
 	bc.add_parameter( surface_projection::parameter_names[jj], std::string( argv[ii+1] ) );
       }
     }
@@ -245,6 +254,25 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
 	ops.grains[i] = std::stod( split[i] );
       }
     }
+
+
+    if( strcmp( argv[ii], "--skip" ) == 0 ){
+      auto split = my_utility::str_split( std::string( argv[ii+1] ), ',' );      
+
+      if( split.size() % 2 == 0 ){
+	for( unsigned int ii=0; ii<split.size(); ii++){
+	  if( ii%2==0 ){
+	    ops.to_skip.push_back( split[ii] );
+	  } else {
+	    ops.strides.push_back( std::stoi( split[ii] ) );
+	  }
+	}	
+      } else {
+	std::cerr << "incorrect format of --skip parameter" << std::endl;
+      }
+      
+    }
+
     
     if( strcmp( argv[ii], "--post_processing" ) == 0 ){
       for( int jj=ii+1; jj<argc; jj++){
@@ -378,6 +406,8 @@ int main( int argc, char* argv[] ){
   }
 
 
+
+
   // check if we're only post-processing than nothing needs to be
   // initialized
   if( ops.post_processing.size() > 0 ){
@@ -420,11 +450,24 @@ int main( int argc, char* argv[] ){
 
     long long counter = 0;
     std::ofstream f_out ( ops.fn_prefix + "_faulty.txt" );
+
     
     std::vector<std::vector<double>::iterator > dummy_it;    
     for( unsigned long ii=0; ii<ops.N; ii++ ){
 
-      if( !bc.set_random_parameters( ops.quadratic ) ){
+
+      
+      // create the skip string to pass to set_random_parameters
+      std::vector<std::string> skip;
+      for( unsigned int kk=0; kk<ops.strides.size(); kk++){
+	
+	if( counter % ops.strides[kk] && counter>0 ){
+	  skip.push_back( ops.to_skip[kk] );
+	}
+	
+      }
+            
+      if( !bc.set_random_parameters( ops.quadratic, skip ) ){
 	f_out << counter << " " << " caught invalid_parameter_exception" << std::endl;
       }
 
