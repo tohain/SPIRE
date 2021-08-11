@@ -326,7 +326,9 @@ public:
   
   bool operator()( std::vector< std::vector<double>::iterator > pars ){
 
-    std::string fn = fn_prefix + "_" + std::to_string( counter ) + ".png";
+    std::stringstream ssfn;
+    ssfn << fn_prefix << "_" << std::setfill('0') << std::setw(5) << counter << ".png";
+    std::string fn = ssfn.str();//fn_prefix + "_" + std::to_string( counter ) + ".png";
 
     sp.validate_uc_scaling();
     sp.update_geometry();
