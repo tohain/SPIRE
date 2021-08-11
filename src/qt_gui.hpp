@@ -62,6 +62,8 @@
 #include "batch_lib.hpp"
 #include "global_settings.hpp"
 
+#include "img_manip.hpp"
+
 /**
  * a short qt wrapper around the batch_lib to it has signals and slots
  */
@@ -311,6 +313,9 @@ private:
   QWidget *batch_widget;
   QScrollArea *batch_scroll_area;
   QWidget *batch_scroll_subwidget;
+
+  QWidget *pp_widget;
+
   
   QWidget *save_widget;
   QWidget *about_widget;
@@ -399,6 +404,19 @@ private:
   QPushButton *batch_compute_stop;
   QCheckBox *batch_render_parameters;
   QCheckBox *batch_render_all_parameters;
+
+
+
+
+  // post processing
+  QT_labeled_obj<QSpinBox> *gaussian_noise_magnitude;
+  QT_labeled_obj<QSpinBox> *gaussian_blur_kernelsize;
+  QT_labeled_obj<QSpinBox> *grains_gsize_c;
+  QT_labeled_obj<QSpinBox> *grains_gsize_s;
+  QT_labeled_obj<QSpinBox> *grains_gnumber_c;
+  QT_labeled_obj<QSpinBox> *grains_gnumber_s;
+  QT_labeled_obj<QSpinBox> *grains_magnitude;
+  QCheckBox *gaussian_noise_activate, *gaussian_blur_activate, *grains_activate;
   
   //status bar
   QStatusBar *status_bar;
@@ -447,6 +465,7 @@ private:
   QHBoxLayout *measurement_widget_buttons_layout;
   QHBoxLayout *measurement_pixinfo_slice_layout;
   QHBoxLayout *measurement_pixinfo_uc_layout;    
+
   QVBoxLayout *save_widget_layout;
 
   
@@ -454,6 +473,17 @@ private:
   QHBoxLayout *batch_widget_buttons_layout;
   QVBoxLayout *batch_widget_parameters_layout;
   QHBoxLayout *batch_widget_output_layout;
+
+  QVBoxLayout *pp_widget_layout;
+  QHBoxLayout *gaussian_noise_layout;
+  QHBoxLayout *gaussian_blur_layout;
+  QHBoxLayout *grains_layout;
+
+  QHBoxLayout *gaussian_noise_label_layout,
+    *gaussian_blur_label_layout,
+    *grains_label_layout;
+  
+  QFrame *h_line_4, *h_line_5, *h_line_6;
   
   QVBoxLayout *about_widget_layout;
   QHBoxLayout *about_qt_layout;
@@ -567,7 +597,10 @@ public slots:
   void measure_percolation();  
 
   void deactivate_measurement_buttons();
-  void activate_measurement_buttons();  
+  void activate_measurement_buttons();
+
+  void deactivate_pp_controls();
+  void activate_pp_controls();    
   
   void choose_export_prefix();
   std::string get_prefix();

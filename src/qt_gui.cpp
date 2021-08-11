@@ -33,7 +33,8 @@ void GUI::set_up_ui(){
   batch_scroll_subwidget->setSizePolicy( QSizePolicy::Expanding,
 					 QSizePolicy::Expanding);
 
-  
+
+  pp_widget = new QWidget( controls );  
   save_widget = new QWidget( controls );
   about_widget = new QWidget( controls );
   license_widget = new QWidget( controls );  
@@ -41,6 +42,7 @@ void GUI::set_up_ui(){
   controls->addTab( parameters_widget, "Parameters" );
   controls->addTab( measurement_widget, "Measurements" );
   controls->addTab( batch_widget, "Batch creation" );
+  controls->addTab( pp_widget, "PostProcessing" );
   controls->addTab( save_widget, "Export" );
   controls->addTab( about_widget, "About" );
   controls->addTab( license_widget, "License" );  
@@ -268,6 +270,59 @@ void GUI::set_up_ui(){
 
   batch_progress = new QProgressBar( batch_scroll_subwidget );
 
+
+
+  /*
+   * post processing
+   */
+
+
+  gaussian_noise_magnitude = new QT_labeled_obj<QSpinBox> ( "hl", "Magnitude", pp_widget );
+  gaussian_noise_magnitude->object()->setRange(1, 999);
+  gaussian_blur_kernelsize = new QT_labeled_obj<QSpinBox> ( "hl", "Kernel Size", pp_widget );
+  gaussian_blur_kernelsize->object()->setRange(1, 999);
+
+  grains_gsize_c = new QT_labeled_obj<QSpinBox> ( "vl", "Size Center" );
+  grains_gsize_c->object()->setRange(1, 999);
+
+  grains_gsize_s = new QT_labeled_obj<QSpinBox> ( "vl", "Size StdDev" );
+  grains_gsize_s->object()->setRange(1, 999);
+
+  grains_gnumber_c = new QT_labeled_obj<QSpinBox> ( "vl", "Number Center" );
+  grains_gnumber_c->object()->setRange(1, 999);
+
+  grains_gnumber_s = new QT_labeled_obj<QSpinBox> ( "vl", "Number StdDev" );
+  grains_gnumber_s->object()->setRange(1, 999);
+
+  grains_magnitude = new QT_labeled_obj<QSpinBox> ( "vl", "Magnitude" );
+  grains_magnitude->object()->setRange(1, 999);
+
+  gaussian_noise_activate = new QCheckBox ( pp_widget );
+  gaussian_noise_activate->setText( "Gaussian Noise" );
+  gaussian_noise_activate->setSizePolicy( QSizePolicy::Maximum,
+					  QSizePolicy::Minimum);
+  
+  gaussian_blur_activate = new QCheckBox ( pp_widget );
+  gaussian_blur_activate->setText( "Gaussian Blur" );
+  gaussian_blur_activate->setSizePolicy( QSizePolicy::Maximum,
+					 QSizePolicy::Minimum);  
+
+  grains_activate = new QCheckBox ( pp_widget );
+  grains_activate->setText( "Grains" );
+  grains_activate->setSizePolicy( QSizePolicy::Maximum,
+				  QSizePolicy::Minimum);
+  
+  h_line_4 = new QFrame( pp_widget );
+  h_line_4->setFrameShape( QFrame::HLine );
+  h_line_4->setFrameShadow( QFrame::Sunken );
+  
+  h_line_5 = new QFrame( pp_widget );
+  h_line_5->setFrameShape( QFrame::HLine );
+  h_line_5->setFrameShadow( QFrame::Sunken );
+  
+  h_line_6 = new QFrame( pp_widget );
+  h_line_6->setFrameShape( QFrame::HLine );
+  h_line_6->setFrameShadow( QFrame::Sunken );
   
   /*
    * Layout
@@ -275,8 +330,8 @@ void GUI::set_up_ui(){
   
   //set up spacers and lines
 
-  // 7 vspacer
-  for( unsigned int ii=0; ii<7; ii++){
+  // 8 vspacer
+  for( unsigned int ii=0; ii<8; ii++){
     v_spacer.push_back( new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding) );
   }
   // 7 hspacer
@@ -451,6 +506,54 @@ void GUI::set_up_ui(){
   batch_widget_layout->addLayout( batch_widget_buttons_layout );
   batch_widget_layout->addWidget( batch_progress );
 
+
+  //
+  // post processing
+  //
+  
+  pp_widget_layout = new QVBoxLayout( pp_widget );
+  gaussian_noise_layout = new QHBoxLayout();
+  gaussian_blur_layout = new QHBoxLayout();
+  grains_layout = new QHBoxLayout();
+
+  gaussian_noise_label_layout = new QHBoxLayout();
+  gaussian_blur_label_layout = new QHBoxLayout();
+  grains_label_layout = new QHBoxLayout();  
+
+
+  gaussian_noise_label_layout->addWidget( gaussian_noise_activate );
+  gaussian_noise_label_layout->addWidget( h_line_4 );
+
+  gaussian_blur_label_layout->addWidget( gaussian_blur_activate );
+  gaussian_blur_label_layout->addWidget( h_line_5 );
+
+  grains_label_layout->addWidget( grains_activate );
+  grains_label_layout->addWidget( h_line_6 );
+
+  
+  pp_widget_layout->addLayout( gaussian_noise_label_layout );
+  gaussian_noise_layout->addLayout( gaussian_noise_magnitude->layout() );
+  pp_widget_layout->addLayout( gaussian_noise_layout );
+
+  pp_widget_layout->addLayout( gaussian_blur_label_layout );
+  gaussian_blur_layout->addLayout( gaussian_blur_kernelsize->layout() );
+  pp_widget_layout->addLayout( gaussian_blur_layout );
+
+  pp_widget_layout->addLayout( grains_label_layout );
+  grains_layout->addLayout( grains_gsize_c->layout() );
+  grains_layout->addLayout( grains_gsize_s->layout() );
+  grains_layout->addLayout( grains_gnumber_c->layout() );
+  grains_layout->addLayout( grains_gnumber_s->layout() );
+  grains_layout->addLayout( grains_magnitude->layout() );  
+  pp_widget_layout->addLayout( grains_layout );
+  pp_widget_layout->addItem( v_spacer[7] );
+ 
+
+  //
+  // measurement
+  //
+
+  
   measurement_widget_buttons_layout->addWidget( measurement_object );
   measurement_widget_buttons_layout->addWidget( button_measure_vol );
   measurement_widget_buttons_layout->addWidget( button_measure_area );  
@@ -773,6 +876,30 @@ void GUI::set_up_signals_and_slots(){
 
 
   /*
+   *  post_processing
+   */
+  connect( gaussian_noise_activate, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );
+  connect( gaussian_blur_activate, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );
+  connect( grains_activate, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );      
+
+  connect( gaussian_noise_magnitude->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+  connect( gaussian_blur_kernelsize->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+
+  connect( grains_gnumber_c->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+  connect( grains_gnumber_s->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+  connect( grains_gsize_c->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+  connect( grains_gsize_s->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+  connect( grains_magnitude->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+	   this, &GUI::update_view );
+    
+
+  /*
    * gui stuff
    */
 
@@ -1045,18 +1172,43 @@ void GUI::draw_unitcell( QPaintDevice *canvas ){
 
 /// updates the projection from the image of the \ref
 /// surface_projection object. Does not recompute the projection
-void GUI::update_view(){
+void GUI::update_view(){  
 
+  deactivate_pp_controls();
   
-  uchar *img_data = sp->get_image( invert_control->object()->isChecked(),
+  unsigned char *img_data = sp->get_image( invert_control->object()->isChecked(),
 				   image_scaling_control->object()->currentText().toStdString() );
   
+  // apply post-processing effects here!
+
+  if( grains_activate->isChecked() ){
+
+    image_manipulation::add_grains( img_data, sp->get_width(), sp->get_height(),
+				    grains_gsize_c->object()->value(),
+				    grains_gsize_s->object()->value(),
+				    grains_gnumber_c->object()->value(),
+				    grains_gnumber_s->object()->value(),
+				    grains_magnitude->object()->value() );
+    
+  }
+
+  if( gaussian_blur_activate->isChecked() ){
+    image_manipulation::gaussian_blur( img_data, sp->get_width(), sp->get_height(),
+				       gaussian_blur_kernelsize->object()->value() );
+  }
+
+  if( gaussian_noise_activate->isChecked() ){
+    image_manipulation::gaussian_noise( img_data, sp->get_width(), sp->get_height(),
+					gaussian_noise_magnitude->object()->value() );
+  }
+  
+
   // this does *NOT* copy the img_data into its own object, so
   // keep that img_data array around!
   QImage image = QImage( img_data, sp->get_width(), sp->get_height(),
 			 sp->get_width(), QImage::Format_Grayscale8 );
   
-
+  
   // load the image into the pixmap
   img_pix->convertFromImage( image );
 
@@ -1070,6 +1222,8 @@ void GUI::update_view(){
   draw_area->setPixmap( *img_pix);
 
   delete[] ( img_data );
+
+  activate_pp_controls();
 }
 
 
@@ -2047,8 +2201,34 @@ void GUI::activate_measurement_buttons(){
 }
 
 
+void GUI::deactivate_pp_controls(){
+  gaussian_noise_magnitude->object()->setEnabled( false );
+  gaussian_blur_kernelsize->object()->setEnabled( false );
+  grains_gsize_c->object()->setEnabled( false );
+  grains_gsize_s->object()->setEnabled( false );
+  grains_gnumber_c->object()->setEnabled( false );
+  grains_gnumber_s->object()->setEnabled( false );
+  grains_magnitude->object()->setEnabled( false );
+  gaussian_noise_activate->setEnabled( false );
+  gaussian_blur_activate->setEnabled( false );
+  grains_activate->setEnabled( false );
+}
 
 
+void GUI::activate_pp_controls(){
+
+  gaussian_noise_magnitude->object()->setEnabled( true );
+  gaussian_blur_kernelsize->object()->setEnabled( true );
+  grains_gsize_c->object()->setEnabled( true );
+  grains_gsize_s->object()->setEnabled( true );
+  grains_gnumber_c->object()->setEnabled( true );
+  grains_gnumber_s->object()->setEnabled( true );
+  grains_magnitude->object()->setEnabled( true );
+  gaussian_noise_activate->setEnabled( true );
+  gaussian_blur_activate->setEnabled( true );
+  grains_activate->setEnabled( true );
+  
+}
 
 
 /*

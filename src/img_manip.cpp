@@ -150,7 +150,7 @@ void image_manipulation::add_grains( unsigned char* img, unsigned int width, uns
   
   for( unsigned int ii=0; ii < N; ii++){
 
-    int grain_size = grain_size_dist( generator );
+    int grain_size = std::abs( grain_size_dist( generator ) );
     
     // pick a random location on the image
     int cx = uniform_w( generator );
