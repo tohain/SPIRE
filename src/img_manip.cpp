@@ -42,7 +42,7 @@ void image_manipulation::gaussian_blur( unsigned char* img, unsigned int width, 
   for( int ii=0; ii < conv_size*conv_size; ii++ ){
     conv_func[ii] /= sum;
   }
-  
+
 
   // apply the gaussian filter in the width dim first
 
@@ -59,15 +59,15 @@ void image_manipulation::gaussian_blur( unsigned char* img, unsigned int width, 
 	  int ind_x = xx - cv2 + cx;
 	  int ind_y = yy - cv2 + cy;
 	  // pbc
-	  if( ind_x < 0 )
+	  while( ind_x < 0 )
 	    ind_x += width;
-	  if( ind_x >= width )
+	  while( ind_x >= width )
 	    ind_x -= width;
 
-	  if( ind_y < 0 )
+	  while( ind_y < 0 )
 	    ind_y += height;
-	  if( ind_y >= height )
-	    ind_y -+ height;
+	  while( ind_y >= height )
+	    ind_y -= height;
 
 	  // total index in 1d array
 	  int ind = ind_y * width + ind_x;
@@ -167,13 +167,13 @@ void image_manipulation::add_grains( unsigned char* img, unsigned int width, uns
 	int ind_x = cx + xx;
 	int ind_y = cy + yy;
 
-	if( ind_x < 0 )
+	while( ind_x < 0 )
 	  ind_x += width;
-	if( ind_x >= width )
+	while( ind_x >= width )
 	  ind_x -= width;
-	if( ind_y < 0 )
+	while( ind_y < 0 )
 	  ind_y += height;
-	if( ind_y >= height )
+	while( ind_y >= height )
 	  ind_y -= height;
 
 	int ind = ind_x + ind_y * width;	
@@ -249,13 +249,13 @@ unsigned char* image_manipulation::create_grains( unsigned int width, unsigned i
 	int ind_x = cx + xx;
 	int ind_y = cy + yy;
 
-	if( ind_x < 0 )
+	while( ind_x < 0 )
 	  ind_x += width;
-	if( ind_x >= width )
+	while( ind_x >= width )
 	  ind_x -= width;
-	if( ind_y < 0 )
+	while( ind_y < 0 )
 	  ind_y += height;
-	if( ind_y >= height )
+	while( ind_y >= height )
 	  ind_y -= height;
 
 	int ind = ind_x + ind_y * width;	
