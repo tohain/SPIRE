@@ -416,6 +416,8 @@ private:
   QT_labeled_obj<QSpinBox> *grains_gnumber_c;
   QT_labeled_obj<QSpinBox> *grains_gnumber_s;
   QT_labeled_obj<QSpinBox> *grains_magnitude;
+  QT_labeled_obj<QSpinBox> *grains_kernelsize;
+  QT_labeled_obj<QDoubleSpinBox> *grains_mix;
   QCheckBox *gaussian_noise_activate, *gaussian_blur_activate, *grains_activate;
   
   //status bar

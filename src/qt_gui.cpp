@@ -297,6 +297,12 @@ void GUI::set_up_ui(){
   grains_magnitude = new QT_labeled_obj<QSpinBox> ( "vl", "Magnitude" );
   grains_magnitude->object()->setRange(1, 999);
 
+  grains_kernelsize = new QT_labeled_obj<QSpinBox> ( "vl", "Blur" );
+  grains_kernelsize->object()->setRange(0, 999);
+
+  grains_mix = new QT_labeled_obj<QDoubleSpinBox> ( "vl", "Mix" );
+  grains_mix->object()->setRange(0.0, 1.0);    
+
   gaussian_noise_activate = new QCheckBox ( pp_widget );
   gaussian_noise_activate->setText( "Gaussian Noise" );
   gaussian_noise_activate->setSizePolicy( QSizePolicy::Maximum,
@@ -544,7 +550,11 @@ void GUI::set_up_ui(){
   grains_layout->addLayout( grains_gsize_s->layout() );
   grains_layout->addLayout( grains_gnumber_c->layout() );
   grains_layout->addLayout( grains_gnumber_s->layout() );
-  grains_layout->addLayout( grains_magnitude->layout() );  
+  grains_layout->addLayout( grains_magnitude->layout() );
+
+  grains_layout->addLayout( grains_kernelsize->layout() );
+  grains_layout->addLayout( grains_mix->layout() );
+  
   pp_widget_layout->addLayout( grains_layout );
   pp_widget_layout->addItem( v_spacer[7] );
  
@@ -882,21 +892,27 @@ void GUI::set_up_signals_and_slots(){
   connect( gaussian_blur_activate, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );
   connect( grains_activate, SIGNAL( stateChanged(int) ), this, SLOT( update_view() ) );      
 
-  connect( gaussian_noise_magnitude->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( gaussian_noise_magnitude->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
-  connect( gaussian_blur_kernelsize->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( gaussian_blur_kernelsize->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
 
-  connect( grains_gnumber_c->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( grains_gnumber_c->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
-  connect( grains_gnumber_s->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( grains_gnumber_s->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
-  connect( grains_gsize_c->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( grains_gsize_c->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
-  connect( grains_gsize_s->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( grains_gsize_s->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
-  connect( grains_magnitude->object(), QOverload<int>::of(&QSpinBox::valueChanged),
+  connect( grains_magnitude->object(), &QSpinBox::editingFinished,
 	   this, &GUI::update_view );
+
+  connect( grains_mix->object(), &QDoubleSpinBox::editingFinished,
+	   this, &GUI::update_view );
+  connect( grains_kernelsize->object(), &QSpinBox::editingFinished,
+	   this, &GUI::update_view );
+  
     
 
   /*
@@ -1174,35 +1190,58 @@ void GUI::draw_unitcell( QPaintDevice *canvas ){
 /// surface_projection object. Does not recompute the projection
 void GUI::update_view(){  
 
-  deactivate_pp_controls();
+  //deactivate_pp_controls();
   
-  unsigned char *img_data = sp->get_image( invert_control->object()->isChecked(),
-				   image_scaling_control->object()->currentText().toStdString() );
+  unsigned char *img_data = sp->get_image( false,
+					   image_scaling_control->object()->currentText().toStdString() );
+
   
   // apply post-processing effects here!
 
-  if( grains_activate->isChecked() ){
-
-    image_manipulation::add_grains( img_data, sp->get_width(), sp->get_height(),
-				    grains_gsize_c->object()->value(),
-				    grains_gsize_s->object()->value(),
-				    grains_gnumber_c->object()->value(),
-				    grains_gnumber_s->object()->value(),
-				    grains_magnitude->object()->value() );
-    
-  }
-
+  
   if( gaussian_blur_activate->isChecked() ){
     image_manipulation::gaussian_blur( img_data, sp->get_width(), sp->get_height(),
 				       gaussian_blur_kernelsize->object()->value() );
   }
+  
+  
+  if( grains_activate->isChecked() ){
+    
+    unsigned char* grains = image_manipulation::create_grains( sp->get_width(), sp->get_height(),
+							       grains_gsize_c->object()->value(),
+							       grains_gsize_s->object()->value(),
+							       grains_gnumber_c->object()->value(),
+							       grains_gnumber_s->object()->value(),
+							       grains_magnitude->object()->value() );
+    
+    
+    if( grains_kernelsize->object()->value() > 0 ){
+      image_manipulation::gaussian_blur( grains, sp->get_width(), sp->get_height(),
+					 grains_kernelsize->object()->value() );
+      
+    }
+    
+    
+    
+    image_manipulation::add_images( img_data, grains, 1.0-grains_mix->object()->value(), grains_mix->object()->value(), sp->get_width(), sp->get_height(), img_data );
+    
+    //img_data = grains;
+    
+  }
 
   if( gaussian_noise_activate->isChecked() ){
     image_manipulation::gaussian_noise( img_data, sp->get_width(), sp->get_height(),
-					gaussian_noise_magnitude->object()->value() );
+    					gaussian_noise_magnitude->object()->value() );
+    
   }
   
 
+  if( invert_control->object()->isChecked() ){
+
+    image_manipulation::invert( img_data, sp->get_width(), sp->get_height() );
+    
+  }
+  
   // this does *NOT* copy the img_data into its own object, so
   // keep that img_data array around!
   QImage image = QImage( img_data, sp->get_width(), sp->get_height(),
@@ -1223,7 +1262,7 @@ void GUI::update_view(){
 
   delete[] ( img_data );
 
-  activate_pp_controls();
+  //activate_pp_controls();
 }
 
 

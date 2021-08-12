@@ -72,8 +72,64 @@ public:
 			  int grain_size_center, int grain_size_width,
 			  int grain_number_center, int grain_number_width,
 			  double magnitude );
+
+
+
+  /**
+   * \brief Creates an image with random disks on it
+   *
+   * Creates, allocates and returns a pointer to an image with grains
+   * on it. To be used as a mask to put over other images
+   *
+   * \param[in] width The width of the image in pixels
+   * \param[in] height The height of the image in pixels
+   * \param[in] grain_size_center The center of the normal distribution for grain_size
+   * \param[in] grain_size_width The standard deviation of the normal distribution for grain_size
+   * \param[in] grain_number_center The center of the normal distribution for grain_number
+   * \param[in] grain_number_width The standard deviation of the normal distribution for grain_number
+   * \param[in] magnitude The intensity of the grains
+   */
+  static unsigned char* create_grains( unsigned int width, unsigned int height,
+			       int grain_size_center, int grain_size_width,
+			       int grain_number_center, int grain_number_width,
+			       double magnitude );  
   
 
+
+  /**
+   * \brief sums up two images pixel-wise
+   *
+   * Merges two images by pixelwise adding the pixels of the two
+   * images, weighted by two numbers; Is rescaled afterwards
+   *
+   * \param[in] rhs The first image to merge
+   * \param[in] lhs The second image to merge
+   * \param[in] rhs_weight The weight of the first image
+   * \param[in] lhs_weight The weight of the second image
+   * \param[in] width The width of the image
+   * \param[in] height The height of the image
+   * \param[out] dest The memory to write the iamge to. Must be allocated!
+   *
+   */
+  static void add_images( unsigned char* rhs, unsigned char* lhs,
+			  double rhs_weight, double lhs_width,
+			  unsigned int width, unsigned int height,
+			  unsigned char* dest );
+  
+
+
+
+  /**
+   * \brief Inverts an image
+   *
+   * \param[in] image The image to invert
+   * \param[in] width The width of the image
+   * \param[in] height The height of the image
+   *
+   */
+  static void invert( unsigned char* img, unsigned int width,
+		      unsigned int height );
+  
 #ifdef HAVE_PNG
   /**
    * \brief Reads an png image from a file into memory as a byte array.

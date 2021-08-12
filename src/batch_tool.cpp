@@ -85,14 +85,14 @@ void print_help(){
 	    << "   --gaussian_noise  : adds gaussian noise to the image. provide magnitude as parameter" << std::endl
 	    << "   --guassian_blur   : adds a gaussian blur to the image. Provide kernel size as parameter" << std::endl
 	    << "   --add_grains      : adds grains to the image; comma separated parameters:" << std::endl
-	    << "                     : grain_size_mu,grain_size_sigma,grain_number_mu,grain_number_sigam,intensity" << std::endl
+	    << "                     : grain_size_mu,grain_size_sigma,grain_number_mu,grain_number_sigam,intensity,blur,mix" << std::endl
 	    << "   --skip            : comma separated list of parameters and strides (parameter0,n0,parameter1,n1,...) " << std::endl
 	    << "                     : to keep constant for a number of computed projections" << std::endl
 
 
 	    << "   --post_processing : post_processing mode, only applies specified filters to space" << std::endl
 	    << "                       separated list of files. Must come last or will cause errors!" << std::endl
-	    << "                       OVERTWRITES FILES!!!!" << std::endl
+	    << "                       OVERWRITES FILES!!!!" << std::endl
     
 	    << std::endl
 
@@ -249,9 +249,15 @@ void parse_cmd_options( int argc, char* argv[], batch_creation &bc, cmd_options 
 
     if( strcmp( argv[ii], "--add_grains" ) == 0 ){
       auto split = my_utility::str_split( std::string( argv[ii+1] ), ',' );
-      ops.grains.resize( split.size() );
-      for( unsigned int i=0; i<split.size(); i++){
-	ops.grains[i] = std::stod( split[i] );
+      if( split.size() == 7 ){
+
+	ops.grains.resize( split.size() );
+	for( unsigned int i=0; i<split.size(); i++){
+	  ops.grains[i] = std::stod( split[i] );
+	}
+
+      } else {
+	std::cerr << "--add_grains: wrong number of parameters" << std::endl;
       }
     }
 
@@ -338,7 +344,15 @@ public:
     unsigned char *img = sp.get_image( invert, "LIN" );
 
     if( grains.size() > 0 ){
-      image_manipulation::add_grains( img, sp.get_width(), sp.get_height(), grains[0], grains[1], grains[2], grains[3], grains[4] );
+
+      unsigned char *noise = new unsigned char[sp.get_width()*sp.get_height()]();
+      noise = image_manipulation::create_grains( sp.get_width(), sp.get_height(), grains[0], grains[1], grains[2], grains[3], grains[4] );
+      if( grains[5] > 0 ){
+	image_manipulation::gaussian_blur( noise, sp.get_width(), sp.get_height(), grains[5] );
+      }
+      image_manipulation::add_images( img, noise, 1.0-grains[6], grains[6], sp.get_width(), sp.get_height(), img );
+      delete[]( noise );
+      
     }    
 
     if( gaussian_blur > 0 ){
@@ -421,7 +435,13 @@ int main( int argc, char* argv[] ){
       image_manipulation::read_png( ops.post_processing[ii], &img, &width, &height );
 
       if( ops.grains.size() > 0 ){
-	image_manipulation::add_grains( img, width, height, ops.grains[0], ops.grains[1], ops.grains[2], ops.grains[3], ops.grains[4] );
+	unsigned char *noise = new unsigned char[width*height]();
+	noise = image_manipulation::create_grains( width, height, ops.grains[0], ops.grains[1], ops.grains[2], ops.grains[3], ops.grains[4] );
+	if( ops.grains[5] > 0 ){
+	  image_manipulation::gaussian_blur( noise, width, height, ops.grains[5] );
+	}
+	image_manipulation::add_images( img, noise, 1.0-ops.grains[6], ops.grains[6], width, height, img );
+	delete[]( noise );	
       }      
 
       if( ops.gaussian_blur > 0 ){

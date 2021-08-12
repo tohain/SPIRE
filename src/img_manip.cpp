@@ -112,6 +112,7 @@ void image_manipulation::gaussian_noise( unsigned char* img, unsigned int width,
       min = noisy_img[i];
   }
 
+  
   for( unsigned int i=0; i < width*height; i++){
     img[i] = (unsigned char) (((float)noisy_img[i] - min) / (max - min) * 255.0);    
   }
@@ -199,7 +200,145 @@ void image_manipulation::add_grains( unsigned char* img, unsigned int width, uns
   delete[] (noisy_img);
 }
 
+
+
+
+
+
+/*
+ * this is not very nice, since this a lot of copy&paste from the code above
+ */
+unsigned char* image_manipulation::create_grains( unsigned int width, unsigned int height,
+					  int grain_size_center, int grain_size_width,
+					  int grain_number_center, int grain_number_width,
+					  double magnitude ){
   
+  // bring in the random numbers
+  std::mt19937 generator;
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  generator.seed( seed );
+
+  std::normal_distribution<double> dist (0, 1.0/6.0);
+
+  std::uniform_int_distribution<int> uniform_w (0, width);
+  std::uniform_int_distribution<int> uniform_h (0, height);
+
+  std::normal_distribution<double> grain_number_dist (grain_number_center, grain_number_width);
+  std::normal_distribution<double> grain_size_dist (grain_size_center, grain_size_width);  
+  
+  // create a new image and copy data
+  short *noisy_img = new short[width*height]();
+  
+  unsigned int N = grain_number_dist( generator );
+  
+  for( unsigned int ii=0; ii < N; ii++){
+
+    int grain_size = std::abs( grain_size_dist( generator ) );
+    
+    // pick a random location on the image
+    int cx = uniform_w( generator );
+    int cy = uniform_h( generator );
+    
+    //pick a random intensity
+    double intensity = magnitude * dist( generator );
+    
+    for( int yy=-grain_size; yy <= grain_size; yy++ ){
+      int xb = sqrt( grain_size*grain_size - yy*yy );
+      for( int xx = -xb; xx<=xb; xx++){
+
+	int ind_x = cx + xx;
+	int ind_y = cy + yy;
+
+	if( ind_x < 0 )
+	  ind_x += width;
+	if( ind_x >= width )
+	  ind_x -= width;
+	if( ind_y < 0 )
+	  ind_y += height;
+	if( ind_y >= height )
+	  ind_y -= height;
+
+	int ind = ind_x + ind_y * width;	
+
+	noisy_img[ind] += intensity;
+      }
+    }
+  }
+
+
+  //rescale
+  short min=0, max=0;
+  for( unsigned int i=0; i < width*height; i++){
+    if( noisy_img[i] > max )
+      max = noisy_img[i];
+    if( noisy_img[i] < min )
+      min = noisy_img[i];
+  }
+
+  unsigned char *img = new unsigned char[width*height]();
+  
+  for( unsigned int i=0; i < width*height; i++){
+    img[i] = (unsigned char) (((float)noisy_img[i] - min) / (max - min) * 255.0);    
+  }
+
+
+  delete[]( noisy_img );
+
+  
+  return img;
+}
+
+
+
+
+
+
+
+
+
+
+void image_manipulation::add_images( unsigned char* rhs, unsigned char* lhs,
+				     double rhs_weight, double lhs_weight,
+				     unsigned int width, unsigned int height,
+				     unsigned char* dest ){
+  
+  
+  unsigned short max=0, min=255;
+
+  
+  unsigned short *tmp_img = new unsigned short[width*height]();
+  
+  for( unsigned int ii=0; ii< width*height; ii++){    
+    tmp_img[ii] = rhs_weight * rhs[ii] + lhs_weight * lhs[ii];
+    
+    if( tmp_img[ii] > max )
+	max = tmp_img[ii];
+    
+    if( tmp_img[ii] < min )
+      min = tmp_img[ii];
+  }
+
+
+  for( unsigned int ii=0; ii< width*height; ii++){
+    dest[ii] = (unsigned char) (((float)tmp_img[ii] - min) / (max - min) * 255.0 );
+  }
+  
+  delete[](tmp_img);  
+}
+
+
+
+
+void image_manipulation::invert( unsigned char* img, unsigned int width,
+				 unsigned int height ){
+  for( unsigned int ii=0; ii< width*height; ii++){
+    img[ii] = 255 - img[ii];
+  }
+}
+
+
+
+
 
 
 #ifdef HAVE_PNG
