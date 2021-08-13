@@ -45,6 +45,11 @@ namespace level_set {
    * (1991) 83: 407. https://doi.org/10.1007/BF01313411
    */
   double primitive( double x, double y, double z, std::vector<double> inv_a);
+
+  /**
+   * P.J.F. Gandy et al. / Chemical Physics Letters 336 (2001) 187-195
+   */
+  double iwf( double x, double y, double z, std::vector<double> inv_a);
   
   /**
    * 

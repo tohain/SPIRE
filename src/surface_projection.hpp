@@ -494,6 +494,7 @@ protected:
   const std::vector<std::string> surface_choices = {"Gyroid",
 						    "Diamond",
 						    "Primitive",
+						    "I-WF",
 						    "Lonsdaleite",
 						    "Beta-M rods",
 						    "Sigma-P rods",
@@ -506,6 +507,7 @@ protected:
   const std::vector< std::vector<double> > unitcell_dim= { {1.0,1.0,1.0}, // gyr
 							   {1.0,1.0,1.0}, // dia
 							   {1.0,1.0,1.0}, // prim 
+							   {1.0,1.0,1.0}, // iwf
 							   {1.0, sqrt(3.0), 1.732692}, //lon_0.2
 							   {1.0, 1.0, 1.0}, // Beta-M rod packing
 							   {1.0, 1.0, 1.0}, // Sigma_P rod packing

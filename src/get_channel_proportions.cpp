@@ -29,12 +29,9 @@ int main(int argc, char* argv[])
 {
 
 
-  //get the surface projection done
-  double progress;// = new double;
-  std::string status;// = new char[20];
 
-
-  surface_projection sp (progress, status);
+  global_settings gs ( "global_settins.conf" );
+  surface_projection sp ( gs );
 
   //the entire cube
   sp.set_slice_width( 1 );
@@ -45,14 +42,22 @@ int main(int argc, char* argv[])
   // unit unit cell
   sp.set_uc_scale_ab( 1 );
   sp.set_uc_scale_c( 1 );
+  sp.update_geometry();
   sp.update_a();
 
   sp.set_h( 0 );
   sp.set_k( 0 );
   sp.set_l( 1 );
   sp.set_orientation_from_hkl();
-  sp.compute_uc_dim_in_orientation();
+  sp.compute_smallest_uc();
   auto dim = sp.get_uc_dim_in_orientation();
+
+  std::cout << "dim=(";
+  for( auto it : dim ){
+    std::cout << it << " ";
+  }
+  std::cout << std::endl;
+    
   
   sp.set_slice_width( dim[0] );
   sp.set_slice_height( dim[1] );
@@ -66,7 +71,8 @@ int main(int argc, char* argv[])
   sp.set_n_points_z_to_unitcell();
 
   // iterate over all available surfaces
-  for(unsigned int ii=0; ii < sp.get_surface_choices().size(); ii++){
+  // for(unsigned int ii=0; ii < sp.get_surface_choices().size(); ii++){
+  for(unsigned int ii=3; ii < 4; ii++){    
 
     // open the outputfile
     std::ofstream volumes_out ("vols_"+sp.get_surface_choices()[ii]+".dat");
@@ -126,9 +132,11 @@ int main(int argc, char* argv[])
     
     
     for( unsigned int jj=0; jj<levels.size(); jj++){
-      volumes_out << "{" << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
+      //volumes_out << "{" << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
+      // << ", " << levels[jj] << "}";
+      volumes_out << "{" << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][0] + vol_container[jj][1] + vol_container[jj][2] )
 		  << ", " << levels[jj] << "}";
-
+      
       if( jj+1 < levels.size() ){
 	volumes_out << ", ";
       }
@@ -145,7 +153,8 @@ int main(int argc, char* argv[])
     for( unsigned int jj=0; jj<levels.size(); jj++){
       
       volumes_out << "{" << levels[jj] << ", "
-		  << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
+		  << ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][0] + vol_container[jj][1] + vol_container[jj][2] )
+	//<< ( vol_container[jj][0] + (vol_container[jj][1]*0.5) ) / ( vol_container[jj][2] + (vol_container[jj][1]*0.5) )
 		  << "}"; 
       if( jj+1 < levels.size() ){
 	volumes_out << ", ";

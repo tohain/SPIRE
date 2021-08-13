@@ -61,7 +61,12 @@ endif(BUILD_QT_GUI)
 
 
 if(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
-  add_executable(SPIRE_get_channel_proportions ${SRC_BASE} ./src/get_channel_proportions.cpp)  
+
+  add_executable(SPIRE_get_channel_proportions ${SRC_BASE} ${SRC_IML} ./src/get_channel_proportions.cpp)
+
+  find_library(gmp gmp)
+  find_package(BLAS)    
+  target_link_libraries(SPIRE_get_channel_proportions  BLAS::BLAS gmp)  
 endif(BUILD_COMPUTE_CHANNEL_PROPORTIONS)
 
 

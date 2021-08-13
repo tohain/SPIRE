@@ -42,7 +42,7 @@ void GUI::set_up_ui(){
   controls->addTab( parameters_widget, "Parameters" );
   controls->addTab( measurement_widget, "Measurements" );
   controls->addTab( batch_widget, "Batch creation" );
-  controls->addTab( pp_widget, "PostProcessing" );
+  controls->addTab( pp_widget, "Post Processing" );
   controls->addTab( save_widget, "Export" );
   controls->addTab( about_widget, "About" );
   controls->addTab( license_widget, "License" );  
@@ -279,29 +279,38 @@ void GUI::set_up_ui(){
 
   gaussian_noise_magnitude = new QT_labeled_obj<QSpinBox> ( "hl", "Magnitude", pp_widget );
   gaussian_noise_magnitude->object()->setRange(1, 999);
+  gaussian_noise_magnitude->object()->setValue( 50 );
   gaussian_blur_kernelsize = new QT_labeled_obj<QSpinBox> ( "hl", "Kernel Size", pp_widget );
   gaussian_blur_kernelsize->object()->setRange(1, 999);
+  gaussian_blur_kernelsize->object()->setValue( 2 );  
 
   grains_gsize_c = new QT_labeled_obj<QSpinBox> ( "vl", "Size Center" );
   grains_gsize_c->object()->setRange(1, 999);
+  grains_gsize_c->object()->setValue( 50 );  
 
   grains_gsize_s = new QT_labeled_obj<QSpinBox> ( "vl", "Size StdDev" );
   grains_gsize_s->object()->setRange(1, 999);
+  grains_gsize_s->object()->setValue( 10 );  
 
   grains_gnumber_c = new QT_labeled_obj<QSpinBox> ( "vl", "Number Center" );
   grains_gnumber_c->object()->setRange(1, 999);
+  grains_gnumber_c->object()->setValue( 50  );  
 
   grains_gnumber_s = new QT_labeled_obj<QSpinBox> ( "vl", "Number StdDev" );
   grains_gnumber_s->object()->setRange(1, 999);
+  grains_gnumber_s->object()->setValue( 1 );  
 
   grains_magnitude = new QT_labeled_obj<QSpinBox> ( "vl", "Magnitude" );
   grains_magnitude->object()->setRange(1, 999);
+  grains_magnitude->object()->setValue( 30 );  
 
   grains_kernelsize = new QT_labeled_obj<QSpinBox> ( "vl", "Blur" );
   grains_kernelsize->object()->setRange(0, 999);
+  grains_kernelsize->object()->setValue( 4 );  
 
   grains_mix = new QT_labeled_obj<QDoubleSpinBox> ( "vl", "Mix" );
-  grains_mix->object()->setRange(0.0, 1.0);    
+  grains_mix->object()->setRange(0.0, 1.0);
+  grains_mix->object()->setValue( 0.5 );  
 
   gaussian_noise_activate = new QCheckBox ( pp_widget );
   gaussian_noise_activate->setText( "Gaussian Noise" );

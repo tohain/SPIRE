@@ -355,7 +355,7 @@ public:
       
     }    
 
-    if( gaussian_blur > 0 ){
+    if( gaussian_blur > 0 && gaussian_blur > 0 ){
       image_manipulation::gaussian_blur( img, sp.get_width(), sp.get_height(), gaussian_blur );
     }
 

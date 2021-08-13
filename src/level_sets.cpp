@@ -20,44 +20,58 @@
 #include "level_sets.hpp"
 
 /**
-   * Nodal representation of a Gyroid Ia\bar(3)d surface. From
-   *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
-   * (1991) 83: 407. https://doi.org/10.1007/BF01313411
-   */
+ * Nodal representation of a Gyroid Ia\bar(3)d surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
 double level_set::gyroid( double x, double y, double z, std::vector<double> inv_a) {
-    return sin(inv_a[0]*x)*cos(inv_a[1]*y) + sin(inv_a[1]*y)*cos(inv_a[2]*z) + cos(inv_a[0]*x)*sin(inv_a[2]*z);
-  }
+  return sin(inv_a[0]*x)*cos(inv_a[1]*y) + sin(inv_a[1]*y)*cos(inv_a[2]*z) + cos(inv_a[0]*x)*sin(inv_a[2]*z);
+}
 
 
-  /**
-   * Nodal representation of a Diamond Pn\bar(3)m surface. From
-   *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
-   * (1991) 83: 407. https://doi.org/10.1007/BF01313411
-   */
-  double level_set::diamond( double x, double y, double z, std::vector<double> inv_a) {
-    return cos(inv_a[0]*x)*cos(inv_a[1]*y)*cos(inv_a[2]*z) - sin(inv_a[0]*x)*sin(inv_a[1]*y)*sin(inv_a[2]*z);
-  }
-  
-  
-  /**
-   * Nodal representation of a Primitive Im\bar(3)m surface. From
-   *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
-   * (1991) 83: 407. https://doi.org/10.1007/BF01313411
-   */
-  double level_set::primitive( double x, double y, double z, std::vector<double> inv_a) {
-    return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
-  }
-  
-  /**
-   *
-   *
-   */
-  double level_set::lonsdaleite( double x, double y, double z, std::vector<double> inv_a) {
-    
-    double freq_x = inv_a[0];
-    double freq_y = inv_a[1];
-    double freq_z = inv_a[2];      
+/**
+ * Nodal representation of a Diamond Pn\bar(3)m surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
+double level_set::diamond( double x, double y, double z, std::vector<double> inv_a) {
+  return cos(inv_a[0]*x)*cos(inv_a[1]*y)*cos(inv_a[2]*z) - sin(inv_a[0]*x)*sin(inv_a[1]*y)*sin(inv_a[2]*z);
+}
 
+
+/**
+ * Nodal representation of a Primitive Im\bar(3)m surface. From
+ *  Schnering, H.G. & Nesper, R. Z. Physik B - Condensed Matter
+ * (1991) 83: 407. https://doi.org/10.1007/BF01313411
+ */
+double level_set::primitive( double x, double y, double z, std::vector<double> inv_a) {
+  return cos(inv_a[0]*x)+cos(inv_a[1]*y)+cos(inv_a[2]*z);
+}
+
+/**
+ * P.J.F. Gandy et al. / Chemical Physics Letters 336 (2001) 187-195
+ */
+double level_set::iwf( double x, double y, double z, std::vector<double> inv_a){
+
+  return 2 * (cos(inv_a[0]*x)*cos(inv_a[1]*y)
+	      + cos(inv_a[2]*z)*cos(inv_a[0]*x)
+	      + cos(inv_a[1]*y)*cos(inv_a[2]*z) )
+    - ( cos(2*inv_a[0]*x)
+	+ cos(2*inv_a[1]*y)
+	+ cos(2*inv_a[2]*z) );
+}
+
+
+/**
+ *
+ *
+ */
+double level_set::lonsdaleite( double x, double y, double z, std::vector<double> inv_a) {
+  
+  double freq_x = inv_a[0];
+  double freq_y = inv_a[1];
+  double freq_z = inv_a[2];      
+  
     return + 0.0010124 - 0.360068*cos(2*+freq_z*z) + 0.221998*cos(2*+freq_y*y) + 0.225139*sin(2*+freq_y*y)*sin(+freq_z*z) + 0.445276*cos(freq_x*x)*cos(+freq_y*y) - 0.451854*cos(freq_x*x)*sin(+freq_y*y)*sin(+freq_z*z) + 0.211026*cos(freq_x*x)*cos(3*+freq_y*y)*cos(2*+freq_z*z);
     
   }
