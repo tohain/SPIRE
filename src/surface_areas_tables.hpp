@@ -59,7 +59,6 @@ public:
     } else if ( surface == "Gyroid" ){
       map = &G_SURFACE_VOL;
     } else if ( surface == "I-WF" ){
-      std::cout <<" get f***" << std::endl;
       map = &I_SURFACE_VOL;
     } else if ( surface.substr(0,11) == "Lonsdaleite" ){
       map = &L_SURFACE_VOL;
@@ -116,8 +115,7 @@ public:
     } else if ( surface == "Gyroid" ){
       map = &G_SURFACE_VOL_INV;
     } else if ( surface == "I-WF" ){
-      std::cout <<" get f***" << std::endl;
-      map = &I_SURFACE_VOL;      
+      map = &I_SURFACE_VOL_INV;
     } else if ( surface.substr(0, 11)  == "Lonsdaleite" ){
       map = &L_SURFACE_VOL_INV;      
     } else {
