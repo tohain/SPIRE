@@ -586,10 +586,10 @@ void surface_projection::set_grid(){
       level = level_set::diamond( points[ii], points[ii+1], points[ii+2], inv_a );
     } else if( type == 2 ){ // primitive
       level = level_set::primitive( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 3 ){ // iwf
-      level = level_set::iwf( points[ii], points[ii+1], points[ii+2], inv_a );
-    } else if( type == 4 ){ // lonsdaleite
-      level = level_set::lonsdaleite( points[ii], points[ii+1], points[ii+2], inv_a );      
+    } else if( type == 3 ){ // lonsdaleite
+      level = level_set::lonsdaleite( points[ii], points[ii+1], points[ii+2], inv_a );
+    } else if( type == 4 ){ // iwf
+      level = level_set::iwf( points[ii], points[ii+1], points[ii+2], inv_a );      
     } else if( type == 5 ){ // beta-m rods
       level = level_set::beta_m( points[ii], points[ii+1], points[ii+2], inv_a );            
     } else if( type == 6 ){ // sigma-p rods
