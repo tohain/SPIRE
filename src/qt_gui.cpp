@@ -1541,7 +1541,7 @@ void GUI::update_stats(){
   uc_orient_info << "UC in orientation<br/>";
   uc_orient_info << "<font color=\"" << gs.g_color_b1 << "\">v:  " << uc_dim[0] << " (" << uc_base[0] << "," << uc_base[1] << "," << uc_base[2] << ")" << "</font><br/>";
   uc_orient_info << "<font color=\"" << gs.g_color_b2 << "\">w:  " << uc_dim[1] << " (" << uc_base[3] << "," << uc_base[4] << "," << uc_base[5] << ")"<< "</font><br/>";
-  uc_orient_info << "<font color=\"" << gs.g_color_n  << "\">n:  " << uc_dim[2] << " (" << sp->get_h() << "," << sp->get_k() << "," << sp->get_l() << ")"<< "</font><br/>"; 
+  uc_orient_info << "<font color=\"" << gs.g_color_n  << "\">n:  " << uc_dim[2] << " (" << uc_base[6] << "," << uc_base[7] << "," << uc_base[8] << ")"<< "</font><br/>"; 
   
   pix_info << "Resolution (pixel size)" << std::endl;
   pix_info << "X: " << std::setw(5) << sp->get_width()

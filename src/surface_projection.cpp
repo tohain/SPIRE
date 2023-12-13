@@ -1120,9 +1120,9 @@ void surface_projection::set_slice_to_primitive_uc(){
  * plane distance and checks if the current point is a lattice point
  * of the direct lattice. The function stops at a cutoff value.
  *
- * \param[in] The direction in which to look
- * \param[in] The distance between lattice planes
- * \param[in] The maximum length
+ * \param[in] n The direction in which to look
+ * \param[in] d_lattice The distance between lattice planes
+ * \param[in] cutoff The maximum length
  */
 std::vector<int> surface_projection::compute_periodicity( std::vector<double> n,
 							  double d_lattice,
@@ -2169,7 +2169,9 @@ std::vector<double> surface_projection::get_uc_base() const {
   std::vector<int> n = {h, k ,l};
   std::vector<double> a = VEC_MAT_MATH::dot_prod( A_dir, b1 );
   std::vector<double> b = VEC_MAT_MATH::dot_prod( A_dir, b2 );
-  std::vector<double> c = VEC_MAT_MATH::dot_prod( A_rec, n );
+  // TODO: double check if we need A_rec or A_dir here!
+  //std::vector<double> c = VEC_MAT_MATH::dot_prod( A_rec, n );
+  std::vector<double> c = VEC_MAT_MATH::dot_prod( A_dir, n );
   
   return std::vector<double> {a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]};
 }
